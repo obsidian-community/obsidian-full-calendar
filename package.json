@@ -12,12 +12,14 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/luxon": "^2.0.9",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "^5.2.0",
 		"@typescript-eslint/parser": "^5.2.0",
 		"builtin-modules": "^3.2.0",
 		"esbuild": "0.13.12",
 		"obsidian": "^0.12.17",
+		"prettier": "2.5.1",
 		"tslib": "2.3.1",
 		"typescript": "4.4.4"
 	},
@@ -25,6 +27,7 @@
 		"@fullcalendar/core": "^5.10.1",
 		"@fullcalendar/daygrid": "^5.10.1",
 		"@fullcalendar/list": "^5.10.1",
-		"@fullcalendar/timegrid": "^5.10.1"
+		"@fullcalendar/timegrid": "^5.10.1",
+		"luxon": "^2.3.0"
 	}
 }

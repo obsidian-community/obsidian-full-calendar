@@ -1,58 +1,63 @@
-import { FrontMatterCache, ItemView, TFile, TFolder, WorkspaceLeaf } from "obsidian";
-import { Calendar } from '@fullcalendar/core';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import listPlugin from '@fullcalendar/list';
+import { ItemView, TFile, TFolder, WorkspaceLeaf } from "obsidian";
+import { Calendar, EventInput } from "@fullcalendar/core";
 
-export const VIEW_TYPE_EXAMPLE = "example-view";
+import {
+	EventFrontmatter,
+	processFrontmatter,
+	renderCalendar,
+} from "./calendar";
 
-export class ExampleView extends ItemView {
-  calendar: Calendar;
-  constructor(leaf: WorkspaceLeaf) {
-    super(leaf);
-  }
+export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
-  getViewType() {
-    return VIEW_TYPE_EXAMPLE;
-  }
+export class CalendarView extends ItemView {
+	calendar: Calendar;
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+	}
 
-  getDisplayText() {
-    return "Example view";
-  }
+	getViewType() {
+		return FULL_CALENDAR_VIEW_TYPE;
+	}
 
-  async onOpen() {
-    const events = this.app.vault.getAbstractFileByPath("events");
-    if (events instanceof TFolder) {
-        for (let event of events.children) {
-            if (event instanceof TFile) {
-                let metadata = this.app.metadataCache.getFileCache(event);
-                let frontmatter = metadata.frontmatter;
-                if (!metadata.frontmatter) continue;
-                let {date, start_time, end_time} = frontmatter;
-                console.log(date, start_time, end_time)
-            }
-        }
-    }
-    const container = this.containerEl.children[1];
-    container.empty();
-    let calendarEl = container.createEl("div");
-    this.calendar = new Calendar(calendarEl, {
-        plugins: [ dayGridPlugin, timeGridPlugin, listPlugin ],
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,listWeek'
-        }
-      });
-      this.calendar.render();
-  }
+	getDisplayText() {
+		return "Calendar";
+	}
 
-  onResize(): void {
-      this.calendar.render()
-  }
+	async onOpen() {
+		const eventFolder = this.app.vault.getAbstractFileByPath("events");
+		if (!(eventFolder instanceof TFolder)) {
+			return;
+		}
 
-  async onClose() {
-      this.calendar.destroy()
-  }
+		let events: EventInput[] = [];
+		if (eventFolder instanceof TFolder) {
+			for (let event of eventFolder.children) {
+				if (event instanceof TFile) {
+					let metadata = this.app.metadataCache.getFileCache(event);
+					let frontmatter = metadata.frontmatter;
+					if (!metadata.frontmatter) continue;
+					events.push(
+						processFrontmatter(
+							event,
+							frontmatter as unknown as EventFrontmatter
+						)
+					);
+				}
+			}
+		}
+
+		const container = this.containerEl.children[1];
+		container.empty();
+		let calendarEl = container.createEl("div");
+		this.calendar = renderCalendar(calendarEl, events);
+		this.calendar.render();
+	}
+
+	onResize(): void {
+		this.calendar.render();
+	}
+
+	async onClose() {
+		this.calendar.destroy();
+	}
 }
