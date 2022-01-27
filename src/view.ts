@@ -37,10 +37,11 @@ export class CalendarView extends ItemView {
 					let frontmatter = metadata.frontmatter;
 					if (!metadata.frontmatter) continue;
 					events.push(
-						processFrontmatter(
-							{ id: event.name, title: event.basename },
-							frontmatter as unknown as EventFrontmatter
-						)
+						processFrontmatter({
+							id: event.name,
+							title: event.basename,
+							...(frontmatter as unknown as EventFrontmatter),
+						})
 					);
 				}
 			}

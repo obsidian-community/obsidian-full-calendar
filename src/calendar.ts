@@ -42,12 +42,12 @@ const add = (date: DateTime, time: Duration) => {
 const DAYS = "UMTWRFS";
 
 export function processFrontmatter(
-	pageInfo: { id: string; title: string },
-	frontmatter: EventFrontmatter
+	frontmatter: { id: string; title: string } & EventFrontmatter
 ): EventInput {
 	if (frontmatter.type === "recurring") {
 		return {
-			...pageInfo,
+			id: frontmatter.id,
+			title: frontmatter.title,
 			startTime: formatTime(frontmatter.startTime).toISOTime({
 				includePrefix: false,
 			}),
@@ -60,7 +60,8 @@ export function processFrontmatter(
 		};
 	} else {
 		return {
-			...pageInfo,
+			id: frontmatter.id,
+			title: frontmatter.title,
 			start: add(
 				DateTime.fromISO(frontmatter.date),
 				formatTime(frontmatter.startTime)
