@@ -6,13 +6,16 @@ import {
 	processFrontmatter,
 	renderCalendar,
 } from "./calendar";
+import FullCalendarPlugin from "main";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
 export class CalendarView extends ItemView {
 	calendar: Calendar;
-	constructor(leaf: WorkspaceLeaf) {
+	plugin: FullCalendarPlugin;
+	constructor(leaf: WorkspaceLeaf, plugin: FullCalendarPlugin) {
 		super(leaf);
+		this.plugin = plugin;
 	}
 
 	getViewType() {
@@ -24,7 +27,10 @@ export class CalendarView extends ItemView {
 	}
 
 	async onOpen() {
-		const eventFolder = this.app.vault.getAbstractFileByPath("events");
+		await this.plugin.loadSettings();
+		const eventFolder = this.app.vault.getAbstractFileByPath(
+			this.plugin.settings.eventsDirectory
+		);
 		if (!(eventFolder instanceof TFolder)) {
 			return;
 		}
