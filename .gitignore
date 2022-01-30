@@ -11,6 +11,10 @@ node_modules
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.
 main.js
+# This is built as main.css and then moved as part of the
+# release process.
+styles.css
+main.css
 
 # Exclude sourcemaps
 *.map
