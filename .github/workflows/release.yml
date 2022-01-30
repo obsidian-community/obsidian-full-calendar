@@ -75,6 +75,9 @@ jobs:
                   asset_name: manifest.json
                   asset_content_type: application/json
 
+            - name: move main.css to styles.css
+              run: mv main.css styles.css
+
             - name: Upload styles.css
               id: upload-css
               uses: actions/upload-release-asset@v1
