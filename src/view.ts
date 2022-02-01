@@ -82,7 +82,10 @@ export class CalendarView extends ItemView {
 	}
 
 	async onClose() {
-		this.calendar && this.calendar.destroy();
+		if (this.calendar) {
+			this.calendar.destroy();
+			this.calendar = null;
+		}
 		this.app.metadataCache.off("changed", this.onCacheUpdate);
 	}
 }
