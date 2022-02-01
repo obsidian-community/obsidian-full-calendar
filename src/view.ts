@@ -11,11 +11,12 @@ import FullCalendarPlugin from "main";
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
 export class CalendarView extends ItemView {
-	calendar: Calendar;
+	calendar: Calendar | null;
 	plugin: FullCalendarPlugin;
 	constructor(leaf: WorkspaceLeaf, plugin: FullCalendarPlugin) {
 		super(leaf);
 		this.plugin = plugin;
+		this.calendar = null;
 	}
 
 	getViewType() {
@@ -24,6 +25,28 @@ export class CalendarView extends ItemView {
 
 	getDisplayText() {
 		return "Calendar";
+	}
+
+	getEventData(file: TFile): EventInput | null {
+		let frontmatter = this.app.metadataCache.getFileCache(file)
+			?.frontmatter as EventFrontmatter | undefined;
+		if (!frontmatter) return null;
+		return processFrontmatter({
+			id: file.path,
+			title: file.basename,
+			...frontmatter,
+		});
+	}
+
+	onCacheUpdate(file: TFile) {
+		let calendarEvent = this.calendar?.getEventById(file.path);
+		let newEventData = this.getEventData(file);
+		if (newEventData !== null) {
+			if (calendarEvent) {
+				calendarEvent.remove();
+			}
+			this.calendar?.addEvent(newEventData);
+		}
 	}
 
 	async onOpen() {
@@ -37,18 +60,12 @@ export class CalendarView extends ItemView {
 
 		let events: EventInput[] = [];
 		if (eventFolder instanceof TFolder) {
-			for (let event of eventFolder.children) {
-				if (event instanceof TFile) {
-					let metadata = this.app.metadataCache.getFileCache(event);
-					let frontmatter = metadata.frontmatter;
-					if (!metadata.frontmatter) continue;
-					events.push(
-						processFrontmatter({
-							id: event.name,
-							title: event.basename,
-							...(frontmatter as unknown as EventFrontmatter),
-						})
-					);
+			for (let file of eventFolder.children) {
+				if (file instanceof TFile) {
+					let event = this.getEventData(file);
+					if (event) {
+						events.push(event);
+					}
 				}
 			}
 		}
@@ -57,14 +74,15 @@ export class CalendarView extends ItemView {
 		container.empty();
 		let calendarEl = container.createEl("div");
 		this.calendar = renderCalendar(calendarEl, events);
-		this.calendar.render();
+		this.app.metadataCache.on("changed", this.onCacheUpdate);
 	}
 
 	onResize(): void {
-		this.calendar.render();
+		this.calendar && this.calendar.render();
 	}
 
 	async onClose() {
-		this.calendar.destroy();
+		this.calendar && this.calendar.destroy();
+		this.app.metadataCache.off("changed", this.onCacheUpdate);
 	}
 }

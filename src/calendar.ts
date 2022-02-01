@@ -10,6 +10,7 @@ interface SingleEventFrontmatter {
 	date: string;
 	startTime: string;
 	endTime: string;
+	allDay?: boolean;
 }
 
 interface RecurringEventFrontmatter {
@@ -19,19 +20,25 @@ interface RecurringEventFrontmatter {
 	endTime: string;
 	startDate?: string;
 	endDate?: string;
+	allDay?: boolean;
 }
 
 export type EventFrontmatter =
 	| SingleEventFrontmatter
 	| RecurringEventFrontmatter;
 
-const formatTime = (time: string): Duration =>
-	Duration.fromISOTime(
-		DateTime.fromFormat(time, "h:mm a").toISOTime({
+const formatTime = (time: string): Duration => {
+	let parsed = DateTime.fromFormat(time, "h:mm a");
+	if (parsed.invalidReason) {
+		parsed = DateTime.fromFormat(time, "HH:mm");
+	}
+	return Duration.fromISOTime(
+		parsed.toISOTime({
 			includeOffset: false,
 			includePrefix: false,
 		})
 	);
+};
 
 const add = (date: DateTime, time: Duration) => {
 	let hours = time.hours;
@@ -57,11 +64,13 @@ export function processFrontmatter(
 			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
 			startRecur: frontmatter.startDate,
 			endRecur: frontmatter.startDate,
+			allDay: frontmatter.allDay,
 		};
 	} else {
 		return {
 			id: frontmatter.id,
 			title: frontmatter.title,
+			allDay: frontmatter.allDay,
 			start: add(
 				DateTime.fromISO(frontmatter.date),
 				formatTime(frontmatter.startTime)
@@ -74,8 +83,11 @@ export function processFrontmatter(
 	}
 }
 
-export function renderCalendar(containerEl: HTMLElement, events: EventInput[]) {
-	return new Calendar(containerEl, {
+export function renderCalendar(
+	containerEl: HTMLElement,
+	events: EventInput[]
+): Calendar {
+	const cal = new Calendar(containerEl, {
 		plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
 		initialView: "timeGridWeek",
 		nowIndicator: true,
@@ -86,4 +98,6 @@ export function renderCalendar(containerEl: HTMLElement, events: EventInput[]) {
 		},
 		events: events,
 	});
+	cal.render();
+	return cal;
 }

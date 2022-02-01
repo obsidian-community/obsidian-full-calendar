@@ -15,6 +15,9 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
 import { processFrontmatter, renderCalendar } from "src/calendar";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { EditEvent } from "./src/EditEvent";
 // Remember to rename these classes and interfaces!
 
 interface FullCalendarSettings {
@@ -60,6 +63,14 @@ export default class FullCalendarPlugin extends Plugin {
 		);
 
 		this.addSettingTab(new FullCalendarSettingTab(this.app, this));
+
+		this.addCommand({
+			id: "full-calendar-new-event",
+			name: "New Event",
+			callback: () => {
+				new NewEventModal(this.app, this).open();
+			},
+		});
 	}
 
 	onunload() {
@@ -76,6 +87,31 @@ export default class FullCalendarPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+}
+
+export class NewEventModal extends Modal {
+	plugin: FullCalendarPlugin;
+	constructor(app: App, plugin: FullCalendarPlugin) {
+		super(app);
+		this.plugin = plugin;
+	}
+
+	onOpen() {
+		const { contentEl } = this;
+		ReactDOM.render(
+			React.createElement(EditEvent, {
+				app: this.app,
+				modal: this,
+				plugin: this.plugin,
+			}),
+			contentEl
+		);
+	}
+
+	onClose() {
+		const { contentEl } = this;
+		ReactDOM.unmountComponentAtNode(contentEl);
 	}
 }
 
