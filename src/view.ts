@@ -1,22 +1,22 @@
 import { ItemView, TFile, TFolder, WorkspaceLeaf } from "obsidian";
-import { Calendar, EventInput } from "@fullcalendar/core";
+import { Calendar, EventApi, EventInput } from "@fullcalendar/core";
 
-import {
-	EventFrontmatter,
-	processFrontmatter,
-	renderCalendar,
-} from "./calendar";
+import { processFrontmatter, renderCalendar } from "./calendar";
 import FullCalendarPlugin from "main";
+import { EventFrontmatter } from "./types";
+import { EventModal } from "./modal";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
 export class CalendarView extends ItemView {
 	calendar: Calendar | null;
 	plugin: FullCalendarPlugin;
+	cacheCallback: (file: TFile) => void;
 	constructor(leaf: WorkspaceLeaf, plugin: FullCalendarPlugin) {
 		super(leaf);
 		this.plugin = plugin;
 		this.calendar = null;
+		this.cacheCallback = this.onCacheUpdate.bind(this);
 	}
 
 	getViewType() {
@@ -27,9 +27,14 @@ export class CalendarView extends ItemView {
 		return "Calendar";
 	}
 
+	getEventFrontmatter(file: TFile): EventFrontmatter | undefined {
+		return this.app.metadataCache.getFileCache(file)?.frontmatter as
+			| EventFrontmatter
+			| undefined;
+	}
+
 	getEventData(file: TFile): EventInput | null {
-		let frontmatter = this.app.metadataCache.getFileCache(file)
-			?.frontmatter as EventFrontmatter | undefined;
+		let frontmatter = this.getEventFrontmatter(file);
 		if (!frontmatter) return null;
 		return processFrontmatter({
 			id: file.path,
@@ -39,6 +44,7 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
+		console.log("CALLING ONCACHEUPDATE()");
 		let calendarEvent = this.calendar?.getEventById(file.path);
 		let newEventData = this.getEventData(file);
 		if (newEventData !== null) {
@@ -46,6 +52,15 @@ export class CalendarView extends ItemView {
 				calendarEvent.remove();
 			}
 			this.calendar?.addEvent(newEventData);
+		}
+	}
+
+	async eventClicked(event: EventApi) {
+		let file = this.app.vault.getAbstractFileByPath(event.id);
+		if (file instanceof TFile) {
+			let eventData = this.getEventFrontmatter(file);
+			let modal = new EventModal(this.app, this.plugin, eventData);
+			modal.open();
 		}
 	}
 
@@ -73,8 +88,12 @@ export class CalendarView extends ItemView {
 		const container = this.containerEl.children[1];
 		container.empty();
 		let calendarEl = container.createEl("div");
-		this.calendar = renderCalendar(calendarEl, events);
-		this.app.metadataCache.on("changed", this.onCacheUpdate);
+		this.calendar = renderCalendar(
+			calendarEl,
+			events,
+			this.eventClicked.bind(this)
+		);
+		this.app.metadataCache.on("changed", this.cacheCallback);
 	}
 
 	onResize(): void {
@@ -86,6 +105,6 @@ export class CalendarView extends ItemView {
 			this.calendar.destroy();
 			this.calendar = null;
 		}
-		this.app.metadataCache.off("changed", this.onCacheUpdate);
+		this.app.metadataCache.off("changed", this.cacheCallback);
 	}
 }

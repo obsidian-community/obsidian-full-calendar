@@ -1,4 +1,4 @@
-import { Calendar, EventInput } from "@fullcalendar/core";
+import { Calendar, EventApi, EventInput } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
@@ -6,7 +6,8 @@ import { DateTime, Duration } from "luxon";
 import { TFile } from "obsidian";
 import { EventFrontmatter } from "./types";
 
-const formatTime = (time: string): Duration => {
+const formatTime = (time: string | undefined): Duration => {
+	if (!time) time = ""; // TODO: handle missing times
 	let parsed = DateTime.fromFormat(time, "h:mm a");
 	if (parsed.invalidReason) {
 		parsed = DateTime.fromFormat(time, "HH:mm");
@@ -34,10 +35,10 @@ export function processFrontmatter(
 		return {
 			id: frontmatter.id,
 			title: frontmatter.title,
-			startTime: formatTime(frontmatter.startTime).toISOTime({
+			startTime: formatTime(frontmatter.startTime || "").toISOTime({
 				includePrefix: false,
 			}),
-			endTime: formatTime(frontmatter.endTime).toISOTime({
+			endTime: formatTime(frontmatter.endTime || "").toISOTime({
 				includePrefix: false,
 			}),
 			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
@@ -52,11 +53,11 @@ export function processFrontmatter(
 			allDay: frontmatter.allDay,
 			start: add(
 				DateTime.fromISO(frontmatter.date),
-				formatTime(frontmatter.startTime)
+				formatTime(frontmatter.startTime || "")
 			).toISO(),
 			end: add(
 				DateTime.fromISO(frontmatter.date),
-				formatTime(frontmatter.endTime)
+				formatTime(frontmatter.endTime || "")
 			).toISO(),
 		};
 	}
@@ -64,7 +65,8 @@ export function processFrontmatter(
 
 export function renderCalendar(
 	containerEl: HTMLElement,
-	events: EventInput[]
+	events: EventInput[],
+	openEvent?: (event: EventApi) => void
 ): Calendar {
 	const cal = new Calendar(containerEl, {
 		plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
@@ -76,6 +78,7 @@ export function renderCalendar(
 			right: "dayGridMonth,timeGridWeek,listWeek",
 		},
 		events: events,
+		eventClick: openEvent ? (info) => openEvent(info.event) : undefined,
 	});
 	cal.render();
 	return cal;

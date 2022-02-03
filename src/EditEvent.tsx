@@ -1,8 +1,3 @@
-/*
-
-*/
-import FullCalendarPlugin, { NewEventModal } from "main";
-import { App } from "obsidian";
 import * as React from "react";
 import { useState } from "react";
 import { EventFrontmatter } from "./types";
@@ -82,7 +77,7 @@ const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
 
 interface EditEventProps {
 	submit: (frontmatter: EventFrontmatter) => Promise<void>;
-	initialEvent: EventFrontmatter | null;
+	initialEvent?: EventFrontmatter;
 }
 
 export const EditEvent = ({ initialEvent, submit }: EditEventProps) => {

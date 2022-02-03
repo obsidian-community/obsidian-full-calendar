@@ -1,25 +1,8 @@
-import {
-	App,
-	Editor,
-	MarkdownView,
-	Modal,
-	Notice,
-	Plugin,
-	PluginSettingTab,
-	Setting,
-	TFolder,
-} from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting, TFolder } from "obsidian";
 import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "src/view";
-import { Calendar } from "@fullcalendar/core";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import listPlugin from "@fullcalendar/list";
 import { processFrontmatter, renderCalendar } from "src/calendar";
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import { EditEvent } from "./src/EditEvent";
-import { EventFrontmatter } from "src/types";
-// Remember to rename these classes and interfaces!
+
+import { EventModal } from "src/modal";
 
 interface FullCalendarSettings {
 	eventsDirectory: string;
@@ -69,7 +52,7 @@ export default class FullCalendarPlugin extends Plugin {
 			id: "full-calendar-new-event",
 			name: "New Event",
 			callback: () => {
-				new NewEventModal(this.app, this).open();
+				new EventModal(this.app, this).open();
 			},
 		});
 	}
@@ -88,46 +71,6 @@ export default class FullCalendarPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-}
-
-export class NewEventModal extends Modal {
-	plugin: FullCalendarPlugin;
-	constructor(app: App, plugin: FullCalendarPlugin) {
-		super(app);
-		this.plugin = plugin;
-	}
-
-	async submitEvent(event: EventFrontmatter) {
-		let page = "---\n";
-		for (let [k, v] of Object.entries(event)) {
-			page += `${k}: ${JSON.stringify(v)}\n`;
-		}
-		page += "---\n";
-		const file = await this.app.vault.create(
-			`events/${event.title}.md`,
-			page
-		);
-		// let leaf = this.app.workspace.getMostRecentLeaf();
-		// await leaf.openFile(file);
-		await this.plugin.activateView();
-		this.close();
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		ReactDOM.render(
-			React.createElement(EditEvent, {
-				initialEvent: null,
-				submit: this.submitEvent.bind(this),
-			}),
-			contentEl
-		);
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		ReactDOM.unmountComponentAtNode(contentEl);
 	}
 }
 
