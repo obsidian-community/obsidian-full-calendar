@@ -1,8 +1,11 @@
+/*
+
+*/
 import FullCalendarPlugin, { NewEventModal } from "main";
 import { App } from "obsidian";
 import * as React from "react";
 import { useState } from "react";
-import Select from "react-select";
+import { EventFrontmatter } from "./types";
 
 function makeChangeListener<T>(
 	setState: React.Dispatch<React.SetStateAction<T>>,
@@ -10,6 +13,37 @@ function makeChangeListener<T>(
 ): React.ChangeEventHandler<HTMLInputElement> {
 	return (e) => setState(fromString(e.target.value));
 }
+
+interface DayChoiceProps {
+	code: string;
+	label: string;
+	isSelected: boolean;
+	onClick: (code: string) => void;
+}
+const DayChoice = ({ code, label, isSelected, onClick }: DayChoiceProps) => (
+	<button
+		type="button"
+		style={{
+			marginLeft: "0.25rem",
+			marginRight: "0.25rem",
+			padding: "0",
+			backgroundColor: isSelected
+				? "var(--interactive-accent)"
+				: "var(--interactive-normal)",
+			color: isSelected ? "var(--text-on-accent)" : "var(--text-normal)",
+			// backgroundColor: isSelected ? "blue" : undefined,
+			// color: isSelected ? "white" : "black",
+			borderStyle: "solid",
+			borderWidth: "1px",
+			borderRadius: "50%",
+			width: "25px",
+			height: "25px",
+		}}
+		onClick={() => onClick(code)}
+	>
+		<b>{label[0]}</b>
+	</button>
+);
 
 const DAY_MAP = {
 	U: "Sunday",
@@ -29,94 +63,73 @@ const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
 	};
 	return (
 		<div>
-			<h4>Days of the Week</h4>
 			{Object.entries(DAY_MAP).map(([code, label]) => (
-				<span key={code}>
-					<label htmlFor={`day-${code}`}>{label}</label>
-					<input
-						type="checkbox"
-						id={`day-${code}`}
-						checked={selected.includes(code)}
-						onChange={(e) =>
-							e.target.checked
-								? setSelected([code, ...selected])
-								: setSelected(selected.filter((c) => c != code))
-						}
-					/>
-					<br />
-				</span>
+				<DayChoice
+					key={code}
+					code={code}
+					label={label}
+					isSelected={selected.includes(code)}
+					onClick={() =>
+						selected.includes(code)
+							? setSelected(selected.filter((c) => c !== code))
+							: setSelected([code, ...selected])
+					}
+				/>
 			))}
 		</div>
 	);
 };
 
-export const EditEvent = ({
-	app,
-	modal,
-	plugin,
-}: {
-	app: App;
-	plugin: FullCalendarPlugin;
-	modal: NewEventModal;
-}) => {
-	const [date, setDate] = useState("");
-	const [startTime, setStartTime] = useState("");
-	const [endTime, setEndTime] = useState("");
-	const [title, setTitle] = useState("");
-	const [isRecurring, setIsRecurring] = useState(false);
+interface EditEventProps {
+	submit: (frontmatter: EventFrontmatter) => Promise<void>;
+	initialEvent: EventFrontmatter | null;
+}
+
+export const EditEvent = ({ initialEvent, submit }: EditEventProps) => {
+	const [date, setDate] = useState(
+		(initialEvent?.type === "recurring"
+			? initialEvent.startDate
+			: initialEvent?.date) || ""
+	);
+	const [startTime, setStartTime] = useState(initialEvent?.startTime || "");
+	const [endTime, setEndTime] = useState(initialEvent?.endTime || "");
+	const [title, setTitle] = useState(initialEvent?.title || "");
+	const [isRecurring, setIsRecurring] = useState(
+		initialEvent?.type === "recurring" || false
+	);
 	const [endDate, setEndDate] = useState("");
-	const [daysOfWeek, setDaysOfWeek] = useState<string[]>([]);
+	const [daysOfWeek, setDaysOfWeek] = useState<string[]>(
+		initialEvent?.type === "recurring" ? initialEvent.daysOfWeek : []
+	);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		let page: string;
 		if (isRecurring) {
-			page = `---
-title: ${title}
-type: recurring
-daysOfWeek: ${JSON.stringify(daysOfWeek)}
-startTime: ${startTime}
-endTime: ${endTime}
----\n`;
+			await submit({
+				type: "recurring",
+				title,
+				daysOfWeek,
+				startTime,
+				endTime,
+			});
 		} else {
-			page = `---
-title: ${title}
-date: ${date}
-startTime: ${startTime}
-endTime: ${endTime}
----\n`;
+			await submit({ title, date, startTime, endTime });
 		}
-		const file = await app.vault.create(`events/${title}.md`, page);
-		let leaf = app.workspace.getMostRecentLeaf();
-		// await leaf.openFile(file);
-		await plugin.activateView();
-		modal.close();
 	};
 
 	return (
 		<form onSubmit={handleSubmit}>
 			<p>
-				<label htmlFor="recurring">Recurring Event </label>
-				<input
-					checked={isRecurring}
-					onChange={(e) => setIsRecurring(e.target.checked)}
-					type="checkbox"
-				/>
-			</p>
-			<p>
-				<label htmlFor="title">Title </label>
 				<input
 					type="text"
 					id="title"
 					value={title}
+					placeholder={"Add title"}
 					required
 					onChange={makeChangeListener(setTitle, (x) => x)}
 				/>
 			</p>
 			<p>
-				<label htmlFor="date">
-					{isRecurring ? "Start date" : "Date"}{" "}
-				</label>
 				<input
 					type="date"
 					id="date"
@@ -124,9 +137,6 @@ endTime: ${endTime}
 					required={!isRecurring}
 					onChange={makeChangeListener(setDate, (x) => x)}
 				/>
-			</p>
-			<p>
-				<label htmlFor="startTime">Start Time </label>
 				<input
 					type="time"
 					id="startTime"
@@ -134,9 +144,7 @@ endTime: ${endTime}
 					required
 					onChange={makeChangeListener(setStartTime, (x) => x)}
 				/>
-			</p>
-			<p>
-				<label htmlFor="endTime">End Time </label>
+				-
 				<input
 					type="time"
 					id="endTime"
@@ -145,6 +153,16 @@ endTime: ${endTime}
 					onChange={makeChangeListener(setEndTime, (x) => x)}
 				/>
 			</p>
+			<p>
+				<label htmlFor="recurring">Recurring Event </label>
+				<input
+					id="recurring"
+					checked={isRecurring}
+					onChange={(e) => setIsRecurring(e.target.checked)}
+					type="checkbox"
+				/>
+			</p>
+
 			{isRecurring && (
 				<DaySelect onChange={(days) => setDaysOfWeek(days)} />
 			)}

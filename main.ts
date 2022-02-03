@@ -18,6 +18,7 @@ import { processFrontmatter, renderCalendar } from "src/calendar";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { EditEvent } from "./src/EditEvent";
+import { EventFrontmatter } from "src/types";
 // Remember to rename these classes and interfaces!
 
 interface FullCalendarSettings {
@@ -29,7 +30,7 @@ const DEFAULT_SETTINGS: FullCalendarSettings = {
 };
 
 export default class FullCalendarPlugin extends Plugin {
-	settings: FullCalendarSettings;
+	settings: FullCalendarSettings = DEFAULT_SETTINGS;
 
 	renderCalendar = renderCalendar;
 	processFrontmatter = processFrontmatter;
@@ -97,13 +98,28 @@ export class NewEventModal extends Modal {
 		this.plugin = plugin;
 	}
 
+	async submitEvent(event: EventFrontmatter) {
+		let page = "---\n";
+		for (let [k, v] of Object.entries(event)) {
+			page += `${k}: ${JSON.stringify(v)}\n`;
+		}
+		page += "---\n";
+		const file = await this.app.vault.create(
+			`events/${event.title}.md`,
+			page
+		);
+		// let leaf = this.app.workspace.getMostRecentLeaf();
+		// await leaf.openFile(file);
+		await this.plugin.activateView();
+		this.close();
+	}
+
 	onOpen() {
 		const { contentEl } = this;
 		ReactDOM.render(
 			React.createElement(EditEvent, {
-				app: this.app,
-				modal: this,
-				plugin: this.plugin,
+				initialEvent: null,
+				submit: this.submitEvent.bind(this),
 			}),
 			contentEl
 		);

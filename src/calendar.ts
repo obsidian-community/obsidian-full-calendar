@@ -4,28 +4,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
 import { DateTime, Duration } from "luxon";
 import { TFile } from "obsidian";
-
-interface SingleEventFrontmatter {
-	type?: "single";
-	date: string;
-	startTime: string;
-	endTime: string;
-	allDay?: boolean;
-}
-
-interface RecurringEventFrontmatter {
-	type: "recurring";
-	daysOfWeek: string[];
-	startTime: string;
-	endTime: string;
-	startDate?: string;
-	endDate?: string;
-	allDay?: boolean;
-}
-
-export type EventFrontmatter =
-	| SingleEventFrontmatter
-	| RecurringEventFrontmatter;
+import { EventFrontmatter } from "./types";
 
 const formatTime = (time: string): Duration => {
 	let parsed = DateTime.fromFormat(time, "h:mm a");
