@@ -77,14 +77,14 @@ const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
 
 interface EditEventProps {
 	submit: (frontmatter: EventFrontmatter) => Promise<void>;
-	initialEvent?: EventFrontmatter;
+	initialEvent?: Partial<EventFrontmatter>;
 }
 
 export const EditEvent = ({ initialEvent, submit }: EditEventProps) => {
 	const [date, setDate] = useState(
-		(initialEvent?.type === "recurring"
-			? initialEvent.startDate
-			: initialEvent?.date) || ""
+		(initialEvent?.type === "recurring" && initialEvent.startDate) ||
+			(initialEvent?.type === "single" && initialEvent?.date) ||
+			""
 	);
 	const [startTime, setStartTime] = useState(initialEvent?.startTime || "");
 	const [endTime, setEndTime] = useState(initialEvent?.endTime || "");
@@ -94,7 +94,7 @@ export const EditEvent = ({ initialEvent, submit }: EditEventProps) => {
 	);
 	const [endDate, setEndDate] = useState("");
 	const [daysOfWeek, setDaysOfWeek] = useState<string[]>(
-		initialEvent?.type === "recurring" ? initialEvent.daysOfWeek : []
+		(initialEvent?.type === "recurring" && initialEvent.daysOfWeek) || []
 	);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

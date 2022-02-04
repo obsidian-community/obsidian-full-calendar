@@ -5,6 +5,7 @@ import { processFrontmatter, renderCalendar } from "./calendar";
 import FullCalendarPlugin from "main";
 import { EventFrontmatter } from "./types";
 import { EventModal } from "./modal";
+import { DateTime } from "luxon";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -44,7 +45,6 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
-		console.log("CALLING ONCACHEUPDATE()");
 		let calendarEvent = this.calendar?.getEventById(file.path);
 		let newEventData = this.getEventData(file);
 		if (newEventData !== null) {
@@ -62,6 +62,26 @@ export class CalendarView extends ItemView {
 			let modal = new EventModal(this.app, this.plugin, eventData);
 			modal.open();
 		}
+	}
+
+	async newEvent(start: Date, end: Date, allDay?: boolean) {
+		const partialEvent: Partial<EventFrontmatter> = {
+			type: "single",
+			date: DateTime.fromJSDate(start).toISODate(),
+			startTime: DateTime.fromJSDate(start).toISOTime({
+				suppressMilliseconds: true,
+				includeOffset: false,
+				suppressSeconds: true,
+			}),
+			endTime: DateTime.fromJSDate(end).toISOTime({
+				suppressMilliseconds: true,
+				includeOffset: false,
+				suppressSeconds: true,
+			}),
+		};
+		console.log(partialEvent);
+		let modal = new EventModal(this.app, this.plugin, partialEvent);
+		modal.open();
 	}
 
 	async onOpen() {
@@ -91,7 +111,8 @@ export class CalendarView extends ItemView {
 		this.calendar = renderCalendar(
 			calendarEl,
 			events,
-			this.eventClicked.bind(this)
+			this.eventClicked.bind(this),
+			this.newEvent.bind(this)
 		);
 		this.app.metadataCache.on("changed", this.cacheCallback);
 	}
