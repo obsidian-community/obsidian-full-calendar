@@ -76,18 +76,31 @@ const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
 };
 
 interface EditEventProps {
-	submit: (frontmatter: EventFrontmatter) => Promise<void>;
+	submit: (frontmatter: EventFrontmatter, path?: string) => Promise<void>;
 	initialEvent?: Partial<EventFrontmatter>;
+	initialId?: string;
 }
 
-export const EditEvent = ({ initialEvent, submit }: EditEventProps) => {
+export const EditEvent = ({
+	initialId,
+	initialEvent,
+	submit,
+}: EditEventProps) => {
 	const [date, setDate] = useState(
 		(initialEvent?.type === "recurring" && initialEvent.startDate) ||
 			(initialEvent?.type === "single" && initialEvent?.date) ||
 			""
 	);
-	const [startTime, setStartTime] = useState(initialEvent?.startTime || "");
-	const [endTime, setEndTime] = useState(initialEvent?.endTime || "");
+
+	let initialStartTime = "";
+	let initialEndTime = "";
+	if (initialEvent !== undefined && initialEvent.allDay === false) {
+		initialStartTime = initialEvent.startTime || "";
+		initialEndTime = initialEvent.endTime || "";
+	}
+
+	const [startTime, setStartTime] = useState(initialStartTime);
+	const [endTime, setEndTime] = useState(initialEndTime);
 	const [title, setTitle] = useState(initialEvent?.title || "");
 	const [isRecurring, setIsRecurring] = useState(
 		initialEvent?.type === "recurring" || false
@@ -99,17 +112,12 @@ export const EditEvent = ({ initialEvent, submit }: EditEventProps) => {
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (isRecurring) {
-			await submit({
-				type: "recurring",
-				title,
-				daysOfWeek,
-				startTime,
-				endTime,
-			});
-		} else {
-			await submit({ title, date, startTime, endTime });
-		}
+		await submit({
+			...{ title, allDay: false }, // TODO: Support all day events
+			...(isRecurring
+				? { type: "recurring", daysOfWeek, startTime, endTime }
+				: { date, startTime, endTime }),
+		});
 	};
 
 	return (

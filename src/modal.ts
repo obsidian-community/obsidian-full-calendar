@@ -1,11 +1,17 @@
 import FullCalendarPlugin from "main";
-import { App, Modal, TFile } from "obsidian";
+import { App, Modal, stringifyYaml, TFile, parseYaml } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./EditEvent";
+import { modifyFrontmatter } from "./frontmatter";
 import { EventFrontmatter } from "./types";
 import { FULL_CALENDAR_VIEW_TYPE } from "./view";
+
+// @ts-ignore
+window.stringifyYaml = stringifyYaml;
+// @ts-ignore
+window.parseYaml = parseYaml;
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
@@ -21,26 +27,17 @@ export class EventModal extends Modal {
 		this.event = event;
 	}
 
-	async submitEvent(event: EventFrontmatter) {
-		let frontmatter = "---\n";
-		for (let [k, v] of Object.entries(event)) {
-			frontmatter += `${k}: ${JSON.stringify(v)}\n`;
+	async submitEvent(event: EventFrontmatter, filename?: string) {
+		if (!filename) {
+			filename = `events/${event.title}.md`;
 		}
-		frontmatter += "---\n";
-		let filename = `events/${event.title}.md`;
 		let file = this.app.vault.getAbstractFileByPath(filename);
 		try {
 			if (!file) {
-				file = await this.app.vault.create(filename, frontmatter);
-			} else {
-				if (file instanceof TFile) {
-					let contents = (await this.app.vault.read(file))
-						.split("---")
-						.slice(2)
-						.join("---");
-					let newContents = frontmatter + contents;
-					await this.app.vault.modify(file, newContents);
-				}
+				file = await this.app.vault.create(filename, "");
+			}
+			if (file instanceof TFile) {
+				await modifyFrontmatter(event, file, this.app.vault);
 			}
 		} catch (e) {
 			console.log(e);

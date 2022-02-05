@@ -1,24 +1,29 @@
-interface CommonEventFrontmatter {
-	title?: string;
-	startTime?: string;
-	endTime?: string;
-	allDay?: boolean;
-}
+type AllDayFrontmatter = {
+	allDay: true;
+};
 
-interface SingleEventFrontmatter {
+type RangeTimeFrontmatter = {
+	allDay: false;
+	startTime: string;
+	endTime: string;
+};
+
+type CommonEventFrontmatter = {
+	title?: string;
+} & (RangeTimeFrontmatter | AllDayFrontmatter);
+
+type SingleEventFrontmatter = {
 	type?: "single";
 	date: string;
-}
+} & CommonEventFrontmatter;
 
-interface RecurringEventFrontmatter {
+type RecurringEventFrontmatter = {
 	type: "recurring";
 	daysOfWeek: string[];
 	startDate?: string;
 	endDate?: string;
-}
+} & CommonEventFrontmatter;
 
-export type EventFrontmatter = (
+export type EventFrontmatter =
 	| SingleEventFrontmatter
-	| RecurringEventFrontmatter
-) &
-	CommonEventFrontmatter;
+	| RecurringEventFrontmatter;

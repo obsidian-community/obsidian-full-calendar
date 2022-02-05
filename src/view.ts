@@ -1,11 +1,12 @@
 import { ItemView, TFile, TFolder, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventApi, EventInput } from "@fullcalendar/core";
 
-import { processFrontmatter, renderCalendar } from "./calendar";
+import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "main";
 import { EventFrontmatter } from "./types";
 import { EventModal } from "./modal";
 import { DateTime } from "luxon";
+import { parseFrontmatter } from "./frontmatter";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -37,11 +38,10 @@ export class CalendarView extends ItemView {
 	getEventData(file: TFile): EventInput | null {
 		let frontmatter = this.getEventFrontmatter(file);
 		if (!frontmatter) return null;
-		return processFrontmatter({
-			id: file.path,
-			title: file.basename,
-			...frontmatter,
-		});
+		if (!frontmatter.title) {
+			frontmatter.title = file.basename;
+		}
+		return parseFrontmatter(file.basename, frontmatter);
 	}
 
 	onCacheUpdate(file: TFile) {
@@ -79,7 +79,6 @@ export class CalendarView extends ItemView {
 				suppressSeconds: true,
 			}),
 		};
-		console.log(partialEvent);
 		let modal = new EventModal(this.app, this.plugin, partialEvent);
 		modal.open();
 	}

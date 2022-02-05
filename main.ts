@@ -1,8 +1,9 @@
 import { App, Plugin, PluginSettingTab, Setting, TFolder } from "obsidian";
 import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "src/view";
-import { processFrontmatter, renderCalendar } from "src/calendar";
+import { renderCalendar } from "src/calendar";
 
 import { EventModal } from "src/modal";
+import { parseFrontmatter } from "src/frontmatter";
 
 interface FullCalendarSettings {
 	eventsDirectory: string;
@@ -16,7 +17,7 @@ export default class FullCalendarPlugin extends Plugin {
 	settings: FullCalendarSettings = DEFAULT_SETTINGS;
 
 	renderCalendar = renderCalendar;
-	processFrontmatter = processFrontmatter;
+	processFrontmatter = parseFrontmatter;
 
 	async activateView() {
 		this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
