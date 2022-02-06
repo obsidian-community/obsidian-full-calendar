@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { EventFrontmatter } from "./types";
+import { EventFrontmatter, SingleEventFrontmatter } from "./types";
 
 function makeChangeListener<T>(
 	setState: React.Dispatch<React.SetStateAction<T>>,
@@ -87,9 +87,12 @@ export const EditEvent = ({
 	submit,
 }: EditEventProps) => {
 	const [date, setDate] = useState(
-		(initialEvent?.type === "recurring" && initialEvent.startDate) ||
-			(initialEvent?.type === "single" && initialEvent?.date) ||
-			""
+		initialEvent
+			? initialEvent.type !== "recurring"
+				? // Discriminated union on unset type not working well within Partial<>
+				  (initialEvent as SingleEventFrontmatter).date
+				: initialEvent.startDate || ""
+			: ""
 	);
 
 	let initialStartTime = "";
@@ -110,13 +113,16 @@ export const EditEvent = ({
 		(initialEvent?.type === "recurring" && initialEvent.daysOfWeek) || []
 	);
 
+	const [allDay, setAllDay] = useState(initialEvent?.allDay || false);
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		await submit({
-			...{ title, allDay: false }, // TODO: Support all day events
-			...(isRecurring
-				? { type: "recurring", daysOfWeek, startTime, endTime }
-				: { date, startTime, endTime }),
+			...{ title },
+			...(allDay
+				? { allDay: true }
+				: { allDay: false, startTime, endTime }),
+			...(isRecurring ? { type: "recurring", daysOfWeek } : { date }),
 		});
 	};
 
@@ -140,20 +146,38 @@ export const EditEvent = ({
 					required={!isRecurring}
 					onChange={makeChangeListener(setDate, (x) => x)}
 				/>
+				{allDay ? (
+					<></>
+				) : (
+					<>
+						<input
+							type="time"
+							id="startTime"
+							value={startTime}
+							required
+							onChange={makeChangeListener(
+								setStartTime,
+								(x) => x
+							)}
+						/>
+						-
+						<input
+							type="time"
+							id="endTime"
+							value={endTime}
+							required
+							onChange={makeChangeListener(setEndTime, (x) => x)}
+						/>
+					</>
+				)}
+			</p>
+			<p>
+				<label htmlFor="allDay">All day event </label>
 				<input
-					type="time"
-					id="startTime"
-					value={startTime}
-					required
-					onChange={makeChangeListener(setStartTime, (x) => x)}
-				/>
-				-
-				<input
-					type="time"
-					id="endTime"
-					value={endTime}
-					required
-					onChange={makeChangeListener(setEndTime, (x) => x)}
+					id="allDay"
+					checked={allDay}
+					onChange={(e) => setAllDay(e.target.checked)}
+					type="checkbox"
 				/>
 			</p>
 			<p>

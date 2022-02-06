@@ -16,15 +16,18 @@ window.parseYaml = parseYaml;
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
 	event: Partial<EventFrontmatter> | undefined;
+	eventId: string | undefined;
 
 	constructor(
 		app: App,
 		plugin: FullCalendarPlugin,
-		event?: Partial<EventFrontmatter>
+		event?: Partial<EventFrontmatter>,
+		eventId?: string
 	) {
 		super(app);
 		this.plugin = plugin;
 		this.event = event;
+		this.eventId = eventId;
 	}
 
 	async submitEvent(event: EventFrontmatter, filename?: string) {
@@ -55,6 +58,7 @@ export class EventModal extends Modal {
 		const { contentEl } = this;
 		ReactDOM.render(
 			React.createElement(EditEvent, {
+				initialId: this.eventId,
 				initialEvent: this.event,
 				submit: this.submitEvent.bind(this),
 			}),

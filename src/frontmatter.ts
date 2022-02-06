@@ -48,7 +48,6 @@ export function parseFrontmatter(
 			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
 			startRecur: frontmatter.startDate,
 			endRecur: frontmatter.startDate,
-			allDay: frontmatter.allDay,
 		};
 		if (!frontmatter.allDay) {
 			event = {
@@ -186,6 +185,6 @@ export async function modifyFrontmatter(
 				)
 		);
 	}
-	const newPage = replaceFrontmatter(page, newFrontmatter.join("\n"));
+	const newPage = replaceFrontmatter(page, newFrontmatter.join("\n") + "\n");
 	await vault.modify(file, newPage);
 }

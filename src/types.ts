@@ -12,12 +12,12 @@ type CommonEventFrontmatter = {
 	title?: string;
 } & (RangeTimeFrontmatter | AllDayFrontmatter);
 
-type SingleEventFrontmatter = {
+export type SingleEventFrontmatter = {
 	type?: "single";
 	date: string;
 } & CommonEventFrontmatter;
 
-type RecurringEventFrontmatter = {
+export type RecurringEventFrontmatter = {
 	type: "recurring";
 	daysOfWeek: string[];
 	startDate?: string;

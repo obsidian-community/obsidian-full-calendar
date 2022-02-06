@@ -41,7 +41,7 @@ export class CalendarView extends ItemView {
 		if (!frontmatter.title) {
 			frontmatter.title = file.basename;
 		}
-		return parseFrontmatter(file.basename, frontmatter);
+		return parseFrontmatter(file.path, frontmatter);
 	}
 
 	onCacheUpdate(file: TFile) {
@@ -59,25 +59,34 @@ export class CalendarView extends ItemView {
 		let file = this.app.vault.getAbstractFileByPath(event.id);
 		if (file instanceof TFile) {
 			let eventData = this.getEventFrontmatter(file);
-			let modal = new EventModal(this.app, this.plugin, eventData);
+			let modal = new EventModal(
+				this.app,
+				this.plugin,
+				eventData,
+				file.path
+			);
 			modal.open();
 		}
 	}
 
-	async newEvent(start: Date, end: Date, allDay?: boolean) {
+	async newEvent(start: Date, end: Date, allDay: boolean) {
 		const partialEvent: Partial<EventFrontmatter> = {
 			type: "single",
 			date: DateTime.fromJSDate(start).toISODate(),
-			startTime: DateTime.fromJSDate(start).toISOTime({
-				suppressMilliseconds: true,
-				includeOffset: false,
-				suppressSeconds: true,
-			}),
-			endTime: DateTime.fromJSDate(end).toISOTime({
-				suppressMilliseconds: true,
-				includeOffset: false,
-				suppressSeconds: true,
-			}),
+			...(allDay
+				? { allDay }
+				: {
+						startTime: DateTime.fromJSDate(start).toISOTime({
+							suppressMilliseconds: true,
+							includeOffset: false,
+							suppressSeconds: true,
+						}),
+						endTime: DateTime.fromJSDate(end).toISOTime({
+							suppressMilliseconds: true,
+							includeOffset: false,
+							suppressSeconds: true,
+						}),
+				  }),
 		};
 		let modal = new EventModal(this.app, this.plugin, partialEvent);
 		modal.open();

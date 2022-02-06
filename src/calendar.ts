@@ -16,7 +16,7 @@ export function renderCalendar(
 	newEventFromBounds?: (
 		startDate: Date,
 		endDate: Date,
-		allDay?: boolean
+		allDay: boolean
 	) => Promise<void>
 ): Calendar {
 	const cal = new Calendar(containerEl, {
