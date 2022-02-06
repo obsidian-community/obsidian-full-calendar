@@ -97,7 +97,7 @@ export const EditEvent = ({
 
 	let initialStartTime = "";
 	let initialEndTime = "";
-	if (initialEvent !== undefined && initialEvent.allDay === false) {
+	if (initialEvent && initialEvent.allDay === false) {
 		initialStartTime = initialEvent.startTime || "";
 		initialEndTime = initialEvent.endTime || "";
 	}

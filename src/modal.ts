@@ -1,17 +1,13 @@
+import { EventApi } from "@fullcalendar/core";
 import FullCalendarPlugin from "main";
-import { App, Modal, stringifyYaml, TFile, parseYaml } from "obsidian";
+import { App, Modal } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import { getFrontmatterFromEvent, upsertEvent } from "./crud";
 
 import { EditEvent } from "./EditEvent";
-import { modifyFrontmatter } from "./frontmatter";
 import { EventFrontmatter } from "./types";
 import { FULL_CALENDAR_VIEW_TYPE } from "./view";
-
-// @ts-ignore
-window.stringifyYaml = stringifyYaml;
-// @ts-ignore
-window.parseYaml = parseYaml;
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
@@ -30,28 +26,31 @@ export class EventModal extends Modal {
 		this.eventId = eventId;
 	}
 
+	async editInModal(event: EventApi) {
+		let frontmatter = await getFrontmatterFromEvent(
+			this.app.vault,
+			this.app.metadataCache,
+			event
+		);
+		if (frontmatter) {
+			this.event = frontmatter;
+			this.eventId = event.id;
+			this.open();
+		}
+	}
+
 	async submitEvent(event: EventFrontmatter, filename?: string) {
 		if (!filename) {
 			filename = `events/${event.title}.md`;
 		}
-		let file = this.app.vault.getAbstractFileByPath(filename);
-		try {
-			if (!file) {
-				file = await this.app.vault.create(filename, "");
-			}
-			if (file instanceof TFile) {
-				await modifyFrontmatter(event, file, this.app.vault);
-			}
-		} catch (e) {
-			console.log(e);
-		} finally {
-			let leaf = this.app.workspace.getMostRecentLeaf();
-			// await leaf.openFile(file);
-			if (leaf.getViewState().type !== FULL_CALENDAR_VIEW_TYPE) {
-				await this.plugin.activateView();
-			}
-			this.close();
+		let file = await upsertEvent(this.app.vault, event, filename);
+		let leaf = this.app.workspace.getMostRecentLeaf();
+		if (leaf.getViewState().type !== FULL_CALENDAR_VIEW_TYPE) {
+			await this.plugin.activateView();
+		} else if (file) {
+			await leaf.openFile(file);
 		}
+		this.close();
 	}
 
 	onOpen() {

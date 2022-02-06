@@ -1,14 +1,14 @@
-type AllDayFrontmatter = {
+export type AllDayFrontmatter = {
 	allDay: true;
 };
 
-type RangeTimeFrontmatter = {
+export type RangeTimeFrontmatter = {
 	allDay: false;
 	startTime: string;
 	endTime: string;
 };
 
-type CommonEventFrontmatter = {
+export type CommonEventFrontmatter = {
 	title?: string;
 } & (RangeTimeFrontmatter | AllDayFrontmatter);
 

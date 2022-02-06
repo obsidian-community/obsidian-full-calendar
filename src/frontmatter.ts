@@ -1,37 +1,10 @@
 import { EventInput } from "@fullcalendar/core";
 import { DateTime, Duration } from "luxon";
 import { MetadataCache, parseYaml, TFile, Vault } from "obsidian";
+import { add, normalizeTimeString, parseTime } from "./dateUtil";
 import { EventFrontmatter } from "./types";
 
 const DAYS = "UMTWRFS";
-
-const parseTime = (time: string): Duration => {
-	let parsed = DateTime.fromFormat(time, "h:mm a");
-	if (parsed.invalidReason) {
-		parsed = DateTime.fromFormat(time, "HH:mm");
-	}
-	return Duration.fromISOTime(
-		parsed.toISOTime({
-			includeOffset: false,
-			includePrefix: false,
-		})
-	);
-};
-
-const normalizeTimeString = (time: string): string => {
-	if (!time) time = "";
-	return parseTime(time).toISOTime({
-		suppressMilliseconds: true,
-		includePrefix: false,
-		suppressSeconds: true,
-	});
-};
-
-const add = (date: DateTime, time: Duration): DateTime => {
-	let hours = time.hours;
-	let minutes = time.minutes;
-	return date.set({ hour: hours, minute: minutes });
-};
 
 export function parseFrontmatter(
 	id: string,
@@ -68,6 +41,11 @@ export function parseFrontmatter(
 					DateTime.fromISO(frontmatter.date),
 					parseTime(frontmatter.endTime || "")
 				).toISO(),
+			};
+		} else {
+			event = {
+				...event,
+				start: frontmatter.date,
 			};
 		}
 	}
@@ -144,7 +122,7 @@ function stringifyYamlLine(k: string | number | symbol, v: PrintableAtom) {
  * @returns Array of keys which were updated rather than newly created.
  */
 export async function modifyFrontmatter(
-	modifications: Record<string, PrintableAtom | undefined>,
+	modifications: Partial<EventFrontmatter>,
 	file: TFile,
 	vault: Vault
 ): Promise<void> {
@@ -160,13 +138,18 @@ export async function modifyFrontmatter(
 		// Modify rows in-place.
 		for (let i = 0; i < frontmatter.length; i++) {
 			const line: string = frontmatter[i];
-			const keys = Object.keys(parseYaml(line));
+			const obj: Record<any, any> | null = parseYaml(line);
+			if (!obj) {
+				continue;
+			}
+
+			const keys = Object.keys(obj) as [keyof EventFrontmatter];
 			if (keys.length !== 1) {
 				throw new Error("One YAML line parsed to multiple keys.");
 			}
 			const key = keys[0];
 			linesAdded.add(key);
-			const newVal = modifications[key];
+			const newVal: PrintableAtom | undefined = modifications[key];
 			if (newVal !== undefined) {
 				newFrontmatter.push(stringifyYamlLine(key, newVal));
 			} else {
@@ -177,7 +160,7 @@ export async function modifyFrontmatter(
 
 		// Add all rows that were not originally in the frontmatter.
 		newFrontmatter.push(
-			...Object.keys(modifications)
+			...(Object.keys(modifications) as [keyof EventFrontmatter])
 				.filter((k) => !linesAdded.has(k))
 				.filter((k) => modifications[k] !== undefined)
 				.map((k) =>
