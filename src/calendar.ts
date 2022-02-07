@@ -12,12 +12,13 @@ import interactionPlugin from "@fullcalendar/interaction";
 interface ExtraRenderProps {
 	eventClick?: (event: EventApi) => void;
 	select?: (startDate: Date, endDate: Date, allDay: boolean) => Promise<void>;
+	modifyEvent?: (info: { event: EventApi }) => Promise<void>;
 }
 
 export function renderCalendar(
 	containerEl: HTMLElement,
 	events: EventInput[],
-	{ eventClick, select }: ExtraRenderProps
+	{ eventClick, select, modifyEvent }: ExtraRenderProps
 ): Calendar {
 	const cal = new Calendar(containerEl, {
 		plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
@@ -29,7 +30,9 @@ export function renderCalendar(
 			right: "dayGridMonth,timeGridWeek,listWeek",
 		},
 		events: events,
+
 		eventClick: eventClick ? (info) => eventClick(info.event) : undefined,
+
 		selectable: select && true,
 		selectMirror: select && true,
 		select:
@@ -38,6 +41,10 @@ export function renderCalendar(
 				await select(info.start, info.end, info.allDay);
 				info.view.calendar.unselect();
 			}),
+
+		editable: modifyEvent && true,
+		eventDrop: modifyEvent,
+		eventResize: modifyEvent,
 	});
 	cal.render();
 	return cal;

@@ -8,6 +8,7 @@ import {
 	dateEndpointsToFrontmatter,
 	getEventInputFromFile,
 	getEventInputInFolder,
+	updateEventFromCalendar,
 } from "./crud";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
@@ -71,6 +72,9 @@ export class CalendarView extends ItemView {
 				);
 				let modal = new EventModal(this.app, this.plugin, partialEvent);
 				modal.open();
+			},
+			modifyEvent: async ({ event }) => {
+				await updateEventFromCalendar(this.app.vault, event);
 			},
 		});
 

@@ -1,28 +1,23 @@
 import { EventApi, EventInput } from "@fullcalendar/core";
 import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
 import { getDate, getTime } from "./dateUtil";
-import { modifyFrontmatter, parseFrontmatter } from "./frontmatter";
+import {
+	eventApiToFrontmatter,
+	modifyFrontmatter,
+	parseFrontmatter,
+} from "./frontmatter";
 import { EventFrontmatter } from "./types";
-
-export async function getOrCreateFile(
-	vault: Vault,
-	filename: string
-): Promise<TFile | null> {
-	let file = vault.getAbstractFileByPath(filename);
-	if (!file) {
-		file = await vault.create(filename, "");
-	}
-	if (file instanceof TFile) {
-		return file;
-	}
-	return null;
-}
 
 export async function getFileForEvent(
 	vault: Vault,
 	event: EventApi
 ): Promise<TFile | null> {
-	return getOrCreateFile(vault, event.id);
+	let filename = event.id;
+	let file = vault.getAbstractFileByPath(filename);
+	if (file instanceof TFile) {
+		return file;
+	}
+	return null;
 }
 
 export function getFrontmatterFromFile(
@@ -48,6 +43,17 @@ export async function getFrontmatterFromEvent(
 	return getFrontmatterFromFile(cache, file);
 }
 
+export async function updateEventFromCalendar(
+	vault: Vault,
+	event: EventApi
+): Promise<void> {
+	const file = await getFileForEvent(vault, event);
+	if (!file) {
+		return;
+	}
+	await modifyFrontmatter(vault, file, eventApiToFrontmatter(event));
+}
+
 export function getEventInputFromFile(
 	cache: MetadataCache,
 	file: TFile
@@ -70,7 +76,7 @@ export async function upsertEvent(
 		file = await vault.create(filename, "");
 	}
 	if (file instanceof TFile) {
-		await modifyFrontmatter(event, file, vault);
+		await modifyFrontmatter(vault, file, event);
 		return file;
 	}
 

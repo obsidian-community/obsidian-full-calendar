@@ -1,7 +1,13 @@
-import { EventInput } from "@fullcalendar/core";
+import { EventApi, EventInput } from "@fullcalendar/core";
 import { DateTime, Duration } from "luxon";
 import { MetadataCache, parseYaml, TFile, Vault } from "obsidian";
-import { add, normalizeTimeString, parseTime } from "./dateUtil";
+import {
+	add,
+	getDate,
+	getTime,
+	normalizeTimeString,
+	parseTime,
+} from "./dateUtil";
 import { EventFrontmatter } from "./types";
 
 const DAYS = "UMTWRFS";
@@ -51,6 +57,35 @@ export function parseFrontmatter(
 	}
 
 	return event;
+}
+
+export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
+	const isRecurring: boolean = event.extendedProps.daysOfWeek !== undefined;
+	return {
+		title: event.title,
+		...(event.allDay
+			? { allDay: true }
+			: {
+					allDay: false,
+					startTime: getTime(event.start as Date),
+					endTime: getTime(event.end as Date),
+			  }),
+
+		...(isRecurring
+			? {
+					type: "recurring",
+					daysOfWeek: event.extendedProps.daysOfWeek.map(
+						(i: number) => DAYS[i]
+					),
+					startDate:
+						event.extendedProps.startRecur &&
+						getDate(event.extendedProps.startRecur),
+					endDate:
+						event.extendedProps.endRecur &&
+						getDate(event.extendedProps.endRecur),
+			  }
+			: { type: "single", date: getDate(event.start as Date) }),
+	};
 }
 
 const FRONTMATTER_SEPARATOR = "---";
@@ -122,9 +157,9 @@ function stringifyYamlLine(k: string | number | symbol, v: PrintableAtom) {
  * @returns Array of keys which were updated rather than newly created.
  */
 export async function modifyFrontmatter(
-	modifications: Partial<EventFrontmatter>,
+	vault: Vault,
 	file: TFile,
-	vault: Vault
+	modifications: Partial<EventFrontmatter>
 ): Promise<void> {
 	const page = await vault.read(file);
 	const frontmatter = extractFrontmatter(page)?.split("\n");
