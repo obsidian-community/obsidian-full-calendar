@@ -4,6 +4,24 @@ Keep your calendar in your vault! This plugin integrates the [Full Calendar](htt
 
 ![Sample Calendar](docs/assets/sample-calendar.png)
 
+- [Obsidian Full Calendar Plugin](#obsidian-full-calendar-plugin)
+  - [Features](#features)
+    - [Creating Events](#creating-events)
+      - [Event modal](#event-modal)
+      - [Click-and-drag to make an event](#click-and-drag-to-make-an-event)
+      - [Full day events](#full-day-events)
+      - [Recurring events](#recurring-events)
+    - [Editing Events](#editing-events)
+      - [Change time of event by dragging its endpoint](#change-time-of-event-by-dragging-its-endpoint)
+      - [Move an event around on a day or between days](#move-an-event-around-on-a-day-or-between-days)
+  - [Coming soon](#coming-soon)
+    - [Import from Google Calendar](#import-from-google-calendar)
+    - [Subscribe to public calendar feeds](#subscribe-to-public-calendar-feeds)
+    - [Create event notes with a template](#create-event-notes-with-a-template)
+    - [Support for multiple calendars with different colors](#support-for-multiple-calendars-with-different-colors)
+  - [Long term plans](#long-term-plans)
+    - [Track tasks in the calendar](#track-tasks-in-the-calendar)
+
 ## Features
 
 ### Creating Events
@@ -41,3 +59,25 @@ to change the time range or the date of an event.
 #### Move an event around on a day or between days
 
 ![moving an event](docs/assets/moving-event.gif)
+
+## Coming soon
+
+### Import from Google Calendar
+
+Make the transition easier by loading in all your events from an existing Google Calendar and maintain a one-way sync.
+
+### Subscribe to public calendar feeds
+
+Add auto-updating read-only feeds for your friends' calendars.
+
+### Create event notes with a template
+
+Support for the core Templates plugin and Templater.
+
+### Support for multiple calendars with different colors
+
+## Long term plans
+
+### Track tasks in the calendar
+
+Surface tasks from throughout your vault on your calendar, and schedule them in blocks during your day to fill out your agenda. Inspired by (the as-yet-unreleased) [amie calendar](https://amie.so).
