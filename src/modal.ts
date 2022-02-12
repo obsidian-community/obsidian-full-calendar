@@ -53,7 +53,7 @@ export class EventModal extends Modal {
 						event,
 						filename
 					);
-					await this.plugin.activateView();
+					// await this.plugin.activateView();
 					this.close();
 				},
 				open:
