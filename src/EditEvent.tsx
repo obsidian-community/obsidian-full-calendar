@@ -26,8 +26,6 @@ const DayChoice = ({ code, label, isSelected, onClick }: DayChoiceProps) => (
 				? "var(--interactive-accent)"
 				: "var(--interactive-normal)",
 			color: isSelected ? "var(--text-on-accent)" : "var(--text-normal)",
-			// backgroundColor: isSelected ? "blue" : undefined,
-			// color: isSelected ? "white" : "black",
 			borderStyle: "solid",
 			borderWidth: "1px",
 			borderRadius: "50%",
@@ -50,12 +48,13 @@ const DAY_MAP = {
 	S: "Saturday",
 };
 
-const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
-	const [selected, setSelectedState] = useState<string[]>([]);
-	const setSelected = (newSelected: string[]) => {
-		onChange(newSelected);
-		setSelectedState(newSelected);
-	};
+const DaySelect = ({
+	value: days,
+	onChange,
+}: {
+	value: string[];
+	onChange: (days: string[]) => void;
+}) => {
 	return (
 		<div>
 			{Object.entries(DAY_MAP).map(([code, label]) => (
@@ -63,11 +62,11 @@ const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
 					key={code}
 					code={code}
 					label={label}
-					isSelected={selected.includes(code)}
+					isSelected={days.includes(code)}
 					onClick={() =>
-						selected.includes(code)
-							? setSelected(selected.filter((c) => c !== code))
-							: setSelected([code, ...selected])
+						days.includes(code)
+							? onChange(days.filter((c) => c !== code))
+							: onChange([code, ...days])
 					}
 				/>
 			))}
@@ -78,20 +77,16 @@ const DaySelect = ({ onChange }: { onChange: (days: string[]) => void }) => {
 interface EditEventProps {
 	submit: (frontmatter: EventFrontmatter, path?: string) => Promise<void>;
 	initialEvent?: Partial<EventFrontmatter>;
-	initialId?: string;
+	open?: () => Promise<void>;
 }
 
-export const EditEvent = ({
-	initialId,
-	initialEvent,
-	submit,
-}: EditEventProps) => {
+export const EditEvent = ({ initialEvent, submit, open }: EditEventProps) => {
 	const [date, setDate] = useState(
 		initialEvent
 			? initialEvent.type !== "recurring"
 				? // Discriminated union on unset type not working well within Partial<>
 				  (initialEvent as SingleEventFrontmatter).date
-				: initialEvent.startDate || ""
+				: initialEvent.startRecur || ""
 			: ""
 	);
 
@@ -110,7 +105,8 @@ export const EditEvent = ({
 	);
 	const [endDate, setEndDate] = useState("");
 	const [daysOfWeek, setDaysOfWeek] = useState<string[]>(
-		(initialEvent?.type === "recurring" && initialEvent.daysOfWeek) || []
+		(initialEvent?.type === "recurring" ? initialEvent.daysOfWeek : []) ||
+			[]
 	);
 
 	const [allDay, setAllDay] = useState(initialEvent?.allDay || false);
@@ -122,81 +118,124 @@ export const EditEvent = ({
 			...(allDay
 				? { allDay: true }
 				: { allDay: false, startTime, endTime }),
-			...(isRecurring ? { type: "recurring", daysOfWeek } : { date }),
+			...(isRecurring
+				? {
+						type: "recurring",
+						daysOfWeek,
+						startRecur: date || undefined,
+						endRecur: endDate || undefined,
+				  }
+				: { date }),
 		});
 	};
 
 	return (
-		<form onSubmit={handleSubmit}>
-			<p>
-				<input
-					type="text"
-					id="title"
-					value={title}
-					placeholder={"Add title"}
-					required
-					onChange={makeChangeListener(setTitle, (x) => x)}
-				/>
+		<>
+			<p style={{ float: "right" }}>
+				{open && <button onClick={open}>Open Note</button>}
 			</p>
-			<p>
-				<input
-					type="date"
-					id="date"
-					value={date}
-					required={!isRecurring}
-					onChange={makeChangeListener(setDate, (x) => x)}
-				/>
-				{allDay ? (
-					<></>
-				) : (
+
+			<form onSubmit={handleSubmit}>
+				<p>
+					<input
+						type="text"
+						id="title"
+						value={title}
+						placeholder={"Add title"}
+						required
+						onChange={makeChangeListener(setTitle, (x) => x)}
+					/>
+				</p>
+				<p>
+					{!isRecurring && (
+						<input
+							type="date"
+							id="date"
+							value={date}
+							required={!isRecurring}
+							onChange={makeChangeListener(setDate, (x) => x)}
+						/>
+					)}
+
+					{allDay ? (
+						<></>
+					) : (
+						<>
+							<input
+								type="time"
+								id="startTime"
+								value={startTime}
+								required
+								onChange={makeChangeListener(
+									setStartTime,
+									(x) => x
+								)}
+							/>
+							-
+							<input
+								type="time"
+								id="endTime"
+								value={endTime}
+								required
+								onChange={makeChangeListener(
+									setEndTime,
+									(x) => x
+								)}
+							/>
+						</>
+					)}
+				</p>
+				<p>
+					<label htmlFor="allDay">All day event </label>
+					<input
+						id="allDay"
+						checked={allDay}
+						onChange={(e) => setAllDay(e.target.checked)}
+						type="checkbox"
+					/>
+				</p>
+				<p>
+					<label htmlFor="recurring">Recurring Event </label>
+					<input
+						id="recurring"
+						checked={isRecurring}
+						onChange={(e) => setIsRecurring(e.target.checked)}
+						type="checkbox"
+					/>
+				</p>
+
+				{isRecurring && (
 					<>
-						<input
-							type="time"
-							id="startTime"
-							value={startTime}
-							required
-							onChange={makeChangeListener(
-								setStartTime,
-								(x) => x
-							)}
+						<DaySelect
+							value={daysOfWeek}
+							onChange={setDaysOfWeek}
 						/>
-						-
-						<input
-							type="time"
-							id="endTime"
-							value={endTime}
-							required
-							onChange={makeChangeListener(setEndTime, (x) => x)}
-						/>
+						<p>
+							Starts recurring
+							<input
+								type="date"
+								id="startDate"
+								value={date}
+								onChange={makeChangeListener(setDate, (x) => x)}
+							/>
+							and stops recurring
+							<input
+								type="date"
+								id="endDate"
+								value={endDate}
+								onChange={makeChangeListener(
+									setEndDate,
+									(x) => x
+								)}
+							/>
+						</p>
 					</>
 				)}
-			</p>
-			<p>
-				<label htmlFor="allDay">All day event </label>
-				<input
-					id="allDay"
-					checked={allDay}
-					onChange={(e) => setAllDay(e.target.checked)}
-					type="checkbox"
-				/>
-			</p>
-			<p>
-				<label htmlFor="recurring">Recurring Event </label>
-				<input
-					id="recurring"
-					checked={isRecurring}
-					onChange={(e) => setIsRecurring(e.target.checked)}
-					type="checkbox"
-				/>
-			</p>
 
-			{isRecurring && (
-				<DaySelect onChange={(days) => setDaysOfWeek(days)} />
-			)}
-
-			<p>
-				<input type="submit" />
-			</p>
-		</form>
+				<p>
+					<input type="submit" />
+				</p>
+			</form>
+		</>
 	);
 };

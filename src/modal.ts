@@ -1,6 +1,6 @@
 import { EventApi } from "@fullcalendar/core";
 import FullCalendarPlugin from "main";
-import { App, Modal } from "obsidian";
+import { App, Modal, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { getFrontmatterFromEvent, upsertEvent } from "./crud";
@@ -39,27 +39,40 @@ export class EventModal extends Modal {
 		}
 	}
 
-	async submitEvent(event: EventFrontmatter, filename?: string) {
-		if (!filename) {
-			filename = `events/${event.title}.md`;
-		}
-		let file = await upsertEvent(this.app.vault, event, filename);
-		let leaf = this.app.workspace.getMostRecentLeaf();
-		if (leaf.getViewState().type !== FULL_CALENDAR_VIEW_TYPE) {
-			await this.plugin.activateView();
-		} else if (file) {
-			await leaf.openFile(file);
-		}
-		this.close();
-	}
-
 	onOpen() {
 		const { contentEl } = this;
 		ReactDOM.render(
 			React.createElement(EditEvent, {
-				initialId: this.eventId,
 				initialEvent: this.event,
-				submit: this.submitEvent.bind(this),
+				submit: async (event, filename) => {
+					if (!filename) {
+						filename = `events/${event.title}.md`;
+					}
+					let file = await upsertEvent(
+						this.app.vault,
+						event,
+						filename
+					);
+					await this.plugin.activateView();
+					this.close();
+				},
+				open:
+					this.eventId !== undefined
+						? async () => {
+								if (this.eventId) {
+									let file =
+										this.app.vault.getAbstractFileByPath(
+											this.eventId
+										);
+									if (file instanceof TFile) {
+										let leaf =
+											this.app.workspace.getMostRecentLeaf();
+										await leaf.openFile(file);
+										this.close();
+									}
+								}
+						  }
+						: undefined,
 			}),
 			contentEl
 		);

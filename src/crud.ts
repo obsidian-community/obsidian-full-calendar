@@ -101,7 +101,7 @@ export function dateEndpointsToFrontmatter(
 	};
 }
 
-export async function getEventInputInFolder(
+export async function getEventInputFromPath(
 	vault: Vault,
 	cache: MetadataCache,
 	path: string

@@ -20,8 +20,8 @@ export type SingleEventFrontmatter = {
 export type RecurringEventFrontmatter = {
 	type: "recurring";
 	daysOfWeek: string[];
-	startDate?: string;
-	endDate?: string;
+	startRecur?: string;
+	endRecur?: string;
 } & CommonEventFrontmatter;
 
 export type EventFrontmatter =

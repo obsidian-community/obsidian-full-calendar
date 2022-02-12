@@ -7,7 +7,7 @@ import { EventModal } from "./modal";
 import {
 	dateEndpointsToFrontmatter,
 	getEventInputFromFile,
-	getEventInputInFolder,
+	getEventInputFromPath,
 	updateEventFromCalendar,
 } from "./crud";
 
@@ -45,7 +45,7 @@ export class CalendarView extends ItemView {
 
 	async onOpen() {
 		await this.plugin.loadSettings();
-		const events = await getEventInputInFolder(
+		const events = await getEventInputFromPath(
 			this.app.vault,
 			this.app.metadataCache,
 			this.plugin.settings.eventsDirectory

@@ -25,8 +25,8 @@ export function parseFrontmatter(
 		event = {
 			...event,
 			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
-			startRecur: frontmatter.startDate,
-			endRecur: frontmatter.startDate,
+			startRecur: frontmatter.startRecur,
+			endRecur: frontmatter.endRecur,
 		};
 		if (!frontmatter.allDay) {
 			event = {
@@ -77,10 +77,10 @@ export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
 					daysOfWeek: event.extendedProps.daysOfWeek.map(
 						(i: number) => DAYS[i]
 					),
-					startDate:
+					startRecur:
 						event.extendedProps.startRecur &&
 						getDate(event.extendedProps.startRecur),
-					endDate:
+					endRecur:
 						event.extendedProps.endRecur &&
 						getDate(event.extendedProps.endRecur),
 			  }
