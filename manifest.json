@@ -1,10 +1,10 @@
 {
 	"id": "obsidian-full-calendar",
-	"name": "Obsidian Full Calendar",
+	"name": "Full Calendar",
 	"version": "0.0.9",
 	"minAppVersion": "0.12.0",
-	"description": "Full Calendar integration for Obsidian",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "Obsidian integration with Full Calendar (fullcalendar.io)",
+	"author": "Davis Haupt <contact@davishaupt.com>",
+	"authorUrl": "https://davi.sh",
 	"isDesktopOnly": false
 }
