@@ -40,7 +40,7 @@ export default class FullCalendarPlugin extends Plugin {
 		);
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
+			"calendar-glyph",
 			"Open Full Calendar",
 			(_: MouseEvent) => {
 				this.activateView();
