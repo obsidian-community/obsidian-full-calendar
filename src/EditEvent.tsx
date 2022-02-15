@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EventFrontmatter, SingleEventFrontmatter } from "./types";
 
 function makeChangeListener<T>(
@@ -111,6 +111,13 @@ export const EditEvent = ({ initialEvent, submit, open }: EditEventProps) => {
 
 	const [allDay, setAllDay] = useState(initialEvent?.allDay || false);
 
+	const titleRef = useRef<HTMLInputElement>(null);
+	useEffect(() => {
+		if (titleRef.current) {
+			titleRef.current.focus();
+		}
+	}, [titleRef]);
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		await submit({
@@ -138,6 +145,7 @@ export const EditEvent = ({ initialEvent, submit, open }: EditEventProps) => {
 			<form onSubmit={handleSubmit}>
 				<p>
 					<input
+						ref={titleRef}
 						type="text"
 						id="title"
 						value={title}
