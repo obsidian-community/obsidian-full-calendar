@@ -39,7 +39,15 @@ export class CalendarView extends ItemView {
 			if (calendarEvent) {
 				calendarEvent.remove();
 			}
-			this.calendar?.addEvent(newEventData);
+			this.calendar?.addEvent({
+				color: getComputedStyle(document.body).getPropertyValue(
+					"--interactive-accent"
+				),
+				textColor: getComputedStyle(document.body).getPropertyValue(
+					"--text-on-accent"
+				),
+				...newEventData,
+			});
 		}
 	}
 
