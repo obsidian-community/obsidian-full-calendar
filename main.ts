@@ -38,8 +38,7 @@ export default class FullCalendarPlugin extends Plugin {
 			FULL_CALENDAR_VIEW_TYPE,
 			(leaf) => new CalendarView(leaf, this)
 		);
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
+		this.addRibbonIcon(
 			"calendar-glyph",
 			"Open Full Calendar",
 			(_: MouseEvent) => {
@@ -54,6 +53,13 @@ export default class FullCalendarPlugin extends Plugin {
 			name: "New Event",
 			callback: () => {
 				new EventModal(this.app, this).open();
+			},
+		});
+		this.addCommand({
+			id: "full-calendar-open",
+			name: "Open Calendar",
+			callback: () => {
+				this.activateView();
 			},
 		});
 	}
