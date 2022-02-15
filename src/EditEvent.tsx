@@ -75,7 +75,7 @@ const DaySelect = ({
 };
 
 interface EditEventProps {
-	submit: (frontmatter: EventFrontmatter, path?: string) => Promise<void>;
+	submit: (frontmatter: EventFrontmatter) => Promise<void>;
 	initialEvent?: Partial<EventFrontmatter>;
 	open?: () => Promise<void>;
 }
