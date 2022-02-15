@@ -29,7 +29,17 @@ export function renderCalendar(
 			center: "title",
 			right: "dayGridMonth,timeGridWeek,listWeek",
 		},
-		events: events,
+		eventSources: [
+			{
+				events,
+				textColor: getComputedStyle(document.body).getPropertyValue(
+					"--text-on-accent"
+				),
+				color: getComputedStyle(document.body).getPropertyValue(
+					"--interactive-accent"
+				),
+			},
+		],
 
 		eventClick: eventClick ? (info) => eventClick(info.event) : undefined,
 
