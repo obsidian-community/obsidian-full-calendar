@@ -1,6 +1,6 @@
 # Obsidian Full Calendar Plugin
 
-Keep your calendar in your vault! This plugin integrates the [Full Calendar](https://github.com/fullcalendar/fullcalendar) library into your Obsidian Vault so that you can keep your events and plans alongside your tasks and notes, and link freely between all of them. Each event is stored as a separate note with special frontmatter so you can take notes, form connectiosn and add context to any event on your calendar.
+Keep your calendar in your vault! This plugin integrates the [Full Calendar](https://github.com/fullcalendar/fullcalendar) library into your Obsidian Vault so that you can keep your events and plans alongside your tasks and notes, and link freely between all of them. Each event is stored as a separate note with special frontmatter so you can take notes, form connections and add context to any event on your calendar.
 
 The Full Calendar library is released under the [MIT license](https://github.com/fullcalendar/fullcalendar/blob/master/LICENSE.txt) by [Adam Shaw](https://github.com/arshaw). It's an awesome piece of work, and it would not have been possible to make something akin to this plugin so easily without it.
 
@@ -9,8 +9,8 @@ The Full Calendar library is released under the [MIT license](https://github.com
 - [Obsidian Full Calendar Plugin](#obsidian-full-calendar-plugin)
   - [Features](#features)
     - [Creating Events](#creating-events)
-      - [Event modal](#event-modal)
-      - [Click-and-drag to make an event](#click-and-drag-to-make-an-event)
+      - [Via event modal](#via-event-modal)
+      - [Via click-and-drag](#via-click-and-drag)
       - [Full day events](#full-day-events)
       - [Recurring events](#recurring-events)
     - [Editing Events](#editing-events)
@@ -22,6 +22,7 @@ The Full Calendar library is released under the [MIT license](https://github.com
   - [Coming soon](#coming-soon)
     - [Import from Google Calendar](#import-from-google-calendar)
     - [Support for multiple calendars with different colors](#support-for-multiple-calendars-with-different-colors)
+    - [Mobile UI Optimizations](#mobile-ui-optimizations)
     - [Create event notes with a template](#create-event-notes-with-a-template)
     - [Subscribe to public calendar feeds](#subscribe-to-public-calendar-feeds)
   - [Long term plans](#long-term-plans)
@@ -31,21 +32,21 @@ The Full Calendar library is released under the [MIT license](https://github.com
 
 ### Creating Events
 
-#### Event modal
+#### Via event modal
 
 Use the "Create event" command to bring up the event modal to add a new event. Clicking on any existing event will also bring up the modal for editing.
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/create-event-modal.gif'>
 </details>
 
-#### Click-and-drag to make an event
+#### Via click-and-drag
 
-Just click-and-drag on the calendar to create an event. A modal will pop up where you can fill in the details and tweak the timing.
+Just click-and-drag on the calendar to create an event. The modal will pop up where you can fill in the details and tweak the timing.
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/create-event.gif'>
 </details>
 
@@ -54,7 +55,7 @@ Just click-and-drag on the calendar to create an event. A modal will pop up wher
 Can create events that last all day instead of giving a start and end time.
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/create-event-fullday.gif'>
 </details>
 
@@ -63,7 +64,7 @@ Can create events that last all day instead of giving a start and end time.
 Let a single event note show up on a set schedule by checking the "Recurring event" box in the event modal.
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/create-event-recurring.gif'>
 </details>
 
@@ -75,14 +76,14 @@ to change the time range or the date of an event.
 #### Change time of event by dragging its endpoint
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/edit-event-drag.gif'>
 </details>
 
 #### Move an event around on a day or between days
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/moving-event.gif'>
 </details>
 
@@ -93,11 +94,11 @@ to change the time range or the date of an event.
 All events live in `/events` in your vault by default, but you can change this to any directory by going to settings.
 
 <details>
-<summary>GIF example</summary>
+<summary>Click for GIF example</summary>
 <img src='docs/assets/change-calendar-directory.gif'>
 </details>
 
-### Dataview integration
+### [Dataview](https://github.com/blacksmithgu/obsidian-dataview) integration
 
 Create calendars inline with your notes from [dataviewjs](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) queries. Here's a basic example with a hardcoded event:
 
@@ -122,6 +123,10 @@ Make the transition easier by loading in all your events from an existing Google
 ### Support for multiple calendars with different colors
 
 Easy enough. Add and remove calendars in your settings, each calendar has its own folder in your Vault.
+
+### Mobile UI Optimizations
+
+Full Calendar is usable on mobile at the moment, but there are some UX improvements to make it look better on small screens.
 
 ### Create event notes with a template
 
