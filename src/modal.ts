@@ -47,7 +47,9 @@ export class EventModal extends Modal {
 			React.createElement(EditEvent, {
 				initialEvent: this.event,
 				submit: async (event) => {
-					let filename = this.eventId || `events/${event.title}.md`;
+					let filename =
+						this.eventId ||
+						`${this.plugin.settings.eventsDirectory}/${event.title}.md`;
 
 					let file = await upsertEvent(
 						this.app.vault,
