@@ -1,12 +1,15 @@
 # Obsidian Full Calendar Plugin
 
-Keep your calendar in your vault! This plugin integrates the [Full Calendar](https://github.com/fullcalendar/fullcalendar) library into your Obsidian Vault so that you can keep your events and plans alongside your tasks and notes, and link freely between all of them. Each event is stored as a separate note with special frontmatter so you can take notes, form connections and add context to any event on your calendar.
+Keep your calendar in your vault! This plugin integrates the [Full Calendar](https://github.com/fullcalendar/fullcalendar) library into your Obsidian Vault so that you can keep your ever-changing daily schedule and special events and plans alongside your tasks and notes, and link freely between all of them. Each event is stored as a separate note with special frontmatter so you can take notes, form connections and add context to any event on your calendar.
 
-The Full Calendar library is released under the [MIT license](https://github.com/fullcalendar/fullcalendar/blob/master/LICENSE.txt) by [Adam Shaw](https://github.com/arshaw). It's an awesome piece of work, and it would not have been possible to make something akin to this plugin so easily without it.
+The Full Calendar library is released under the [MIT license](https://github.com/fullcalendar/fullcalendar/blob/master/LICENSE.txt) by [Adam Shaw](https://github.com/arshaw). It's an awesome piece of work, and it would not have been possible to make something like this plugin so easily without it.
 
 ![Sample Calendar](docs/assets/sample-calendar.png)
 
 - [Obsidian Full Calendar Plugin](#obsidian-full-calendar-plugin)
+  - [Installation](#installation)
+    - [BRAT](#brat)
+    - [Manual Installation](#manual-installation)
   - [Features](#features)
     - [Creating Events](#creating-events)
       - [Via event modal](#via-event-modal)
@@ -27,6 +30,18 @@ The Full Calendar library is released under the [MIT license](https://github.com
     - [Subscribe to public calendar feeds](#subscribe-to-public-calendar-feeds)
   - [Long term plans](#long-term-plans)
     - [Track tasks in the calendar](#track-tasks-in-the-calendar)
+
+## Installation
+
+Full Calendar is currently in beta. I'm planning on submitting it to the community plugin registry soon, but right now it's available in two other ways.
+
+### BRAT
+
+Full Calendar can currently be installed through the [Beta Reviewer's Auto-update Tool](https://github.com/TfTHacker/obsidian42-brat) using the GitHub path `davish/obsidian-full-calendar`.
+
+### Manual Installation
+
+If you don't want to use BRAT, head over to the [releases page](https://github.com/davish/obsidian-full-calendar/releases) and unzip the latest release inside of the `.obsidian/plugins` directory inside your vault.
 
 ## Features
 
