@@ -34,23 +34,38 @@ The Full Calendar library is released under the [MIT license](https://github.com
 #### Event modal
 
 Use the "Create event" command to bring up the event modal to add a new event. Clicking on any existing event will also bring up the modal for editing.
-![Create event with modal](docs/assets/create-event-modal.gif)
+
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/create-event-modal.gif'>
+</details>
 
 #### Click-and-drag to make an event
 
 Just click-and-drag on the calendar to create an event. A modal will pop up where you can fill in the details and tweak the timing.
-![Create event](docs/assets/create-event.gif)
+
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/create-event.gif'>
+</details>
 
 #### Full day events
 
 Can create events that last all day instead of giving a start and end time.
-![Full day event](docs/assets/create-event-fullday.gif)
+
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/create-event-fullday.gif'>
+</details>
 
 #### Recurring events
 
 Let a single event note show up on a set schedule by checking the "Recurring event" box in the event modal.
 
-![Recurring event](docs/assets/create-event-recurring.gif)
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/create-event-recurring.gif'>
+</details>
 
 ### Editing Events
 
@@ -59,17 +74,28 @@ to change the time range or the date of an event.
 
 #### Change time of event by dragging its endpoint
 
-![time range](docs/assets/edit-event-drag.gif)
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/edit-event-drag.gif'>
+</details>
 
 #### Move an event around on a day or between days
 
-![moving an event](docs/assets/moving-event.gif)
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/moving-event.gif'>
+</details>
 
 ### Settings
 
 #### Change the events directory
 
 All events live in `/events` in your vault by default, but you can change this to any directory by going to settings.
+
+<details>
+<summary>GIF example</summary>
+<img src='docs/assets/change-calendar-directory.gif'>
+</details>
 
 ### Dataview integration
 
