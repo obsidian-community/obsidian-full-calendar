@@ -11,6 +11,7 @@ The Full Calendar library is released under the [MIT license](https://github.com
     - [BRAT](#brat)
     - [Manual Installation](#manual-installation)
   - [Features](#features)
+    - [Opening the calendar](#opening-the-calendar)
     - [Creating Events](#creating-events)
       - [Via event modal](#via-event-modal)
       - [Via click-and-drag](#via-click-and-drag)
@@ -44,6 +45,15 @@ Full Calendar can currently be installed through the [Beta Reviewer's Auto-updat
 If you don't want to use BRAT, head over to the [releases page](https://github.com/davish/obsidian-full-calendar/releases) and unzip the latest release inside of the `.obsidian/plugins` directory inside your vault.
 
 ## Features
+
+### Opening the calendar
+
+Either click on the ribbon icon, or run the "Full Calendar: Open Calendar" command from the command palette.
+
+<details>
+<summary>Click for GIF example</summary>
+<img src='docs/assets/open-calendar.gif'>
+</details>
 
 ### Creating Events
 
