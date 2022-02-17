@@ -78,9 +78,15 @@ interface EditEventProps {
 	submit: (frontmatter: EventFrontmatter) => Promise<void>;
 	initialEvent?: Partial<EventFrontmatter>;
 	open?: () => Promise<void>;
+	deleteEvent?: () => Promise<void>;
 }
 
-export const EditEvent = ({ initialEvent, submit, open }: EditEventProps) => {
+export const EditEvent = ({
+	initialEvent,
+	submit,
+	open,
+	deleteEvent,
+}: EditEventProps) => {
 	const [date, setDate] = useState(
 		initialEvent
 			? initialEvent.type !== "recurring"
@@ -138,9 +144,11 @@ export const EditEvent = ({ initialEvent, submit, open }: EditEventProps) => {
 
 	return (
 		<>
-			<p style={{ float: "right" }}>
-				{open && <button onClick={open}>Open Note</button>}
-			</p>
+			<div>
+				<p style={{ float: "right" }}>
+					{open && <button onClick={open}>Open Note</button>}
+				</p>
+			</div>
 
 			<form onSubmit={handleSubmit}>
 				<p>
@@ -241,7 +249,26 @@ export const EditEvent = ({ initialEvent, submit, open }: EditEventProps) => {
 				)}
 
 				<p>
-					<input type="submit" />
+					<button type="submit"> Save Event </button>
+					<span style={{ float: "right" }}>
+						{deleteEvent && (
+							<button
+								type="button"
+								style={{
+									backgroundColor:
+										"var(--interactive-normal)",
+									color: "var(--background-modifier-error)",
+									borderColor:
+										"var(--background-modifier-error)",
+									borderWidth: "1px",
+									borderStyle: "solid",
+								}}
+								onClick={deleteEvent}
+							>
+								Delete Event
+							</button>
+						)}
+					</span>
 				</p>
 			</form>
 		</>

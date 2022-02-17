@@ -76,6 +76,21 @@ export class EventModal extends Modal {
 								}
 						  }
 						: undefined,
+				deleteEvent:
+					this.eventId !== undefined
+						? async () => {
+								if (this.eventId) {
+									let file =
+										this.app.vault.getAbstractFileByPath(
+											this.eventId
+										);
+									if (file instanceof TFile) {
+										await this.app.vault.delete(file);
+										this.close();
+									}
+								}
+						  }
+						: undefined,
 			}),
 			contentEl
 		);

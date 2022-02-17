@@ -1,4 +1,4 @@
-import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar } from "@fullcalendar/core";
 
 import { renderCalendar } from "./calendar";
@@ -22,6 +22,7 @@ export class CalendarView extends ItemView {
 		this.plugin = plugin;
 		this.calendar = null;
 		this.cacheCallback = this.onCacheUpdate.bind(this);
+		this.onFileDelete = this.onFileDelete.bind(this);
 	}
 
 	getViewType() {
@@ -48,6 +49,16 @@ export class CalendarView extends ItemView {
 				),
 				...newEventData,
 			});
+		}
+	}
+
+	onFileDelete(file: TAbstractFile) {
+		if (file instanceof TFile) {
+			let id = file.path;
+			const event = this.calendar?.getEventById(id);
+			if (event) {
+				event.remove();
+			}
 		}
 	}
 
@@ -87,6 +98,7 @@ export class CalendarView extends ItemView {
 		});
 
 		this.app.metadataCache.on("changed", this.cacheCallback);
+		this.app.vault.on("delete", this.onFileDelete);
 	}
 
 	onResize(): void {
@@ -99,5 +111,6 @@ export class CalendarView extends ItemView {
 			this.calendar = null;
 		}
 		this.app.metadataCache.off("changed", this.cacheCallback);
+		this.app.vault.off("delete", this.onFileDelete);
 	}
 }
