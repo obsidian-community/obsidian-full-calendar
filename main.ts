@@ -106,10 +106,7 @@ class FullCalendarSettingTab extends PluginSettingTab {
 							this.app.vault
 								.getAllLoadedFiles()
 								.filter((f) => f instanceof TFolder)
-								.map((f) => [
-									f.path.toLowerCase(),
-									f.path.toLowerCase(),
-								])
+								.map((f) => [f.path, f.path])
 						)
 					)
 					.setValue(this.plugin.settings.eventsDirectory)
