@@ -50,7 +50,7 @@ If you don't want to use BRAT, head over to the [releases page](https://github.c
 
 #### Add and modify local calendars
 
-All events live in `/events` in your vault by default, but you can change this to any directory or add a new source by going to settings.
+All events live in `/events` in your vault by default, but you can change this to any directory, add a new source and change colors by going to settings.
 
 <details>
 <summary>Click for GIF example</summary>
@@ -122,8 +122,6 @@ to change the time range or the date of an event.
 <summary>Click for GIF example</summary>
 <img src='docs/assets/moving-event.gif'>
 </details>
-
-
 
 ### [Dataview](https://github.com/blacksmithgu/obsidian-dataview) integration
 
