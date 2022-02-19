@@ -17,6 +17,7 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Creating Events](#creating-events)
       - [Via event modal](#via-event-modal)
       - [Via click-and-drag](#via-click-and-drag)
+      - [Upgrade existing note](#upgrade-existing-note)
       - [Full day events](#full-day-events)
       - [Recurring events](#recurring-events)
     - [Editing Events](#editing-events)
@@ -83,6 +84,15 @@ Just click-and-drag on the calendar to create an event. The modal will pop up wh
 <details>
 <summary>Click for GIF example</summary>
 <img src='docs/assets/create-event.gif'>
+</details>
+
+#### Upgrade existing note
+
+Add the relevant event frontmatter to any pre-existing note in your vault to get it to appear on your calendar with the "Upgrade note to event" command.
+
+<details>
+<summary>Click for GIF example</summary>
+<img src='docs/assets/upgrade-note.gif'>
 </details>
 
 #### Full day events
