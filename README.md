@@ -11,6 +11,8 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [BRAT](#brat)
     - [Manual Installation](#manual-installation)
   - [Features](#features)
+    - [Getting Started](#getting-started)
+      - [Add and modify local calendars](#add-and-modify-local-calendars)
     - [Opening the calendar](#opening-the-calendar)
     - [Creating Events](#creating-events)
       - [Via event modal](#via-event-modal)
@@ -20,8 +22,6 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Editing Events](#editing-events)
       - [Change time of event by dragging its endpoint](#change-time-of-event-by-dragging-its-endpoint)
       - [Move an event around on a day or between days](#move-an-event-around-on-a-day-or-between-days)
-    - [Settings](#settings)
-      - [Change the events directory](#change-the-events-directory)
     - [Dataview integration](#dataview-integration)
   - [Coming soon](#coming-soon)
     - [Import from Google Calendar](#import-from-google-calendar)
@@ -45,6 +45,17 @@ Full Calendar can currently be installed through the [Beta Reviewer's Auto-updat
 If you don't want to use BRAT, head over to the [releases page](https://github.com/davish/obsidian-full-calendar/releases) and unzip the latest release inside of the `.obsidian/plugins` directory inside your vault.
 
 ## Features
+
+### Getting Started
+
+#### Add and modify local calendars
+
+All events live in `/events` in your vault by default, but you can change this to any directory or add a new source by going to settings.
+
+<details>
+<summary>Click for GIF example</summary>
+<img src='docs/assets/add-calendar-source.gif'>
+</details>
 
 ### Opening the calendar
 
@@ -112,16 +123,7 @@ to change the time range or the date of an event.
 <img src='docs/assets/moving-event.gif'>
 </details>
 
-### Settings
 
-#### Change the events directory
-
-All events live in `/events` in your vault by default, but you can change this to any directory by going to settings.
-
-<details>
-<summary>Click for GIF example</summary>
-<img src='docs/assets/change-calendar-directory.gif'>
-</details>
 
 ### [Dataview](https://github.com/blacksmithgu/obsidian-dataview) integration
 
