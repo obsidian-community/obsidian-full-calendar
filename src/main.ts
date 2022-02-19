@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { MarkdownView, Plugin } from "obsidian";
 import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./view";
 import { renderCalendar } from "./calendar";
 
@@ -7,7 +7,7 @@ import { parseFrontmatter } from "./frontmatter";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,
-	FullCalendarSettingTab
+	FullCalendarSettingTab,
 } from "./settings";
 
 export default class FullCalendarPlugin extends Plugin {
@@ -21,7 +21,7 @@ export default class FullCalendarPlugin extends Plugin {
 
 		await this.app.workspace.getUnpinnedLeaf().setViewState({
 			type: FULL_CALENDAR_VIEW_TYPE,
-			active: true
+			active: true,
 		});
 
 		this.app.workspace.revealLeaf(
@@ -33,7 +33,7 @@ export default class FullCalendarPlugin extends Plugin {
 
 		this.registerView(
 			FULL_CALENDAR_VIEW_TYPE,
-			leaf => new CalendarView(leaf, this)
+			(leaf) => new CalendarView(leaf, this)
 		);
 		this.addRibbonIcon(
 			"calendar-glyph",
@@ -50,14 +50,26 @@ export default class FullCalendarPlugin extends Plugin {
 			name: "New Event",
 			callback: () => {
 				new EventModal(this.app, this, null).open();
-			}
+			},
 		});
 		this.addCommand({
 			id: "full-calendar-open",
 			name: "Open Calendar",
 			callback: () => {
 				this.activateView();
-			}
+			},
+		});
+		this.addCommand({
+			id: "full-calendar-upgrade-note",
+			name: "Upgrade note to event",
+			callback: () => {
+				const view =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (view) {
+					const file = view.file;
+					new EventModal(this.app, this, null).editInModal(file);
+				}
+			},
 		});
 	}
 

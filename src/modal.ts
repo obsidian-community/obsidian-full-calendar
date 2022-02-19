@@ -3,7 +3,11 @@ import FullCalendarPlugin from "./main";
 import { App, Modal, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { getFrontmatterFromEvent, upsertEvent } from "./crud";
+import {
+	getFrontmatterFromEvent,
+	getFrontmatterFromFile,
+	upsertEvent,
+} from "./crud";
 
 import { EditEvent } from "./components/EditEvent";
 import { EventFrontmatter } from "./types";
@@ -29,15 +33,23 @@ export class EventModal extends Modal {
 		this.calendar = calendar;
 	}
 
-	async editInModal(event: EventApi) {
-		let frontmatter = await getFrontmatterFromEvent(
-			this.app.vault,
-			this.app.metadataCache,
-			event
-		);
-		if (frontmatter) {
-			this.event = frontmatter;
-			this.eventId = event.id;
+	async editInModal(event: EventApi | TFile) {
+		let frontmatter = null;
+		if (event instanceof EventApi) {
+			frontmatter = await getFrontmatterFromEvent(
+				this.app.vault,
+				this.app.metadataCache,
+				event
+			);
+			if (frontmatter) {
+				this.event = frontmatter;
+				this.eventId = event.id;
+				this.open();
+			}
+		} else if (event instanceof TFile) {
+			frontmatter = getFrontmatterFromFile(this.app.metadataCache, event);
+			this.event = frontmatter || { title: event.basename };
+			this.eventId = event.path;
 			this.open();
 		}
 	}
@@ -50,9 +62,9 @@ export class EventModal extends Modal {
 			React.createElement(EditEvent, {
 				initialEvent: this.event,
 				submit: async (event, calendarIndex) => {
-					const directory = this.plugin.settings.calendarSources[
-						calendarIndex
-					].directory;
+					const directory =
+						this.plugin.settings.calendarSources[calendarIndex]
+							.directory;
 					let filename =
 						this.eventId || `${directory}/${event.title}.md`;
 
@@ -82,11 +94,13 @@ export class EventModal extends Modal {
 					this.eventId !== undefined
 						? async () => {
 								if (this.eventId) {
-									let file = this.app.vault.getAbstractFileByPath(
-										this.eventId
-									);
+									let file =
+										this.app.vault.getAbstractFileByPath(
+											this.eventId
+										);
 									if (file instanceof TFile) {
-										let leaf = this.app.workspace.getMostRecentLeaf();
+										let leaf =
+											this.app.workspace.getMostRecentLeaf();
 										await leaf.openFile(file);
 										this.close();
 									}
@@ -97,16 +111,17 @@ export class EventModal extends Modal {
 					this.eventId !== undefined
 						? async () => {
 								if (this.eventId) {
-									let file = this.app.vault.getAbstractFileByPath(
-										this.eventId
-									);
+									let file =
+										this.app.vault.getAbstractFileByPath(
+											this.eventId
+										);
 									if (file instanceof TFile) {
 										await this.app.vault.delete(file);
 										this.close();
 									}
 								}
 						  }
-						: undefined
+						: undefined,
 			}),
 			contentEl
 		);
