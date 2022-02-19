@@ -9,7 +9,7 @@ import {
 	getEventInputFromFile,
 	getEventInputFromPath,
 	getEventSourceFromCalendarSource,
-	updateEventFromCalendar
+	updateEventFromCalendar,
 } from "./crud";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
@@ -23,7 +23,6 @@ export class CalendarView extends ItemView {
 		this.plugin = plugin;
 		this.calendar = null;
 		this.cacheCallback = this.onCacheUpdate.bind(this);
-		this.onFileDelete = this.onFileDelete.bind(this);
 	}
 
 	getViewType() {
@@ -35,7 +34,7 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
-		const calendar = this.plugin.settings.calendarSources.find(c =>
+		const calendar = this.plugin.settings.calendarSources.find((c) =>
 			file.path.startsWith(c.directory)
 		);
 
@@ -54,18 +53,8 @@ export class CalendarView extends ItemView {
 				textColor: getComputedStyle(document.body).getPropertyValue(
 					"--text-on-accent"
 				),
-				...newEventData
+				...newEventData,
 			});
-		}
-	}
-
-	onFileDelete(file: TAbstractFile) {
-		if (file instanceof TFile) {
-			let id = file.path;
-			const event = this.calendar?.getEventById(id);
-			if (event) {
-				event.remove();
-			}
 		}
 	}
 
@@ -73,7 +62,7 @@ export class CalendarView extends ItemView {
 		await this.plugin.loadSettings();
 		const sources = (
 			await Promise.all(
-				this.plugin.settings.calendarSources.map(s =>
+				this.plugin.settings.calendarSources.map((s) =>
 					getEventSourceFromCalendarSource(
 						this.app.vault,
 						this.app.metadataCache,
@@ -81,7 +70,7 @@ export class CalendarView extends ItemView {
 					)
 				)
 			)
-		).filter(s => s !== null) as EventSourceInput[]; // Filter does not narrow types :(
+		).filter((s) => s !== null) as EventSourceInput[]; // Filter does not narrow types :(
 
 		const container = this.containerEl.children[1];
 		container.empty();
@@ -94,7 +83,7 @@ export class CalendarView extends ItemView {
 		}
 
 		this.calendar = renderCalendar(calendarEl, sources, {
-			eventClick: async event => {
+			eventClick: async (event) => {
 				new EventModal(
 					this.app,
 					this.plugin,
@@ -117,11 +106,24 @@ export class CalendarView extends ItemView {
 			},
 			modifyEvent: async ({ event }) => {
 				await updateEventFromCalendar(this.app.vault, event);
-			}
+			},
 		});
 
-		this.app.metadataCache.on("changed", this.cacheCallback);
-		this.app.vault.on("delete", this.onFileDelete);
+		this.registerEvent(
+			this.app.metadataCache.on("changed", this.cacheCallback)
+		);
+		this.registerEvent(
+			this.app.vault.on("delete", (file) => {
+				console.log("yo!");
+				if (file instanceof TFile) {
+					let id = file.path;
+					const event = this.calendar?.getEventById(id);
+					if (event) {
+						event.remove();
+					}
+				}
+			})
+		);
 	}
 
 	onResize(): void {
@@ -133,7 +135,5 @@ export class CalendarView extends ItemView {
 			this.calendar.destroy();
 			this.calendar = null;
 		}
-		this.app.metadataCache.off("changed", this.cacheCallback);
-		this.app.vault.off("delete", this.onFileDelete);
 	}
 }
