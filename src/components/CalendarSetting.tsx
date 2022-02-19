@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 
 import { CalendarSource } from "../types";
 
@@ -22,7 +22,7 @@ export const CalendarSettingRow = ({
 	onDirectoryChange,
 	deleteCalendar,
 }: CalendarSettingsProps) => (
-	<div style={{ display: "flex", width: "100%" }}>
+	<div style={{ display: "flex", width: "100%", marginBottom: "0.5rem" }}>
 		<button type="button" onClick={deleteCalendar}>
 			✕
 		</button>
@@ -60,8 +60,15 @@ export const CalendarSettings = ({
 	defaultColor,
 	submit,
 }: FolderSettingProps) => {
-	const [settings, setSettings] =
+	const [settings, setSettingState] =
 		useState<Partial<CalendarSource>[]>(initialSetting);
+
+	const setSettings = (state: SetStateAction<Partial<CalendarSource>[]>) => {
+		setSettingState(state);
+		setDirty(true);
+	};
+
+	const [dirty, setDirty] = useState(false);
 
 	const usedDirectories = settings.map((s) => s.directory);
 	const options = directories.filter(
@@ -101,7 +108,7 @@ export const CalendarSettings = ({
 			))}
 			<div style={{ display: "flex", paddingTop: "1em" }}>
 				<button
-					onClick={() =>
+					onClick={() => {
 						submit(
 							settings
 								.filter(
@@ -111,10 +118,17 @@ export const CalendarSettings = ({
 										elt.type !== undefined
 								)
 								.map((elt) => elt as CalendarSource)
-						)
-					}
+						);
+						setDirty(false);
+					}}
+					style={{
+						backgroundColor: dirty
+							? "var(--interactive-accent)"
+							: undefined,
+						color: dirty ? "var(--text-on-accent)" : undefined,
+					}}
 				>
-					Save
+					{dirty ? "Save" : "Settings Saved"}
 				</button>
 				<span style={{ flexGrow: 1 }}></span>
 				<button
