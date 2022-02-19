@@ -4,14 +4,11 @@ import { renderCalendar } from "src/calendar";
 
 import { EventModal } from "src/modal";
 import { parseFrontmatter } from "src/frontmatter";
-
-interface FullCalendarSettings {
-	eventsDirectory: string;
-}
-
-const DEFAULT_SETTINGS: FullCalendarSettings = {
-	eventsDirectory: "events",
-};
+import {
+	DEFAULT_SETTINGS,
+	FullCalendarSettings,
+	FullCalendarSettingTab,
+} from "src/settings";
 
 export default class FullCalendarPlugin extends Plugin {
 	settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -52,7 +49,7 @@ export default class FullCalendarPlugin extends Plugin {
 			id: "full-calendar-new-event",
 			name: "New Event",
 			callback: () => {
-				new EventModal(this.app, this).open();
+				new EventModal(this.app, this, null).open();
 			},
 		});
 		this.addCommand({
@@ -78,42 +75,5 @@ export default class FullCalendarPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-}
-
-class FullCalendarSettingTab extends PluginSettingTab {
-	plugin: FullCalendarPlugin;
-
-	constructor(app: App, plugin: FullCalendarPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	async display(): Promise<void> {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		containerEl.createEl("h2", { text: "Events settings" });
-
-		new Setting(containerEl)
-			.setName("Events directory")
-			.setDesc("Directory to read and write events from.")
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOptions(
-						Object.fromEntries(
-							this.app.vault
-								.getAllLoadedFiles()
-								.filter((f) => f instanceof TFolder)
-								.map((f) => [f.path, f.path])
-						)
-					)
-					.setValue(this.plugin.settings.eventsDirectory)
-					.onChange(async (value) => {
-						this.plugin.settings.eventsDirectory = value;
-						await this.plugin.saveSettings();
-					})
-			);
 	}
 }

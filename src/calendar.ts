@@ -3,6 +3,7 @@ import {
 	dateSelectionJoinTransformer,
 	EventApi,
 	EventInput,
+	EventSourceInput,
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -17,7 +18,7 @@ interface ExtraRenderProps {
 
 export function renderCalendar(
 	containerEl: HTMLElement,
-	events: EventInput[],
+	sources: EventSourceInput[],
 	{ eventClick, select, modifyEvent }: ExtraRenderProps
 ): Calendar {
 	const cal = new Calendar(containerEl, {
@@ -29,18 +30,7 @@ export function renderCalendar(
 			center: "title",
 			right: "dayGridMonth,timeGridWeek,listWeek",
 		},
-		eventSources: [
-			{
-				events,
-				textColor: getComputedStyle(document.body).getPropertyValue(
-					"--text-on-accent"
-				),
-				color: getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
-			},
-		],
-
+		eventSources: sources,
 		eventClick: eventClick ? (info) => eventClick(info.event) : undefined,
 
 		selectable: select && true,

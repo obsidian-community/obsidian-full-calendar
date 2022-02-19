@@ -1,4 +1,4 @@
-import { EventApi, EventInput } from "@fullcalendar/core";
+import { EventApi, EventInput, EventSourceInput } from "@fullcalendar/core";
 import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
 import { getDate, getTime } from "./dateUtil";
 import {
@@ -6,7 +6,7 @@ import {
 	modifyFrontmatter,
 	parseFrontmatter,
 } from "./frontmatter";
-import { EventFrontmatter } from "./types";
+import { CalendarSource, EventFrontmatter } from "./types";
 
 export async function getFileForEvent(
 	vault: Vault,
@@ -121,4 +121,34 @@ export async function getEventInputFromPath(
 		}
 	}
 	return events;
+}
+
+export async function getEventSourceFromCalendarSource(
+	vault: Vault,
+	cache: MetadataCache,
+	calendarSource: CalendarSource
+): Promise<EventSourceInput | null> {
+	if (!calendarSource.directory) {
+		return null;
+	}
+	const events = await getEventInputFromPath(
+		vault,
+		cache,
+		calendarSource.directory
+	);
+	if (!events) {
+		return null;
+	}
+
+	return {
+		events,
+		textColor: getComputedStyle(document.body).getPropertyValue(
+			"--text-on-accent"
+		),
+		color:
+			calendarSource.color ||
+			getComputedStyle(document.body).getPropertyValue(
+				"--interactive-accent"
+			),
+	};
 }

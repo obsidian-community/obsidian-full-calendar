@@ -1,3 +1,4 @@
+// Frontmatter
 export type AllDayFrontmatter = {
 	allDay: true;
 };
@@ -27,3 +28,12 @@ export type RecurringEventFrontmatter = {
 export type EventFrontmatter =
 	| SingleEventFrontmatter
 	| RecurringEventFrontmatter;
+
+// Settings
+interface LocalCalendarSource {
+	type: "local";
+	color: string | null;
+	directory: string;
+}
+
+export type CalendarSource = LocalCalendarSource;

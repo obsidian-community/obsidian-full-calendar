@@ -1,11 +1,16 @@
+import { DropdownComponent } from "obsidian";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import { EventFrontmatter, SingleEventFrontmatter } from "./types";
+import {
+	CalendarSource,
+	EventFrontmatter,
+	SingleEventFrontmatter,
+} from "../types";
 
 function makeChangeListener<T>(
 	setState: React.Dispatch<React.SetStateAction<T>>,
 	fromString: (val: string) => T
-): React.ChangeEventHandler<HTMLInputElement> {
+): React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement> {
 	return (e) => setState(fromString(e.target.value));
 }
 
@@ -75,7 +80,12 @@ const DaySelect = ({
 };
 
 interface EditEventProps {
-	submit: (frontmatter: EventFrontmatter) => Promise<void>;
+	submit: (
+		frontmatter: EventFrontmatter,
+		calendarIndex: number
+	) => Promise<void>;
+	readonly calendars: CalendarSource[];
+	defaultCalendarIndex: number;
 	initialEvent?: Partial<EventFrontmatter>;
 	open?: () => Promise<void>;
 	deleteEvent?: () => Promise<void>;
@@ -86,6 +96,8 @@ export const EditEvent = ({
 	submit,
 	open,
 	deleteEvent,
+	calendars,
+	defaultCalendarIndex,
 }: EditEventProps) => {
 	const [date, setDate] = useState(
 		initialEvent
@@ -117,6 +129,8 @@ export const EditEvent = ({
 
 	const [allDay, setAllDay] = useState(initialEvent?.allDay || false);
 
+	const [calendarIndex, setCalendarIndex] = useState(defaultCalendarIndex);
+
 	const titleRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
 		if (titleRef.current) {
@@ -126,20 +140,23 @@ export const EditEvent = ({
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		await submit({
-			...{ title },
-			...(allDay
-				? { allDay: true }
-				: { allDay: false, startTime, endTime }),
-			...(isRecurring
-				? {
-						type: "recurring",
-						daysOfWeek,
-						startRecur: date || undefined,
-						endRecur: endDate || undefined,
-				  }
-				: { date }),
-		});
+		await submit(
+			{
+				...{ title },
+				...(allDay
+					? { allDay: true }
+					: { allDay: false, startTime, endTime }),
+				...(isRecurring
+					? {
+							type: "recurring",
+							daysOfWeek,
+							startRecur: date || undefined,
+							endRecur: endDate || undefined,
+					  }
+					: { date }),
+			},
+			calendarIndex
+		);
 	};
 
 	return (
@@ -161,6 +178,22 @@ export const EditEvent = ({
 						required
 						onChange={makeChangeListener(setTitle, (x) => x)}
 					/>
+				</p>
+				<p>
+					<select
+						id="calendar"
+						value={calendarIndex}
+						onChange={makeChangeListener(
+							setCalendarIndex,
+							parseInt
+						)}
+					>
+						{calendars.map((cal, idx) => (
+							<option key={idx} value={idx}>
+								{cal.directory}
+							</option>
+						))}
+					</select>
 				</p>
 				<p>
 					{!isRecurring && (
@@ -248,9 +281,15 @@ export const EditEvent = ({
 					</>
 				)}
 
-				<p>
+				<p
+					style={{
+						display: "flex",
+						justifyContent: "space-between",
+						width: "100%",
+					}}
+				>
 					<button type="submit"> Save Event </button>
-					<span style={{ float: "right" }}>
+					<span>
 						{deleteEvent && (
 							<button
 								type="button"

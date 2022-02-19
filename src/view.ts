@@ -1,5 +1,5 @@
 import { ItemView, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
-import { Calendar } from "@fullcalendar/core";
+import { Calendar, EventSourceInput } from "@fullcalendar/core";
 
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "main";
@@ -8,6 +8,7 @@ import {
 	dateEndpointsToFrontmatter,
 	getEventInputFromFile,
 	getEventInputFromPath,
+	getEventSourceFromCalendarSource,
 	updateEventFromCalendar,
 } from "./crud";
 
@@ -34,16 +35,22 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
+		const calendar = this.plugin.settings.calendarSources.find((c) =>
+			file.path.startsWith(c.directory)
+		);
+
 		let calendarEvent = this.calendar?.getEventById(file.path);
 		let newEventData = getEventInputFromFile(this.app.metadataCache, file);
-		if (newEventData !== null) {
+		if (calendar && newEventData !== null) {
 			if (calendarEvent) {
 				calendarEvent.remove();
 			}
 			this.calendar?.addEvent({
-				color: getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
+				color:
+					calendar.color ||
+					getComputedStyle(document.body).getPropertyValue(
+						"--interactive-accent"
+					),
 				textColor: getComputedStyle(document.body).getPropertyValue(
 					"--text-on-accent"
 				),
@@ -64,24 +71,35 @@ export class CalendarView extends ItemView {
 
 	async onOpen() {
 		await this.plugin.loadSettings();
-		const events = await getEventInputFromPath(
-			this.app.vault,
-			this.app.metadataCache,
-			this.plugin.settings.eventsDirectory
-		);
+		const sources = (
+			await Promise.all(
+				this.plugin.settings.calendarSources.map((s) =>
+					getEventSourceFromCalendarSource(
+						this.app.vault,
+						this.app.metadataCache,
+						s
+					)
+				)
+			)
+		).filter((s) => s !== null) as EventSourceInput[]; // Filter does not narrow types :(
 
 		const container = this.containerEl.children[1];
 		container.empty();
 		let calendarEl = container.createEl("div");
-		if (!events) {
+
+		if (!sources) {
 			calendarEl.textContent =
-				"Error: the events directory was not a directory.";
+				"Error: the events directory was not a directory. Please change your events directory in settings.";
 			return;
 		}
 
-		this.calendar = renderCalendar(calendarEl, events, {
+		this.calendar = renderCalendar(calendarEl, sources, {
 			eventClick: async (event) => {
-				new EventModal(this.app, this.plugin).editInModal(event);
+				new EventModal(
+					this.app,
+					this.plugin,
+					this.calendar
+				).editInModal(event);
 			},
 			select: async (start, end, allDay) => {
 				const partialEvent = dateEndpointsToFrontmatter(
@@ -89,7 +107,12 @@ export class CalendarView extends ItemView {
 					end,
 					allDay
 				);
-				let modal = new EventModal(this.app, this.plugin, partialEvent);
+				let modal = new EventModal(
+					this.app,
+					this.plugin,
+					this.calendar,
+					partialEvent
+				);
 				modal.open();
 			},
 			modifyEvent: async ({ event }) => {
