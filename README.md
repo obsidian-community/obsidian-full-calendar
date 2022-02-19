@@ -25,7 +25,6 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Dataview integration](#dataview-integration)
   - [Coming soon](#coming-soon)
     - [Import from Google Calendar](#import-from-google-calendar)
-    - [Support for multiple calendars with different colors](#support-for-multiple-calendars-with-different-colors)
     - [Mobile UI Optimizations](#mobile-ui-optimizations)
     - [Create event notes with a template](#create-event-notes-with-a-template)
     - [Subscribe to public calendar feeds](#subscribe-to-public-calendar-feeds)
@@ -144,10 +143,6 @@ This plugin is in its early days -- here are some features I plan to work on nex
 ### Import from Google Calendar
 
 Make the transition easier by loading in all your events from an existing Google Calendar and maintain a one-way sync.
-
-### Support for multiple calendars with different colors
-
-Easy enough. Add and remove calendars in your settings, each calendar has its own folder in your Vault.
 
 ### Mobile UI Optimizations
 
