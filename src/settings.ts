@@ -8,6 +8,7 @@ import { createElement } from "react";
 export interface FullCalendarSettings {
 	calendarSources: CalendarSource[];
 	defaultCalendar: number;
+	recursiveLocal: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -15,10 +16,11 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 		{
 			type: "local",
 			directory: "events",
-			color: null
-		}
+			color: null,
+		},
 	],
-	defaultCalendar: 0
+	defaultCalendar: 0,
+	recursiveLocal: false,
 };
 
 export class FullCalendarSettingTab extends PluginSettingTab {
@@ -34,6 +36,17 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.createEl("h2", { text: "Events settings" });
 
+		new Setting(containerEl)
+			.setName("Recursive event folders")
+			.setDesc("Search through sub-folders for events")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.recursiveLocal);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.recursiveLocal = val;
+					await this.plugin.saveSettings();
+				});
+			});
+
 		const sourceSetting = new Setting(containerEl)
 			.setName("Calendars")
 			.setDesc("Configure your calendars here.");
@@ -41,8 +54,8 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 		sourceSetting.settingEl.style.display = "block";
 		const directories = this.app.vault
 			.getAllLoadedFiles()
-			.filter(f => f instanceof TFolder)
-			.map(f => f.path);
+			.filter((f) => f instanceof TFolder)
+			.map((f) => f.path);
 
 		ReactDOM.render(
 			createElement(CalendarSettings, {
@@ -54,7 +67,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				submit: async (settings: CalendarSource[]) => {
 					this.plugin.settings.calendarSources = settings;
 					await this.plugin.saveSettings();
-				}
+				},
 			}),
 			sourceSetting.settingEl
 		);

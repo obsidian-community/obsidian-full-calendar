@@ -4,7 +4,7 @@ import { getDate, getTime } from "./dateUtil";
 import {
 	eventApiToFrontmatter,
 	modifyFrontmatter,
-	parseFrontmatter
+	parseFrontmatter,
 } from "./frontmatter";
 import { CalendarSource, EventFrontmatter } from "./types";
 
@@ -96,15 +96,16 @@ export function dateEndpointsToFrontmatter(
 			? {}
 			: {
 					startTime: getTime(start),
-					endTime: getTime(end)
-			  })
+					endTime: getTime(end),
+			  }),
 	};
 }
 
 export async function getEventInputFromPath(
 	vault: Vault,
 	cache: MetadataCache,
-	path: string
+	path: string,
+	recursive?: boolean
 ): Promise<EventInput[] | null> {
 	const eventFolder = vault.getAbstractFileByPath(path);
 	if (!(eventFolder instanceof TFolder)) {
@@ -118,15 +119,26 @@ export async function getEventInputFromPath(
 			if (event) {
 				events.push(event);
 			}
+		} else if (recursive) {
+			const childEvents = await getEventInputFromPath(
+				vault,
+				cache,
+				file.path,
+				recursive
+			);
+			if (childEvents) {
+				events.push(...childEvents);
+			}
 		}
 	}
 	return events;
 }
 
-export async function getEventSourceFromCalendarSource(
+export async function getEventSourceFromLocalSource(
 	vault: Vault,
 	cache: MetadataCache,
-	calendarSource: CalendarSource
+	calendarSource: CalendarSource,
+	recursive: boolean
 ): Promise<EventSourceInput | null> {
 	if (!calendarSource.directory) {
 		return null;
@@ -134,7 +146,8 @@ export async function getEventSourceFromCalendarSource(
 	const events = await getEventInputFromPath(
 		vault,
 		cache,
-		calendarSource.directory
+		calendarSource.directory,
+		recursive
 	);
 	if (!events) {
 		return null;
@@ -149,6 +162,6 @@ export async function getEventSourceFromCalendarSource(
 			calendarSource.color ||
 			getComputedStyle(document.body).getPropertyValue(
 				"--interactive-accent"
-			)
+			),
 	};
 }

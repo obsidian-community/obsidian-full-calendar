@@ -23,6 +23,8 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Editing Events](#editing-events)
       - [Change time of event by dragging its endpoint](#change-time-of-event-by-dragging-its-endpoint)
       - [Move an event around on a day or between days](#move-an-event-around-on-a-day-or-between-days)
+    - [Settings](#settings)
+      - [Include events in sub-folders](#include-events-in-sub-folders)
     - [Dataview integration](#dataview-integration)
   - [Coming soon](#coming-soon)
     - [Import from Google Calendar](#import-from-google-calendar)
@@ -130,6 +132,17 @@ to change the time range or the date of an event.
 <details>
 <summary>Click for GIF example</summary>
 <img src='docs/assets/moving-event.gif'>
+</details>
+
+### Settings
+
+#### Include events in sub-folders
+
+By default, Full Calendar will only look for events in the top-level of each calendar folder. This can be changed in settings.
+
+<details>
+<summary>Click for GIF example</summary>
+<img src='docs/assets/recursive-search.gif'>
 </details>
 
 ### [Dataview](https://github.com/blacksmithgu/obsidian-dataview) integration

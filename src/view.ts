@@ -7,8 +7,7 @@ import { EventModal } from "./modal";
 import {
 	dateEndpointsToFrontmatter,
 	getEventInputFromFile,
-	getEventInputFromPath,
-	getEventSourceFromCalendarSource,
+	getEventSourceFromLocalSource,
 	updateEventFromCalendar,
 } from "./crud";
 
@@ -62,11 +61,12 @@ export class CalendarView extends ItemView {
 		await this.plugin.loadSettings();
 		const sources = (
 			await Promise.all(
-				this.plugin.settings.calendarSources.map((s) =>
-					getEventSourceFromCalendarSource(
+				this.plugin.settings.calendarSources.map((source) =>
+					getEventSourceFromLocalSource(
 						this.app.vault,
 						this.app.metadataCache,
-						s
+						source,
+						this.plugin.settings.recursiveLocal
 					)
 				)
 			)
@@ -114,7 +114,6 @@ export class CalendarView extends ItemView {
 		);
 		this.registerEvent(
 			this.app.vault.on("delete", (file) => {
-				console.log("yo!");
 				if (file instanceof TFile) {
 					let id = file.path;
 					const event = this.calendar?.getEventById(id);
