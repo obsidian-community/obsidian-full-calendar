@@ -1,0 +1,15 @@
+name: Format
+on: push
+jobs:
+    format:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  ref: ${{ github.head_ref }}
+            - uses: actions/setup-node@v2
+              with:
+                  node-version: "16.x"
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run compile 
