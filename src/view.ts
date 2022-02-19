@@ -2,14 +2,14 @@ import { ItemView, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 
 import { renderCalendar } from "./calendar";
-import FullCalendarPlugin from "main";
+import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
 import {
 	dateEndpointsToFrontmatter,
 	getEventInputFromFile,
 	getEventInputFromPath,
 	getEventSourceFromCalendarSource,
-	updateEventFromCalendar,
+	updateEventFromCalendar
 } from "./crud";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
@@ -35,7 +35,7 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
-		const calendar = this.plugin.settings.calendarSources.find((c) =>
+		const calendar = this.plugin.settings.calendarSources.find(c =>
 			file.path.startsWith(c.directory)
 		);
 
@@ -54,7 +54,7 @@ export class CalendarView extends ItemView {
 				textColor: getComputedStyle(document.body).getPropertyValue(
 					"--text-on-accent"
 				),
-				...newEventData,
+				...newEventData
 			});
 		}
 	}
@@ -73,7 +73,7 @@ export class CalendarView extends ItemView {
 		await this.plugin.loadSettings();
 		const sources = (
 			await Promise.all(
-				this.plugin.settings.calendarSources.map((s) =>
+				this.plugin.settings.calendarSources.map(s =>
 					getEventSourceFromCalendarSource(
 						this.app.vault,
 						this.app.metadataCache,
@@ -81,7 +81,7 @@ export class CalendarView extends ItemView {
 					)
 				)
 			)
-		).filter((s) => s !== null) as EventSourceInput[]; // Filter does not narrow types :(
+		).filter(s => s !== null) as EventSourceInput[]; // Filter does not narrow types :(
 
 		const container = this.containerEl.children[1];
 		container.empty();
@@ -94,7 +94,7 @@ export class CalendarView extends ItemView {
 		}
 
 		this.calendar = renderCalendar(calendarEl, sources, {
-			eventClick: async (event) => {
+			eventClick: async event => {
 				new EventModal(
 					this.app,
 					this.plugin,
@@ -117,7 +117,7 @@ export class CalendarView extends ItemView {
 			},
 			modifyEvent: async ({ event }) => {
 				await updateEventFromCalendar(this.app.vault, event);
-			},
+			}
 		});
 
 		this.app.metadataCache.on("changed", this.cacheCallback);

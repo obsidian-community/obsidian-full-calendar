@@ -8,7 +8,7 @@ export const parseTime = (time: string): Duration => {
 	return Duration.fromISOTime(
 		parsed.toISOTime({
 			includeOffset: false,
-			includePrefix: false,
+			includePrefix: false
 		})
 	);
 };
@@ -18,7 +18,7 @@ export const normalizeTimeString = (time: string): string => {
 	return parseTime(time).toISOTime({
 		suppressMilliseconds: true,
 		includePrefix: false,
-		suppressSeconds: true,
+		suppressSeconds: true
 	});
 };
 
@@ -32,7 +32,7 @@ export const getTime = (date: Date): string =>
 	DateTime.fromJSDate(date).toISOTime({
 		suppressMilliseconds: true,
 		includeOffset: false,
-		suppressSeconds: true,
+		suppressSeconds: true
 	});
 
 export const getDate = (date: Date): string =>

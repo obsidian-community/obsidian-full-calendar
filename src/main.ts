@@ -1,14 +1,14 @@
-import { App, Plugin, PluginSettingTab, Setting, TFolder } from "obsidian";
-import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "src/view";
-import { renderCalendar } from "src/calendar";
+import { Plugin } from "obsidian";
+import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./view";
+import { renderCalendar } from "./calendar";
 
-import { EventModal } from "src/modal";
-import { parseFrontmatter } from "src/frontmatter";
+import { EventModal } from "./modal";
+import { parseFrontmatter } from "./frontmatter";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,
-	FullCalendarSettingTab,
-} from "src/settings";
+	FullCalendarSettingTab
+} from "./settings";
 
 export default class FullCalendarPlugin extends Plugin {
 	settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -21,7 +21,7 @@ export default class FullCalendarPlugin extends Plugin {
 
 		await this.app.workspace.getUnpinnedLeaf().setViewState({
 			type: FULL_CALENDAR_VIEW_TYPE,
-			active: true,
+			active: true
 		});
 
 		this.app.workspace.revealLeaf(
@@ -33,7 +33,7 @@ export default class FullCalendarPlugin extends Plugin {
 
 		this.registerView(
 			FULL_CALENDAR_VIEW_TYPE,
-			(leaf) => new CalendarView(leaf, this)
+			leaf => new CalendarView(leaf, this)
 		);
 		this.addRibbonIcon(
 			"calendar-glyph",
@@ -50,14 +50,14 @@ export default class FullCalendarPlugin extends Plugin {
 			name: "New Event",
 			callback: () => {
 				new EventModal(this.app, this, null).open();
-			},
+			}
 		});
 		this.addCommand({
 			id: "full-calendar-open",
 			name: "Open Calendar",
 			callback: () => {
 				this.activateView();
-			},
+			}
 		});
 	}
 

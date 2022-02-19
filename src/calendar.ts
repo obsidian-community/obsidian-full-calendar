@@ -3,7 +3,7 @@ import {
 	dateSelectionJoinTransformer,
 	EventApi,
 	EventInput,
-	EventSourceInput,
+	EventSourceInput
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -28,23 +28,23 @@ export function renderCalendar(
 		headerToolbar: {
 			left: "prev,next today",
 			center: "title",
-			right: "dayGridMonth,timeGridWeek,listWeek",
+			right: "dayGridMonth,timeGridWeek,listWeek"
 		},
 		eventSources: sources,
-		eventClick: eventClick ? (info) => eventClick(info.event) : undefined,
+		eventClick: eventClick ? info => eventClick(info.event) : undefined,
 
 		selectable: select && true,
 		selectMirror: select && true,
 		select:
 			select &&
-			(async (info) => {
+			(async info => {
 				await select(info.start, info.end, info.allDay);
 				info.view.calendar.unselect();
 			}),
 
 		editable: modifyEvent && true,
 		eventDrop: modifyEvent,
-		eventResize: modifyEvent,
+		eventResize: modifyEvent
 	});
 	cal.render();
 	return cal;

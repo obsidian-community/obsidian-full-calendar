@@ -1,5 +1,5 @@
 import { Calendar, EventApi } from "@fullcalendar/core";
-import FullCalendarPlugin from "main";
+import FullCalendarPlugin from "./main";
 import { App, Modal, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
@@ -50,9 +50,9 @@ export class EventModal extends Modal {
 			React.createElement(EditEvent, {
 				initialEvent: this.event,
 				submit: async (event, calendarIndex) => {
-					const directory =
-						this.plugin.settings.calendarSources[calendarIndex]
-							.directory;
+					const directory = this.plugin.settings.calendarSources[
+						calendarIndex
+					].directory;
 					let filename =
 						this.eventId || `${directory}/${event.title}.md`;
 
@@ -82,13 +82,11 @@ export class EventModal extends Modal {
 					this.eventId !== undefined
 						? async () => {
 								if (this.eventId) {
-									let file =
-										this.app.vault.getAbstractFileByPath(
-											this.eventId
-										);
+									let file = this.app.vault.getAbstractFileByPath(
+										this.eventId
+									);
 									if (file instanceof TFile) {
-										let leaf =
-											this.app.workspace.getMostRecentLeaf();
+										let leaf = this.app.workspace.getMostRecentLeaf();
 										await leaf.openFile(file);
 										this.close();
 									}
@@ -99,17 +97,16 @@ export class EventModal extends Modal {
 					this.eventId !== undefined
 						? async () => {
 								if (this.eventId) {
-									let file =
-										this.app.vault.getAbstractFileByPath(
-											this.eventId
-										);
+									let file = this.app.vault.getAbstractFileByPath(
+										this.eventId
+									);
 									if (file instanceof TFile) {
 										await this.app.vault.delete(file);
 										this.close();
 									}
 								}
 						  }
-						: undefined,
+						: undefined
 			}),
 			contentEl
 		);

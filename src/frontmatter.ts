@@ -6,7 +6,7 @@ import {
 	getDate,
 	getTime,
 	normalizeTimeString,
-	parseTime,
+	parseTime
 } from "./dateUtil";
 import { EventFrontmatter } from "./types";
 
@@ -19,20 +19,20 @@ export function parseFrontmatter(
 	let event: EventInput = {
 		id,
 		title: frontmatter.title,
-		allDay: frontmatter.allDay,
+		allDay: frontmatter.allDay
 	};
 	if (frontmatter.type === "recurring") {
 		event = {
 			...event,
-			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
+			daysOfWeek: frontmatter.daysOfWeek.map(c => DAYS.indexOf(c)),
 			startRecur: frontmatter.startRecur,
-			endRecur: frontmatter.endRecur,
+			endRecur: frontmatter.endRecur
 		};
 		if (!frontmatter.allDay) {
 			event = {
 				...event,
 				startTime: normalizeTimeString(frontmatter.startTime || ""),
-				endTime: normalizeTimeString(frontmatter.endTime || ""),
+				endTime: normalizeTimeString(frontmatter.endTime || "")
 			};
 		}
 	} else {
@@ -46,12 +46,12 @@ export function parseFrontmatter(
 				end: add(
 					DateTime.fromISO(frontmatter.date),
 					parseTime(frontmatter.endTime || "")
-				).toISO(),
+				).toISO()
 			};
 		} else {
 			event = {
 				...event,
-				start: frontmatter.date,
+				start: frontmatter.date
 			};
 		}
 	}
@@ -68,7 +68,7 @@ export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
 			: {
 					allDay: false,
 					startTime: getTime(event.start as Date),
-					endTime: getTime(event.end as Date),
+					endTime: getTime(event.end as Date)
 			  }),
 
 		...(isRecurring
@@ -82,9 +82,9 @@ export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
 						getDate(event.extendedProps.startRecur),
 					endRecur:
 						event.extendedProps.endRecur &&
-						getDate(event.extendedProps.endRecur),
+						getDate(event.extendedProps.endRecur)
 			  }
-			: { type: "single", date: getDate(event.start as Date) }),
+			: { type: "single", date: getDate(event.start as Date) })
 	};
 }
 
@@ -121,7 +121,10 @@ function extractFrontmatter(page: string): string | null {
 function extractPageContents(page: string): string {
 	if (hasFrontmatter(page)) {
 		// Frontmatter lives between the first two --- linebreaks.
-		return page.split("---").slice(2).join("---");
+		return page
+			.split("---")
+			.slice(2)
+			.join("---");
 	} else {
 		return page;
 	}
@@ -196,9 +199,9 @@ export async function modifyFrontmatter(
 		// Add all rows that were not originally in the frontmatter.
 		newFrontmatter.push(
 			...(Object.keys(modifications) as [keyof EventFrontmatter])
-				.filter((k) => !linesAdded.has(k))
-				.filter((k) => modifications[k] !== undefined)
-				.map((k) =>
+				.filter(k => !linesAdded.has(k))
+				.filter(k => modifications[k] !== undefined)
+				.map(k =>
 					stringifyYamlLine(k, modifications[k] as PrintableAtom)
 				)
 		);

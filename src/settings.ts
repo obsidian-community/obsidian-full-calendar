@@ -1,4 +1,4 @@
-import FullCalendarPlugin from "main";
+import FullCalendarPlugin from "./main";
 import { App, PluginSettingTab, Setting, TFolder } from "obsidian";
 import { CalendarSource } from "./types";
 import { CalendarSettings } from "./components/CalendarSetting";
@@ -15,10 +15,10 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 		{
 			type: "local",
 			directory: "events",
-			color: null,
-		},
+			color: null
+		}
 	],
-	defaultCalendar: 0,
+	defaultCalendar: 0
 };
 
 export class FullCalendarSettingTab extends PluginSettingTab {
@@ -41,8 +41,8 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 		sourceSetting.settingEl.style.display = "block";
 		const directories = this.app.vault
 			.getAllLoadedFiles()
-			.filter((f) => f instanceof TFolder)
-			.map((f) => f.path);
+			.filter(f => f instanceof TFolder)
+			.map(f => f.path);
 
 		ReactDOM.render(
 			createElement(CalendarSettings, {
@@ -54,7 +54,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				submit: async (settings: CalendarSource[]) => {
 					this.plugin.settings.calendarSources = settings;
 					await this.plugin.saveSettings();
-				},
+				}
 			}),
 			sourceSetting.settingEl
 		);

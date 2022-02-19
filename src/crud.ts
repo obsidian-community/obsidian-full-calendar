@@ -4,7 +4,7 @@ import { getDate, getTime } from "./dateUtil";
 import {
 	eventApiToFrontmatter,
 	modifyFrontmatter,
-	parseFrontmatter,
+	parseFrontmatter
 } from "./frontmatter";
 import { CalendarSource, EventFrontmatter } from "./types";
 
@@ -96,8 +96,8 @@ export function dateEndpointsToFrontmatter(
 			? {}
 			: {
 					startTime: getTime(start),
-					endTime: getTime(end),
-			  }),
+					endTime: getTime(end)
+			  })
 	};
 }
 
@@ -149,6 +149,6 @@ export async function getEventSourceFromCalendarSource(
 			calendarSource.color ||
 			getComputedStyle(document.body).getPropertyValue(
 				"--interactive-accent"
-			),
+			)
 	};
 }
