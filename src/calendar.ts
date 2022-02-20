@@ -23,6 +23,7 @@ export function renderCalendar(
 	sources: EventSourceInput[],
 	{ eventClick, select, modifyEvent }: ExtraRenderProps
 ): Calendar {
+	const isMobile = window.innerWidth < 500;
 	const cal = new Calendar(containerEl, {
 		plugins: [
 			// View plugins
@@ -36,18 +37,28 @@ export function renderCalendar(
 			iCalendarPlugin,
 		],
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
-		initialView: "timeGridWeek",
+		initialView: isMobile ? "timeGrid3Days" : "timeGridWeek",
 		nowIndicator: true,
-		headerToolbar: {
-			left: "prev,next today",
-			center: "title",
-			right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-		},
+		headerToolbar: isMobile
+			? {
+					right: "today,prev,next",
+					left: "timeGrid3Days,timeGridDay,listWeek",
+			  }
+			: {
+					left: "prev,next today",
+					center: "title",
+					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+			  },
 		views: {
 			timeGridDay: {
 				type: "timeGrid",
 				duration: { days: 1 },
-				buttonText: "day",
+				buttonText: isMobile ? "1" : "day",
+			},
+			timeGrid3Days: {
+				type: "timeGrid",
+				duration: { days: 3 },
+				buttonText: "3",
 			},
 		},
 		eventSources: sources,
