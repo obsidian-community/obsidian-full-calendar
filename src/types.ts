@@ -30,10 +30,25 @@ export type EventFrontmatter =
 	| RecurringEventFrontmatter;
 
 // Settings
-interface LocalCalendarSource {
-	type: "local";
-	color: string | null;
-	directory: string;
-}
 
-export type CalendarSource = LocalCalendarSource;
+type CalendarSourceCommon = {
+	color: string | null;
+};
+
+export type LocalCalendarSource = {
+	type: "local";
+	directory: string;
+} & CalendarSourceCommon;
+
+export type GoogleCalendarSource = {
+	type: "gcal";
+	url: string;
+} & CalendarSourceCommon;
+
+export type ICalendarSource = {
+	type: "ical";
+	url: string;
+} & CalendarSourceCommon;
+
+export type CalendarSource = LocalCalendarSource | GoogleCalendarSource;
+// | ICalendarSource; // TODO: Figure out CORS and ical.

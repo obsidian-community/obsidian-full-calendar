@@ -37,6 +37,8 @@
 	"dependencies": {
 		"@fullcalendar/core": "^5.10.1",
 		"@fullcalendar/daygrid": "^5.10.1",
+		"@fullcalendar/google-calendar": "^5.10.1",
+		"@fullcalendar/icalendar": "^5.10.1",
 		"@fullcalendar/interaction": "^5.10.1",
 		"@fullcalendar/list": "^5.10.1",
 		"@fullcalendar/timegrid": "^5.10.1",

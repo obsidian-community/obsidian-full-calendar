@@ -6,7 +6,7 @@ import {
 	modifyFrontmatter,
 	parseFrontmatter,
 } from "./frontmatter";
-import { CalendarSource, EventFrontmatter } from "./types";
+import { CalendarSource, EventFrontmatter, LocalCalendarSource } from "./types";
 
 export async function getFileForEvent(
 	vault: Vault,
@@ -137,7 +137,7 @@ export async function getEventInputFromPath(
 export async function getEventSourceFromLocalSource(
 	vault: Vault,
 	cache: MetadataCache,
-	calendarSource: CalendarSource,
+	calendarSource: LocalCalendarSource,
 	recursive: boolean
 ): Promise<EventSourceInput | null> {
 	if (!calendarSource.directory) {

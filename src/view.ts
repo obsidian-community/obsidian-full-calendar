@@ -10,6 +10,11 @@ import {
 	getEventSourceFromLocalSource,
 	updateEventFromCalendar,
 } from "./crud";
+import {
+	GoogleCalendarSource,
+	ICalendarSource,
+	LocalCalendarSource,
+} from "./types";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -33,8 +38,8 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
-		const calendar = this.plugin.settings.calendarSources.find((c) =>
-			file.path.startsWith(c.directory)
+		const calendar = this.plugin.settings.calendarSources.find(
+			(c) => c.type === "local" && file.path.startsWith(c.directory)
 		);
 
 		let calendarEvent = this.calendar?.getEventById(file.path);
@@ -60,17 +65,57 @@ export class CalendarView extends ItemView {
 	async onOpen() {
 		await this.plugin.loadSettings();
 		const sources = (
-			await Promise.all(
-				this.plugin.settings.calendarSources.map((source) =>
-					getEventSourceFromLocalSource(
-						this.app.vault,
-						this.app.metadataCache,
-						source,
-						this.plugin.settings.recursiveLocal
-					)
+			(
+				await Promise.all(
+					this.plugin.settings.calendarSources
+						.filter((s) => s.type === "local")
+						.map((source) =>
+							getEventSourceFromLocalSource(
+								this.app.vault,
+								this.app.metadataCache,
+								source as LocalCalendarSource, // Cast necessary because Array.filter doesn't narrow the type on a tagged union.
+								this.plugin.settings.recursiveLocal
+							)
+						)
 				)
 			)
-		).filter((s) => s !== null) as EventSourceInput[]; // Filter does not narrow types :(
+				// Filter does not narrow types :(
+				.filter((s) => s !== null) as EventSourceInput[]
+		).concat(
+			this.plugin.settings.calendarSources
+				.filter((s) => s.type === "gcal")
+				.map((gcalSource) => ({
+					editable: false,
+					googleCalendarId: (gcalSource as GoogleCalendarSource).url,
+					textColor: getComputedStyle(document.body).getPropertyValue(
+						"--text-on-accent"
+					),
+					color:
+						gcalSource.color ||
+						getComputedStyle(document.body).getPropertyValue(
+							"--interactive-accent"
+						),
+				}))
+		);
+		// TODO: Figure out CORS and iCal
+		// .concat(
+		// 	this.plugin.settings.calendarSources
+		// 		.filter((s) => s.type === "ical")
+		// 		.map((icalSource) => ({
+		// 			url: (icalSource as ICalendarSource).url,
+		// 			editable: false,
+		// 			dataType: "jsonp",
+		// 			textColor: getComputedStyle(
+		// 				document.body
+		// 			).getPropertyValue("--text-on-accent"),
+		// 			color:
+		// 				icalSource.color ||
+		// 				getComputedStyle(document.body).getPropertyValue(
+		// 					"--interactive-accent"
+		// 				),
+		// 			format: "ics",
+		// 		}))
+		// );
 
 		const container = this.containerEl.children[1];
 		container.empty();

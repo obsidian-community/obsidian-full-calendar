@@ -9,6 +9,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
+import googleCalendarPlugin from "@fullcalendar/google-calendar";
+import iCalendarPlugin from "@fullcalendar/icalendar";
 
 interface ExtraRenderProps {
 	eventClick?: (event: EventApi) => void;
@@ -22,7 +24,18 @@ export function renderCalendar(
 	{ eventClick, select, modifyEvent }: ExtraRenderProps
 ): Calendar {
 	const cal = new Calendar(containerEl, {
-		plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
+		plugins: [
+			// View plugins
+			dayGridPlugin,
+			timeGridPlugin,
+			listPlugin,
+			// Drag + drop and editing
+			interactionPlugin,
+			// Remote sources
+			googleCalendarPlugin,
+			iCalendarPlugin,
+		],
+		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
 		initialView: "timeGridWeek",
 		nowIndicator: true,
 		headerToolbar: {

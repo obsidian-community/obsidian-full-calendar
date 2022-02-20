@@ -23,11 +23,12 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Editing Events](#editing-events)
       - [Change time of event by dragging its endpoint](#change-time-of-event-by-dragging-its-endpoint)
       - [Move an event around on a day or between days](#move-an-event-around-on-a-day-or-between-days)
+    - [Sync Options](#sync-options)
+      - [Add a Google Calendar](#add-a-google-calendar)
     - [Settings](#settings)
       - [Include events in sub-folders](#include-events-in-sub-folders)
     - [Dataview integration](#dataview-integration)
   - [Coming soon](#coming-soon)
-    - [Import from Google Calendar](#import-from-google-calendar)
     - [Mobile UI Optimizations](#mobile-ui-optimizations)
     - [Create event notes with a template](#create-event-notes-with-a-template)
     - [Subscribe to public calendar feeds](#subscribe-to-public-calendar-feeds)
@@ -134,6 +135,26 @@ to change the time range or the date of an event.
 <img src='docs/assets/moving-event.gif'>
 </details>
 
+### Sync Options
+
+Pull in events from external calendars! Right now only readonly Google Calendar events are supported, but more source and sync options are on the way!
+
+#### Add a Google Calendar
+
+There are a few steps you'll need to do to add a Google Calendar to Obsidian:
+
+1. [GCal] Go to calendar settings.
+2. [GCal] Share calendar with the public.
+3. [GCal] Copy your `Calendar ID` from the "Integrate calendar" section in settings.
+4. [Obsidian] Add a new calendar in settings, set the type to `Google Calendar (readonly)`, and choose your color
+
+Check out the walkthrough below to see the whole process in action!
+
+<details>
+<summary>Click for GIF walkthrough</summary>
+<img src='docs/assets/sync-setup-gcal.gif'>
+</details>
+
 ### Settings
 
 #### Include events in sub-folders
@@ -162,10 +183,6 @@ calendar.render();
 ## Coming soon
 
 This plugin is in its early days -- here are some features I plan to work on next, in rough order of priority. If you have any ideas or want to vouch for one of these, [submit an issue](https://github.com/davish/obsidian-full-calendar/issues)!
-
-### Import from Google Calendar
-
-Make the transition easier by loading in all your events from an existing Google Calendar and maintain a one-way sync.
 
 ### Mobile UI Optimizations
 

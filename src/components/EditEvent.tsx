@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
 	CalendarSource,
 	EventFrontmatter,
+	LocalCalendarSource,
 	SingleEventFrontmatter,
 } from "../types";
 
@@ -188,11 +189,13 @@ export const EditEvent = ({
 							parseInt
 						)}
 					>
-						{calendars.map((cal, idx) => (
-							<option key={idx} value={idx}>
-								{cal.directory}
-							</option>
-						))}
+						{calendars
+							.filter((cal) => cal.type === "local")
+							.map((cal, idx) => (
+								<option key={idx} value={idx}>
+									{(cal as LocalCalendarSource).directory}
+								</option>
+							))}
 					</select>
 				</p>
 				<p>

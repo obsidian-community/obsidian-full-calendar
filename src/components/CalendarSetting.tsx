@@ -1,52 +1,85 @@
 import * as React from "react";
 import { SetStateAction, useState } from "react";
 
-import { CalendarSource } from "../types";
+import {
+	CalendarSource,
+	LocalCalendarSource,
+	ICalendarSource,
+	GoogleCalendarSource,
+} from "../types";
 
 interface CalendarSettingsProps {
 	options: string[];
-	color: string | null | undefined;
+	setting: Partial<CalendarSource>;
 	defaultColor: string;
-	selected: string | undefined;
 	onColorChange: (s: string) => void;
-	onDirectoryChange: (s: string) => void;
+	onSourceChange: (s: string) => void;
+	onTypeChange: (s: string) => void;
 	deleteCalendar: () => void;
 }
 
 export const CalendarSettingRow = ({
 	options,
-	selected,
-	color,
+	setting,
 	defaultColor,
 	onColorChange,
-	onDirectoryChange,
+	onSourceChange,
+	onTypeChange,
 	deleteCalendar,
-}: CalendarSettingsProps) => (
-	<div style={{ display: "flex", width: "100%", marginBottom: "0.5rem" }}>
-		<button type="button" onClick={deleteCalendar}>
-			✕
-		</button>
-		<select
-			value={selected || ""}
-			onChange={(e) => onDirectoryChange(e.target.value)}
-		>
-			<option value="" disabled hidden>
-				Choose a directory
-			</option>
-			{options.map((o, idx) => (
-				<option key={idx} value={o}>
-					{o}
+}: CalendarSettingsProps) => {
+	const dirOptions = [...options];
+	if (setting.type === "local" && setting.directory) {
+		dirOptions.push(setting.directory);
+	}
+	dirOptions.sort();
+	return (
+		<div style={{ display: "flex", width: "100%", marginBottom: "0.5rem" }}>
+			<button type="button" onClick={deleteCalendar}>
+				✕
+			</button>
+			{setting.type === "local" && (
+				<select
+					value={setting.directory || ""}
+					onChange={(e) => onSourceChange(e.target.value)}
+				>
+					<option value="" disabled hidden>
+						Choose a directory
+					</option>
+					{dirOptions.map((o, idx) => (
+						<option key={idx} value={o}>
+							{o}
+						</option>
+					))}
+				</select>
+			)}
+			{setting.type === "gcal" /* || setting.type === "ical"*/ && (
+				<input
+					type="text"
+					placeholder="URL for calendar feed"
+					value={setting.url}
+					onChange={(e) => onSourceChange(e.target.value)}
+				/>
+			)}
+			<select
+				value={setting.type || ""}
+				onChange={(e) => onTypeChange(e.target.value)}
+			>
+				<option value="" disabled hidden>
+					Calendar source
 				</option>
-			))}
-		</select>
-		<span style={{ flexGrow: 1 }}></span>
-		<input
-			type="color"
-			value={color || defaultColor}
-			onChange={(e) => onColorChange(e.target.value)}
-		/>
-	</div>
-);
+				<option value={"local"}>Local calendar</option>
+				<option value={"gcal"}>Google Calendar (Readonly)</option>
+				{/* <option value={"ical"}>iCal / ICS (Readonly)</option> */}
+			</select>
+			<span style={{ flexGrow: 1 }}></span>
+			<input
+				type="color"
+				value={setting.color || defaultColor}
+				onChange={(e) => onColorChange(e.target.value)}
+			/>
+		</div>
+	);
+};
 
 interface FolderSettingProps {
 	directories: string[];
@@ -70,7 +103,9 @@ export const CalendarSettings = ({
 
 	const [dirty, setDirty] = useState(false);
 
-	const usedDirectories = settings.map((s) => s.directory);
+	const usedDirectories = settings
+		.map((s) => s.type === "local" && s.directory)
+		.filter((s) => s);
 	const options = directories.filter(
 		(dir) => usedDirectories.indexOf(dir) === -1
 	);
@@ -80,13 +115,27 @@ export const CalendarSettings = ({
 			{settings.map((s, idx) => (
 				<CalendarSettingRow
 					key={idx}
-					options={options.concat(s.directory ? [s.directory] : [])}
-					selected={s.directory}
-					color={s.color}
-					onDirectoryChange={(dir) =>
+					options={options}
+					setting={s}
+					onTypeChange={(newType) =>
 						setSettings((state) => [
 							...state.slice(0, idx),
-							{ ...state[idx], directory: dir },
+							{
+								...state[idx],
+								type: newType as /*"ical" |*/ "local" | "gcal", // TODO: Try to DRY this out.
+							},
+							...state.slice(idx + 1),
+						])
+					}
+					onSourceChange={(src) =>
+						setSettings((state) => [
+							...state.slice(0, idx),
+							{
+								...state[idx],
+								...(state[idx].type === "local"
+									? { directory: src }
+									: { url: src }),
+							},
 							...state.slice(idx + 1),
 						])
 					}
@@ -114,8 +163,13 @@ export const CalendarSettings = ({
 								.filter(
 									(elt) =>
 										elt.color !== undefined &&
-										elt.directory !== undefined &&
-										elt.type !== undefined
+										elt.type !== undefined &&
+										((elt.type === "local" &&
+											elt.directory !== undefined) ||
+											(elt.type === "gcal" &&
+												elt.url !== undefined)) /*||
+											(elt.type === "ical" &&
+												elt.url !== undefined)*/
 								)
 								.map((elt) => elt as CalendarSource)
 						);

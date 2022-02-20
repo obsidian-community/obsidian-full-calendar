@@ -1,6 +1,6 @@
 import { Calendar, EventApi } from "@fullcalendar/core";
 import FullCalendarPlugin from "./main";
-import { App, Modal, TFile } from "obsidian";
+import { App, Modal, Notice, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import {
@@ -10,7 +10,7 @@ import {
 } from "./crud";
 
 import { EditEvent } from "./components/EditEvent";
-import { EventFrontmatter } from "./types";
+import { EventFrontmatter, LocalCalendarSource } from "./types";
 import { FULL_CALENDAR_VIEW_TYPE } from "./view";
 
 export class EventModal extends Modal {
@@ -62,9 +62,15 @@ export class EventModal extends Modal {
 			React.createElement(EditEvent, {
 				initialEvent: this.event,
 				submit: async (event, calendarIndex) => {
-					const directory =
-						this.plugin.settings.calendarSources[calendarIndex]
-							.directory;
+					const source =
+						this.plugin.settings.calendarSources[calendarIndex];
+					if (source.type !== "local") {
+						new Notice(
+							"Sorry, remote sync is currently read-only."
+						);
+						return;
+					}
+					const directory = source.directory;
 					let filename =
 						this.eventId || `${directory}/${event.title}.md`;
 
