@@ -6,7 +6,7 @@ export type AllDayFrontmatter = {
 export type RangeTimeFrontmatter = {
 	allDay: false;
 	startTime: string;
-	endTime: string;
+	endTime: string | null;
 };
 
 export type CommonEventFrontmatter = {
