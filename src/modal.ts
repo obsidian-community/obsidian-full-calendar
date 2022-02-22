@@ -68,6 +68,7 @@ export class EventModal extends Modal {
 						new Notice(
 							"Sorry, remote sync is currently read-only."
 						);
+						this.close();
 						return;
 					}
 					const directory = source.directory;

@@ -108,6 +108,11 @@ export const EditEvent = ({
 				: initialEvent.startRecur || ""
 			: ""
 	);
+	const [endDate, setEndDate] = useState(
+		initialEvent && initialEvent.type === "single"
+			? initialEvent.endDate
+			: undefined
+	);
 
 	let initialStartTime = "";
 	let initialEndTime = "";
@@ -122,7 +127,8 @@ export const EditEvent = ({
 	const [isRecurring, setIsRecurring] = useState(
 		initialEvent?.type === "recurring" || false
 	);
-	const [endDate, setEndDate] = useState("");
+	const [endRecur, setEndRecur] = useState("");
+
 	const [daysOfWeek, setDaysOfWeek] = useState<string[]>(
 		(initialEvent?.type === "recurring" ? initialEvent.daysOfWeek : []) ||
 			[]
@@ -152,9 +158,12 @@ export const EditEvent = ({
 							type: "recurring",
 							daysOfWeek,
 							startRecur: date || undefined,
-							endRecur: endDate || undefined,
+							endRecur: endRecur || undefined,
 					  }
-					: { date }),
+					: {
+							date,
+							endDate,
+					  }),
 			},
 			calendarIndex
 		);
@@ -274,9 +283,9 @@ export const EditEvent = ({
 							<input
 								type="date"
 								id="endDate"
-								value={endDate}
+								value={endRecur}
 								onChange={makeChangeListener(
-									setEndDate,
+									setEndRecur,
 									(x) => x
 								)}
 							/>

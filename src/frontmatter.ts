@@ -47,7 +47,9 @@ export function parseFrontmatter(
 				).toISO(),
 				end: frontmatter.endTime
 					? add(
-							DateTime.fromISO(frontmatter.date),
+							DateTime.fromISO(
+								frontmatter.endDate || frontmatter.date
+							),
 							parseTime(frontmatter.endTime)
 					  ).toISO()
 					: undefined,
@@ -56,6 +58,7 @@ export function parseFrontmatter(
 			event = {
 				...event,
 				start: frontmatter.date,
+				end: frontmatter.endDate || undefined,
 			};
 		}
 	}
@@ -65,6 +68,8 @@ export function parseFrontmatter(
 
 export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
 	const isRecurring: boolean = event.extendedProps.daysOfWeek !== undefined;
+	const startDate = getDate(event.start as Date);
+	const endDate = getDate(event.end as Date);
 	return {
 		title: event.title,
 		...(event.allDay
@@ -88,7 +93,11 @@ export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
 						event.extendedProps.endRecur &&
 						getDate(event.extendedProps.endRecur),
 			  }
-			: { type: "single", date: getDate(event.start as Date) }),
+			: {
+					type: "single",
+					date: startDate,
+					...(startDate !== endDate ? { endDate } : {}),
+			  }),
 	};
 }
 

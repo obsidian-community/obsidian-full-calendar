@@ -88,9 +88,12 @@ export function dateEndpointsToFrontmatter(
 	end: Date,
 	allDay: boolean
 ): Partial<EventFrontmatter> {
+	const date = getDate(start);
+	const endDate = getDate(end);
 	return {
 		type: "single",
-		date: getDate(start),
+		date,
+		endDate: date !== endDate ? endDate : undefined,
 		allDay,
 		...(allDay
 			? {}

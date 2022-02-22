@@ -16,6 +16,7 @@ export type CommonEventFrontmatter = {
 export type SingleEventFrontmatter = {
 	type?: "single";
 	date: string;
+	endDate?: string;
 } & CommonEventFrontmatter;
 
 export type RecurringEventFrontmatter = {
