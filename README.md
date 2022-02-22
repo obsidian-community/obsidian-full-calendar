@@ -22,6 +22,7 @@ The FullCalendar library is released under the [MIT license](https://github.com/
       - [Recurring events](#recurring-events)
     - [Editing Events](#editing-events)
       - [Change time of event by dragging its endpoint](#change-time-of-event-by-dragging-its-endpoint)
+    - [Hover for event description](#hover-for-event-description)
       - [Move an event around on a day or between days](#move-an-event-around-on-a-day-or-between-days)
     - [Sync Options](#sync-options)
       - [Add a Google Calendar](#add-a-google-calendar)
@@ -126,6 +127,15 @@ to change the time range or the date of an event.
 <details>
 <summary>Click for GIF example</summary>
 <img src='docs/assets/edit-event-drag.gif'>
+</details>
+
+### Hover for event description
+
+Using the core Page Preview plugin, hold ctrl/cmd and hover over an event to trigger a preview. You can also turn off the ctrl/cmd requirement in Page Preview settings.
+
+<details>
+<summary>Click for GIF example</summary>
+<img src='docs/assets/hover-description.gif'>
 </details>
 
 #### Move an event around on a day or between days
