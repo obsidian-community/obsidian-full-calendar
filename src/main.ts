@@ -9,6 +9,7 @@ import {
 	FullCalendarSettings,
 	FullCalendarSettingTab,
 } from "./settings";
+import { PLUGIN_SLUG } from "./types";
 
 export default class FullCalendarPlugin extends Plugin {
 	settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -70,6 +71,11 @@ export default class FullCalendarPlugin extends Plugin {
 					new EventModal(this.app, this, null).editInModal(file);
 				}
 			},
+		});
+
+		(this.app.workspace as any).registerHoverLinkSource(PLUGIN_SLUG, {
+			display: "Full Calendar",
+			defaultMod: true,
 		});
 	}
 

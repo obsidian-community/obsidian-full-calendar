@@ -14,6 +14,7 @@ import {
 	GoogleCalendarSource,
 	ICalendarSource,
 	LocalCalendarSource,
+	PLUGIN_SLUG,
 } from "./types";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
@@ -128,12 +129,25 @@ export class CalendarView extends ItemView {
 		}
 
 		this.calendar = renderCalendar(calendarEl, sources, {
-			eventClick: async (event) => {
-				new EventModal(
-					this.app,
-					this.plugin,
-					this.calendar
-				).editInModal(event);
+			eventClick: async (info) => {
+				if (
+					info.jsEvent.getModifierState("Control") ||
+					info.jsEvent.getModifierState("Meta")
+				) {
+					let file = this.app.vault.getAbstractFileByPath(
+						info.event.id
+					);
+					if (file instanceof TFile) {
+						let leaf = this.app.workspace.getMostRecentLeaf();
+						await leaf.openFile(file);
+					}
+				} else {
+					new EventModal(
+						this.app,
+						this.plugin,
+						this.calendar
+					).editInModal(info.event);
+				}
 			},
 			select: async (start, end, allDay) => {
 				const partialEvent = dateEndpointsToFrontmatter(
@@ -151,6 +165,18 @@ export class CalendarView extends ItemView {
 			},
 			modifyEvent: async ({ event }) => {
 				await updateEventFromCalendar(this.app.vault, event);
+			},
+
+			eventMouseEnter: (info) => {
+				const path = info.event.id;
+				this.app.workspace.trigger("hover-link", {
+					event: info.jsEvent,
+					source: PLUGIN_SLUG,
+					hoverParent: calendarEl,
+					targetEl: info.jsEvent.target,
+					linktext: path,
+					sourcePath: path,
+				});
 			},
 		});
 

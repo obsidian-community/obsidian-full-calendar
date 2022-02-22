@@ -2,6 +2,8 @@ import {
 	Calendar,
 	dateSelectionJoinTransformer,
 	EventApi,
+	EventClickArg,
+	EventHoveringArg,
 	EventInput,
 	EventSourceInput,
 } from "@fullcalendar/core";
@@ -13,15 +15,16 @@ import googleCalendarPlugin from "@fullcalendar/google-calendar";
 import iCalendarPlugin from "@fullcalendar/icalendar";
 
 interface ExtraRenderProps {
-	eventClick?: (event: EventApi) => void;
+	eventClick?: (info: EventClickArg) => void;
 	select?: (startDate: Date, endDate: Date, allDay: boolean) => Promise<void>;
 	modifyEvent?: (info: { event: EventApi }) => Promise<void>;
+	eventMouseEnter?: (info: EventHoveringArg) => void;
 }
 
 export function renderCalendar(
 	containerEl: HTMLElement,
-	sources: EventSourceInput[],
-	{ eventClick, select, modifyEvent }: ExtraRenderProps
+	eventSources: EventSourceInput[],
+	{ eventClick, select, modifyEvent, eventMouseEnter }: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
 	const cal = new Calendar(containerEl, {
@@ -61,8 +64,8 @@ export function renderCalendar(
 				buttonText: "3",
 			},
 		},
-		eventSources: sources,
-		eventClick: eventClick ? (info) => eventClick(info.event) : undefined,
+		eventSources,
+		eventClick,
 
 		selectable: select && true,
 		selectMirror: select && true,
@@ -76,6 +79,8 @@ export function renderCalendar(
 		editable: modifyEvent && true,
 		eventDrop: modifyEvent,
 		eventResize: modifyEvent,
+
+		eventMouseEnter,
 	});
 	cal.render();
 	return cal;

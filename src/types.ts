@@ -1,3 +1,5 @@
+export const PLUGIN_SLUG = "full-calendar-plugin";
+
 // Frontmatter
 export type AllDayFrontmatter = {
 	allDay: true;
