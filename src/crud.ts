@@ -71,6 +71,7 @@ export async function upsertEvent(
 	event: EventFrontmatter,
 	filename: string
 ): Promise<TFile | null> {
+	console.log(event);
 	let file = vault.getAbstractFileByPath(filename);
 	if (!file) {
 		file = await vault.create(filename, "");

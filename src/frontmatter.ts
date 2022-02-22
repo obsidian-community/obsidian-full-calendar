@@ -178,9 +178,9 @@ export async function modifyFrontmatter(
 	const frontmatter = extractFrontmatter(page)?.split("\n");
 	let newFrontmatter: string[] = [];
 	if (!frontmatter) {
-		newFrontmatter = Object.entries(modifications).map(([k, v]) =>
-			stringifyYamlLine(k, v)
-		);
+		newFrontmatter = Object.entries(modifications)
+			.filter(([k, v]) => v !== undefined)
+			.map(([k, v]) => stringifyYamlLine(k, v));
 	} else {
 		const linesAdded: Set<string | number | symbol> = new Set();
 		// Modify rows in-place.
