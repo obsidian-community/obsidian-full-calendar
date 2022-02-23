@@ -7,4 +7,4 @@ assignees: ''
 
 ---
 
-Please include only one request in a single Issue. You can submit as many Issues as you have ideas. Thank you!
+Please include only one feature request per Issue. You can submit as many Issues as you have ideas. Thank you!
