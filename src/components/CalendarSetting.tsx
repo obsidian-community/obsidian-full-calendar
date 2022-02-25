@@ -56,7 +56,7 @@ export const CalendarSettingRow = ({
 				<input
 					type="text"
 					placeholder="URL for calendar feed"
-					value={setting.url}
+					value={setting.url || ""}
 					onChange={(e) => onSourceChange(e.target.value)}
 				/>
 			)}
@@ -187,7 +187,10 @@ export const CalendarSettings = ({
 				<span style={{ flexGrow: 1 }}></span>
 				<button
 					onClick={() => {
-						setSettings((state) => [...state, { type: "local" }]);
+						setSettings((state) => [
+							...state,
+							{ type: "local", color: defaultColor },
+						]);
 					}}
 				>
 					Add Calendar
