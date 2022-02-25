@@ -1,19 +1,12 @@
-import {
-	Calendar,
-	EventApi,
-	EventInput,
-	EventSourceInput,
-} from "@fullcalendar/core";
+import { EventApi, EventInput, EventSourceInput } from "@fullcalendar/core";
 import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
-import { basename } from "path/posix";
-import { isNativeError } from "util/types";
 import { getDate, getTime } from "./dateUtil";
+import { modifyFrontmatter, parseFrontmatter } from "./frontmatter";
 import {
-	eventApiToFrontmatter,
-	modifyFrontmatter,
-	parseFrontmatter,
-} from "./frontmatter";
-import { CalendarSource, EventFrontmatter, LocalCalendarSource } from "./types";
+	EventFrontmatter,
+	LocalCalendarSource,
+	validateFrontmatter,
+} from "./types";
 
 export async function getFileForEvent(
 	vault: Vault,
@@ -31,11 +24,7 @@ export function getFrontmatterFromFile(
 	cache: MetadataCache,
 	file: TFile
 ): EventFrontmatter | null {
-	return (
-		(cache.getFileCache(file)?.frontmatter as
-			| EventFrontmatter
-			| undefined) || null
-	);
+	return validateFrontmatter(cache.getFileCache(file)?.frontmatter);
 }
 
 export async function getFrontmatterFromEvent(
