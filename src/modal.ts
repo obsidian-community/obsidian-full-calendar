@@ -4,9 +4,9 @@ import { App, Modal, Notice, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import {
+	createLocalEvent,
 	getFrontmatterFromEvent,
 	getFrontmatterFromFile,
-	upsertEvent,
 } from "./crud";
 
 import { EditEvent } from "./components/EditEvent";
@@ -72,26 +72,12 @@ export class EventModal extends Modal {
 						return;
 					}
 					const directory = source.directory;
-					let filename =
-						this.eventId || `${directory}/${event.title}.md`;
-
-					let file = await upsertEvent(
+					await createLocalEvent(
 						this.app.vault,
+						directory,
 						event,
-						filename
+						this.eventId
 					);
-
-					// Move the file if its parent calendar has been changed.
-					if (file && directory && !file.path.startsWith(directory)) {
-						await this.app.vault.rename(
-							file,
-							`${directory}/${file.name}`
-						);
-						// Delete the old event from the calendar, since the metadata cache listener will pick up the new one in the new directory.
-						if (this.calendar && this.eventId) {
-							this.calendar.getEventById(this.eventId)?.remove();
-						}
-					}
 					// await this.plugin.activateView();
 					this.close();
 				},

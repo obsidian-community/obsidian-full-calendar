@@ -194,6 +194,19 @@ export class CalendarView extends ItemView {
 				}
 			})
 		);
+		this.registerEvent(
+			this.app.vault.on("rename", (file, oldPath) => {
+				const oldEvent = this.calendar?.getEventById(oldPath);
+				if (oldEvent) {
+					oldEvent.remove();
+				}
+				// Rename doesn't change any of the metadata so we also need to trigger
+				// that same callback.
+				if (file instanceof TFile) {
+					this.onCacheUpdate(file);
+				}
+			})
+		);
 	}
 
 	onResize(): void {

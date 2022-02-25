@@ -1,5 +1,12 @@
-import { EventApi, EventInput, EventSourceInput } from "@fullcalendar/core";
+import {
+	Calendar,
+	EventApi,
+	EventInput,
+	EventSourceInput,
+} from "@fullcalendar/core";
 import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
+import { basename } from "path/posix";
+import { isNativeError } from "util/types";
 import { getDate, getTime } from "./dateUtil";
 import {
 	eventApiToFrontmatter,
@@ -51,7 +58,12 @@ export async function updateEventFromCalendar(
 	if (!file) {
 		return;
 	}
-	await modifyFrontmatter(vault, file, eventApiToFrontmatter(event));
+	await createLocalEvent(
+		vault,
+		getPathPrefix(event.id),
+		eventApiToFrontmatter(event),
+		event.id
+	);
 }
 
 export function getEventInputFromFile(
@@ -71,7 +83,6 @@ export async function upsertEvent(
 	event: EventFrontmatter,
 	filename: string
 ): Promise<TFile | null> {
-	console.log(event);
 	let file = vault.getAbstractFileByPath(filename);
 	if (!file) {
 		file = await vault.create(filename, "");
@@ -168,4 +179,41 @@ export async function getEventSourceFromLocalSource(
 				"--interactive-accent"
 			),
 	};
+}
+
+export function basenameFromEvent(event: EventFrontmatter): string {
+	switch (event.type) {
+		case "single":
+		case undefined:
+			return `${event.date} ${event.title}`;
+		case "recurring":
+			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
+	}
+}
+
+const getPathPrefix = (path: string): string =>
+	path.split("/").slice(0, -1).join("/");
+
+export async function createLocalEvent(
+	vault: Vault,
+	directory: string,
+	event: EventFrontmatter,
+	existingFilename?: string
+) {
+	let newFilename = `${directory}/${basenameFromEvent}.md`;
+	if (existingFilename) {
+		const existingPrefix = getPathPrefix(existingFilename);
+		// Files may be inside subdirectories, so don't remove that structure if it's still
+		// inside the top directory.
+		if (existingPrefix.startsWith(directory)) {
+			newFilename = `${existingPrefix}/${basenameFromEvent(event)}.md`;
+		}
+		const file = await upsertEvent(vault, event, existingFilename);
+		// Only rename the file if the names differ to avoid a no-op.
+		if (file && newFilename !== existingFilename) {
+			await vault.rename(file, newFilename);
+		}
+	} else {
+		await upsertEvent(vault, event, newFilename);
+	}
 }
