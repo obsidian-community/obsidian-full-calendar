@@ -200,7 +200,7 @@ export async function createLocalEvent(
 	event: EventFrontmatter,
 	existingFilename?: string
 ) {
-	let newFilename = `${directory}/${basenameFromEvent}.md`;
+	let newFilename = `${directory}/${basenameFromEvent(event)}.md`;
 	if (existingFilename) {
 		const existingPrefix = getPathPrefix(existingFilename);
 		// Files may be inside subdirectories, so don't remove that structure if it's still
