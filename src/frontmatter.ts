@@ -141,7 +141,7 @@ function extractPageContents(page: string): string {
 }
 
 function replaceFrontmatter(page: string, newFrontmatter: string): string {
-	return `---\n${newFrontmatter}---\n${extractPageContents(page)}`;
+	return `---\n${newFrontmatter}---${extractPageContents(page)}`;
 }
 
 type PrintableAtom = Array<number | string> | number | string | boolean;
