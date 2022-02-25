@@ -17,7 +17,7 @@ import iCalendarPlugin from "@fullcalendar/icalendar";
 interface ExtraRenderProps {
 	eventClick?: (info: EventClickArg) => void;
 	select?: (startDate: Date, endDate: Date, allDay: boolean) => Promise<void>;
-	modifyEvent?: (info: { event: EventApi }) => Promise<void>;
+	modifyEvent?: (event: EventApi) => Promise<boolean>;
 	eventMouseEnter?: (info: EventHoveringArg) => void;
 }
 
@@ -27,6 +27,14 @@ export function renderCalendar(
 	{ eventClick, select, modifyEvent, eventMouseEnter }: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
+	const modifyEventCallback =
+		modifyEvent &&
+		(async ({ event, revert }: { event: EventApi; revert: () => void }) => {
+			const success = await modifyEvent(event);
+			if (!success) {
+				revert();
+			}
+		});
 	const cal = new Calendar(containerEl, {
 		plugins: [
 			// View plugins
@@ -77,8 +85,8 @@ export function renderCalendar(
 			}),
 
 		editable: modifyEvent && true,
-		eventDrop: modifyEvent,
-		eventResize: modifyEvent,
+		eventDrop: modifyEventCallback,
+		eventResize: modifyEventCallback,
 
 		eventMouseEnter,
 	});

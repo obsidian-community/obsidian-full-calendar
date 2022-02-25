@@ -4,7 +4,7 @@ import { App, Modal, Notice, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import {
-	createLocalEvent,
+	upsertLocalEvent,
 	getFrontmatterFromEvent,
 	getFrontmatterFromFile,
 } from "./crud";
@@ -72,14 +72,21 @@ export class EventModal extends Modal {
 						return;
 					}
 					const directory = source.directory;
-					await createLocalEvent(
+					const success = await upsertLocalEvent(
 						this.app.vault,
 						directory,
 						event,
 						this.eventId
 					);
 					// await this.plugin.activateView();
-					this.close();
+					if (success) {
+						this.close();
+					} else {
+						new Notice(
+							"Multiple events with the same name on the same day are not yet supported." +
+								"Please change the name of your event."
+						);
+					}
 				},
 				defaultCalendarIndex: this.plugin.settings.defaultCalendar,
 				calendars: this.plugin.settings.calendarSources,

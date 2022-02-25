@@ -50,22 +50,6 @@ export async function getFrontmatterFromEvent(
 	return getFrontmatterFromFile(cache, file);
 }
 
-export async function updateEventFromCalendar(
-	vault: Vault,
-	event: EventApi
-): Promise<void> {
-	const file = await getFileForEvent(vault, event);
-	if (!file) {
-		return;
-	}
-	await createLocalEvent(
-		vault,
-		getPathPrefix(event.id),
-		eventApiToFrontmatter(event),
-		event.id
-	);
-}
-
 export function getEventInputFromFile(
 	cache: MetadataCache,
 	file: TFile
@@ -78,15 +62,25 @@ export function getEventInputFromFile(
 	return parseFrontmatter(file.path, frontmatter);
 }
 
-export async function upsertEvent(
+async function createEvent(
+	vault: Vault,
+	event: EventFrontmatter,
+	filename: string
+): Promise<TFile | null> {
+	if (vault.getAbstractFileByPath(filename)) {
+		return null;
+	}
+	const file = await vault.create(filename, "");
+	await modifyFrontmatter(vault, file, event);
+	return file;
+}
+
+async function updateEvent(
 	vault: Vault,
 	event: EventFrontmatter,
 	filename: string
 ): Promise<TFile | null> {
 	let file = vault.getAbstractFileByPath(filename);
-	if (!file) {
-		file = await vault.create(filename, "");
-	}
 	if (file instanceof TFile) {
 		await modifyFrontmatter(vault, file, event);
 		return file;
@@ -191,15 +185,15 @@ export function basenameFromEvent(event: EventFrontmatter): string {
 	}
 }
 
-const getPathPrefix = (path: string): string =>
+export const getPathPrefix = (path: string): string =>
 	path.split("/").slice(0, -1).join("/");
 
-export async function createLocalEvent(
+export async function upsertLocalEvent(
 	vault: Vault,
 	directory: string,
 	event: EventFrontmatter,
 	existingFilename?: string
-) {
+): Promise<boolean> {
 	let newFilename = `${directory}/${basenameFromEvent(event)}.md`;
 	if (existingFilename) {
 		const existingPrefix = getPathPrefix(existingFilename);
@@ -208,12 +202,22 @@ export async function createLocalEvent(
 		if (existingPrefix.startsWith(directory)) {
 			newFilename = `${existingPrefix}/${basenameFromEvent(event)}.md`;
 		}
-		const file = await upsertEvent(vault, event, existingFilename);
+		if (
+			newFilename !== existingFilename &&
+			vault.getAbstractFileByPath(newFilename) !== null
+		) {
+			// If we're changing the filename and a file with that name already
+			// exists, return false to indicate failure.
+			return false;
+		}
+		const file = await updateEvent(vault, event, existingFilename);
 		// Only rename the file if the names differ to avoid a no-op.
 		if (file && newFilename !== existingFilename) {
 			await vault.rename(file, newFilename);
 		}
+		return true;
 	} else {
-		await upsertEvent(vault, event, newFilename);
+		const file = await createEvent(vault, event, newFilename);
+		return file !== null;
 	}
 }

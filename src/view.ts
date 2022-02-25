@@ -1,14 +1,22 @@
-import { ItemView, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
+import {
+	ItemView,
+	Notice,
+	TAbstractFile,
+	TFile,
+	WorkspaceLeaf,
+} from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
 import {
+	upsertLocalEvent,
 	dateEndpointsToFrontmatter,
 	getEventInputFromFile,
 	getEventSourceFromLocalSource,
-	updateEventFromCalendar,
+	getFileForEvent,
+	getPathPrefix,
 } from "./crud";
 import {
 	GoogleCalendarSource,
@@ -16,6 +24,7 @@ import {
 	LocalCalendarSource,
 	PLUGIN_SLUG,
 } from "./types";
+import { eventApiToFrontmatter } from "./frontmatter";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -163,8 +172,23 @@ export class CalendarView extends ItemView {
 				);
 				modal.open();
 			},
-			modifyEvent: async ({ event }) => {
-				await updateEventFromCalendar(this.app.vault, event);
+			modifyEvent: async (event) => {
+				const file = await getFileForEvent(this.app.vault, event);
+				if (!file) {
+					return false;
+				}
+				const success = await upsertLocalEvent(
+					this.app.vault,
+					getPathPrefix(event.id),
+					eventApiToFrontmatter(event),
+					event.id
+				);
+				if (!success) {
+					new Notice(
+						"Multiple events with the same name on the same date are not yet supported. Please rename your event before moving it."
+					);
+				}
+				return success;
 			},
 
 			eventMouseEnter: (info) => {
