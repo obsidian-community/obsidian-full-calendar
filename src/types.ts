@@ -93,20 +93,31 @@ type CalendarSourceCommon = {
 	color: string | null;
 };
 
+/**
+ * Local calendar with events stored as files in a directory.
+ */
 export type LocalCalendarSource = {
 	type: "local";
 	directory: string;
 } & CalendarSourceCommon;
 
+/**
+ * Public google calendars using the FullCalendar integration.
+ */
 export type GoogleCalendarSource = {
 	type: "gcal";
 	url: string;
 } & CalendarSourceCommon;
 
-export type ICalendarSource = {
+/**
+ * Readonly mirror of a remote calendar located at the given URL.
+ */
+export type ICalSource = {
 	type: "ical";
 	url: string;
 } & CalendarSourceCommon;
 
-export type CalendarSource = LocalCalendarSource | GoogleCalendarSource;
-// | ICalendarSource; // TODO: Figure out CORS and ical.
+export type CalendarSource =
+	| LocalCalendarSource
+	| GoogleCalendarSource
+	| ICalSource;

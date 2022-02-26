@@ -45,6 +45,10 @@ export class EventModal extends Modal {
 				this.event = frontmatter;
 				this.eventId = event.id;
 				this.open();
+			} else {
+				console.warn(
+					"Full Calendar: No frontmatter to edit for selected event."
+				);
 			}
 		} else if (event instanceof TFile) {
 			frontmatter = getFrontmatterFromFile(this.app.metadataCache, event);

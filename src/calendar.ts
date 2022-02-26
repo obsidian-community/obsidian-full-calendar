@@ -1,10 +1,8 @@
 import {
 	Calendar,
-	dateSelectionJoinTransformer,
 	EventApi,
 	EventClickArg,
 	EventHoveringArg,
-	EventInput,
 	EventSourceInput,
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";

@@ -25,7 +25,8 @@ The FullCalendar library is released under the [MIT license](https://github.com/
       - [Move an event around on a day or between days](#move-an-event-around-on-a-day-or-between-days)
     - [Hover for event description](#hover-for-event-description)
     - [Sync Options](#sync-options)
-      - [Add a Google Calendar](#add-a-google-calendar)
+      - [Add any remote calendar in .ics format](#add-any-remote-calendar-in-ics-format)
+      - [Add a public Google Calendar](#add-a-public-google-calendar)
     - [Settings](#settings)
       - [Include events in sub-folders](#include-events-in-sub-folders)
     - [Dataview integration](#dataview-integration)
@@ -149,7 +150,16 @@ Using the core Page Preview plugin, hold ctrl/cmd and hover over an event to tri
 
 Pull in events from external calendars! Right now only readonly Google Calendar events are supported, but more source and sync options are on the way!
 
-#### Add a Google Calendar
+#### Add any remote calendar in .ics format
+
+Add any calendar that you have a link to in .ics format to Obsidian. This includes public calendars like [this one of US holidays](https://www.officeholidays.com/subscribe/usa), but also includes [private Google Calendars](https://support.google.com/calendar/answer/37648?hl=en#zippy=%2Csync-your-google-calendar-view-edit%2Cget-your-calendar-view-only%2Csecret-address) and [public Apple Calendars](https://support.apple.com/guide/icloud/share-a-calendar-mm6b1a9479/icloud). The walkthrough below shows where to find a Google Calendar's private .ics link, and how to add it to Obsidian, but any URL will work just as well.
+
+<details>
+<summary>Click for GIF walkthrough</summary>
+<img src='docs/assets/sync-setup-ics.gif'>
+</details>
+
+#### Add a public Google Calendar
 
 There are a few steps you'll need to do to add a Google Calendar to Obsidian:
 

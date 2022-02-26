@@ -1,12 +1,7 @@
 import * as React from "react";
 import { SetStateAction, useState } from "react";
 
-import {
-	CalendarSource,
-	LocalCalendarSource,
-	ICalendarSource,
-	GoogleCalendarSource,
-} from "../types";
+import { CalendarSource } from "../types";
 
 interface CalendarSettingsProps {
 	options: string[];
@@ -52,10 +47,13 @@ export const CalendarSettingRow = ({
 					))}
 				</select>
 			)}
-			{setting.type === "gcal" /* || setting.type === "ical"*/ && (
-				<input
-					type="text"
-					placeholder="URL for calendar feed"
+			{(setting.type === "gcal" || setting.type === "ical") && (
+				<textarea
+					placeholder={
+						setting.type === "gcal"
+							? "Google Calendar ID (probably in the form LONG_ID@group.calendar.google.com)"
+							: "URL for any .ics file"
+					}
 					value={setting.url || ""}
 					onChange={(e) => onSourceChange(e.target.value)}
 				/>
@@ -68,8 +66,8 @@ export const CalendarSettingRow = ({
 					Calendar source
 				</option>
 				<option value={"local"}>Local calendar</option>
+				<option value={"ical"}>Remote Calendar (.ics format)</option>
 				<option value={"gcal"}>Google Calendar (Readonly)</option>
-				{/* <option value={"ical"}>iCal / ICS (Readonly)</option> */}
 			</select>
 			<span style={{ flexGrow: 1 }}></span>
 			<input
@@ -122,7 +120,7 @@ export const CalendarSettings = ({
 							...state.slice(0, idx),
 							{
 								...state[idx],
-								type: newType as /*"ical" |*/ "local" | "gcal", // TODO: Try to DRY this out.
+								type: newType as "ical" | "local" | "gcal", // TODO: Try to DRY this out.
 							},
 							...state.slice(idx + 1),
 						])
@@ -167,9 +165,9 @@ export const CalendarSettings = ({
 										((elt.type === "local" &&
 											elt.directory !== undefined) ||
 											(elt.type === "gcal" &&
-												elt.url !== undefined)) /*||
+												elt.url !== undefined) ||
 											(elt.type === "ical" &&
-												elt.url !== undefined)*/
+												elt.url !== undefined))
 								)
 								.map((elt) => elt as CalendarSource)
 						);

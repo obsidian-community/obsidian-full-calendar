@@ -1,10 +1,4 @@
-import {
-	ItemView,
-	Notice,
-	TAbstractFile,
-	TFile,
-	WorkspaceLeaf,
-} from "obsidian";
+import { ItemView, Notice, request, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 
 import { renderCalendar } from "./calendar";
@@ -20,11 +14,16 @@ import {
 } from "./crud";
 import {
 	GoogleCalendarSource,
-	ICalendarSource,
+	ICalSource,
 	LocalCalendarSource,
 	PLUGIN_SLUG,
 } from "./types";
 import { eventApiToFrontmatter } from "./frontmatter";
+import {
+	expandICalEvents,
+	makeICalExpander,
+} from "vendor/fullcalendar-ical/icalendar";
+import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -91,41 +90,84 @@ export class CalendarView extends ItemView {
 			)
 				// Filter does not narrow types :(
 				.filter((s) => s !== null) as EventSourceInput[]
-		).concat(
-			this.plugin.settings.calendarSources
-				.filter((s) => s.type === "gcal")
-				.map((gcalSource) => ({
-					editable: false,
-					googleCalendarId: (gcalSource as GoogleCalendarSource).url,
-					textColor: getComputedStyle(document.body).getPropertyValue(
-						"--text-on-accent"
-					),
-					color:
-						gcalSource.color ||
-						getComputedStyle(document.body).getPropertyValue(
-							"--interactive-accent"
-						),
-				}))
-		);
-		// TODO: Figure out CORS and iCal
-		// .concat(
-		// 	this.plugin.settings.calendarSources
-		// 		.filter((s) => s.type === "ical")
-		// 		.map((icalSource) => ({
-		// 			url: (icalSource as ICalendarSource).url,
-		// 			editable: false,
-		// 			dataType: "jsonp",
-		// 			textColor: getComputedStyle(
-		// 				document.body
-		// 			).getPropertyValue("--text-on-accent"),
-		// 			color:
-		// 				icalSource.color ||
-		// 				getComputedStyle(document.body).getPropertyValue(
-		// 					"--interactive-accent"
-		// 				),
-		// 			format: "ics",
-		// 		}))
-		// );
+		)
+			.concat(
+				this.plugin.settings.calendarSources
+					.filter((s) => s.type === "gcal")
+					.map((gcalSource) => ({
+						editable: false,
+						googleCalendarId: (gcalSource as GoogleCalendarSource)
+							.url,
+						textColor: getComputedStyle(
+							document.body
+						).getPropertyValue("--text-on-accent"),
+						color:
+							gcalSource.color ||
+							getComputedStyle(document.body).getPropertyValue(
+								"--interactive-accent"
+							),
+					}))
+			)
+			.concat(
+				await Promise.all(
+					this.plugin.settings.calendarSources
+						.filter((s) => s.type === "ical")
+						.map(async (s): Promise<EventSourceInput> => {
+							let url = (s as ICalSource).url;
+							if (url.startsWith("webcal")) {
+								url = "https" + url.slice("webcal".length);
+							}
+							let expander: IcalExpander | null = null;
+							const getExpander =
+								async (): Promise<IcalExpander | null> => {
+									if (expander !== null) {
+										return expander;
+									}
+									try {
+										let text = await request({
+											url: url,
+											method: "GET",
+										});
+										expander = makeICalExpander(text);
+										return expander;
+									} catch (e) {
+										new Notice(
+											`There was an error loading a calendar. Check the console for full details.`
+										);
+										console.error(
+											`Error loading calendar from ${url}`
+										);
+										console.error(e);
+										return null;
+									}
+								};
+							return {
+								events: async function ({ start, end }) {
+									const ical = await getExpander();
+									if (ical === null) {
+										throw new Error(
+											"Could not get calendar."
+										);
+									}
+									const events = expandICalEvents(ical, {
+										start,
+										end,
+									});
+									return events;
+								},
+								editable: false,
+								textColor: getComputedStyle(
+									document.body
+								).getPropertyValue("--text-on-accent"),
+								color:
+									s.color ||
+									getComputedStyle(
+										document.body
+									).getPropertyValue("--interactive-accent"),
+							};
+						})
+				)
+			);
 
 		const container = this.containerEl.children[1];
 		container.empty();
