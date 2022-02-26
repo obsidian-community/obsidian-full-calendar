@@ -148,7 +148,7 @@ Using the core Page Preview plugin, hold ctrl/cmd and hover over an event to tri
 
 ### Sync Options
 
-Pull in events from external calendars! Right now only readonly Google Calendar events are supported, but more source and sync options are on the way!
+Mirror external calendars in Full Calendar. Right now there are two readonly sync options supported.
 
 #### Add any remote calendar in .ics format
 
