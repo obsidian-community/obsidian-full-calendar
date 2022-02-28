@@ -246,6 +246,8 @@ export class CalendarView extends ItemView {
 			},
 		});
 
+		calendarEl.style.height = "100%";
+
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
 		);
@@ -276,7 +278,10 @@ export class CalendarView extends ItemView {
 	}
 
 	onResize(): void {
-		this.calendar && this.calendar.render();
+		if (this.calendar) {
+			this.calendar.render();
+			this.calendar.el.style.height = "100%";
+		}
 	}
 
 	async onClose() {

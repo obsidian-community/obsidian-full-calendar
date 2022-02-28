@@ -9,7 +9,7 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "prettier --check src/**/*.ts*",
 		"fix": "prettier --write src/**/*.ts*",
-		"compile": "tsc -noEmit",
+		"compile": "tsc -noEmit --skipLibCheck",
 		"prepare": "husky install"
 	},
 	"keywords": [],
