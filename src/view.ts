@@ -91,84 +91,22 @@ export class CalendarView extends ItemView {
 			)
 				// Filter does not narrow types :(
 				.filter((s) => s !== null) as EventSourceInput[]
-		)
-			.concat(
-				this.plugin.settings.calendarSources
-					.filter((s) => s.type === "gcal")
-					.map((gcalSource) => ({
-						editable: false,
-						googleCalendarId: (gcalSource as GoogleCalendarSource)
-							.url,
-						textColor: getComputedStyle(
-							document.body
-						).getPropertyValue("--text-on-accent"),
-						color:
-							gcalSource.color ||
-							getComputedStyle(document.body).getPropertyValue(
-								"--interactive-accent"
-							),
-					}))
-			)
-			.concat(
-				await Promise.all(
-					this.plugin.settings.calendarSources
-						.filter((s) => s.type === "ical")
-						.map(async (s): Promise<EventSourceInput> => {
-							let url = (s as ICalSource).url;
-							if (url.startsWith("webcal")) {
-								url = "https" + url.slice("webcal".length);
-							}
-							let expander: IcalExpander | null = null;
-							const getExpander =
-								async (): Promise<IcalExpander | null> => {
-									if (expander !== null) {
-										return expander;
-									}
-									try {
-										let text = await request({
-											url: url,
-											method: "GET",
-										});
-										expander = makeICalExpander(text);
-										return expander;
-									} catch (e) {
-										new Notice(
-											`There was an error loading a calendar. Check the console for full details.`
-										);
-										console.error(
-											`Error loading calendar from ${url}`
-										);
-										console.error(e);
-										return null;
-									}
-								};
-							return {
-								events: async function ({ start, end }) {
-									const ical = await getExpander();
-									if (ical === null) {
-										throw new Error(
-											"Could not get calendar."
-										);
-									}
-									const events = expandICalEvents(ical, {
-										start,
-										end,
-									});
-									return events;
-								},
-								editable: false,
-								textColor: getComputedStyle(
-									document.body
-								).getPropertyValue("--text-on-accent"),
-								color:
-									s.color ||
-									getComputedStyle(
-										document.body
-									).getPropertyValue("--interactive-accent"),
-							};
-						})
-				)
-			);
+		).concat(
+			this.plugin.settings.calendarSources
+				.filter((s) => s.type === "gcal")
+				.map((gcalSource) => ({
+					editable: false,
+					googleCalendarId: (gcalSource as GoogleCalendarSource).url,
+					textColor: getComputedStyle(document.body).getPropertyValue(
+						"--text-on-accent"
+					),
+					color:
+						gcalSource.color ||
+						getComputedStyle(document.body).getPropertyValue(
+							"--interactive-accent"
+						),
+				}))
+		);
 
 		const container = this.containerEl.children[1];
 		container.empty();
@@ -246,6 +184,61 @@ export class CalendarView extends ItemView {
 				});
 			},
 		});
+
+		this.plugin.settings.calendarSources
+			.filter((s) => s.type === "ical")
+			.map(async (s): Promise<EventSourceInput> => {
+				let url = (s as ICalSource).url;
+				if (url.startsWith("webcal")) {
+					url = "https" + url.slice("webcal".length);
+				}
+				let expander: IcalExpander | null = null;
+				const getExpander = async (): Promise<IcalExpander | null> => {
+					if (expander !== null) {
+						return expander;
+					}
+					try {
+						let text = await request({
+							url: url,
+							method: "GET",
+						});
+						expander = makeICalExpander(text);
+						return expander;
+					} catch (e) {
+						new Notice(
+							`There was an error loading a calendar. Check the console for full details.`
+						);
+						console.error(`Error loading calendar from ${url}`);
+						console.error(e);
+						return null;
+					}
+				};
+				return {
+					events: async function ({ start, end }) {
+						const ical = await getExpander();
+						if (ical === null) {
+							throw new Error("Could not get calendar.");
+						}
+						const events = expandICalEvents(ical, {
+							start,
+							end,
+						});
+						return events;
+					},
+					editable: false,
+					textColor: getComputedStyle(document.body).getPropertyValue(
+						"--text-on-accent"
+					),
+					color:
+						s.color ||
+						getComputedStyle(document.body).getPropertyValue(
+							"--interactive-accent"
+						),
+				};
+			})
+			.forEach((prom) => {
+				prom.then((source) => this.calendar?.addEventSource(source));
+			});
 
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
