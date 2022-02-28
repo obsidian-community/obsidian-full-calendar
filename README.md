@@ -26,7 +26,7 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Hover for event description](#hover-for-event-description)
     - [Sync Options](#sync-options)
       - [Add any remote calendar in .ics format](#add-any-remote-calendar-in-ics-format)
-      - [Add a public Google Calendar](#add-a-public-google-calendar)
+      - [[Deprecated] Add a public Google Calendar via the GCal API](#deprecated-add-a-public-google-calendar-via-the-gcal-api)
     - [Settings](#settings)
       - [Include events in sub-folders](#include-events-in-sub-folders)
     - [Dataview integration](#dataview-integration)
@@ -154,12 +154,16 @@ Mirror external calendars in Full Calendar. Right now there are two readonly syn
 
 Add any calendar that you have a link to in .ics format to Obsidian. This includes public calendars like [this one of US holidays](https://www.officeholidays.com/subscribe/usa), but also includes [private Google Calendars](https://support.google.com/calendar/answer/37648?hl=en#zippy=%2Csync-your-google-calendar-view-edit%2Cget-your-calendar-view-only%2Csecret-address) and [public Apple Calendars](https://support.apple.com/guide/icloud/share-a-calendar-mm6b1a9479/icloud). The walkthrough below shows where to find a Google Calendar's private .ics link, and how to add it to Obsidian, but any URL will work just as well.
 
+Note that this is slightly faster than the GCal-specific sync below, and will be the focus of optimizations going forward, so it is the recommended way to sync your GCal calendar.
+
 <details>
 <summary>Click for GIF walkthrough</summary>
 <img src='docs/assets/sync-setup-ics.gif'>
 </details>
 
-#### Add a public Google Calendar
+#### [Deprecated] Add a public Google Calendar via the GCal API
+
+The only benefit of the GCal-specific sync method is that each event will link to the GCal event in your browser when you click on it. If clicking to go to GCal isn't important to you or you want to keep your calendar private, you should use the .ics sync above.
 
 There are a few steps you'll need to do to add a Google Calendar to Obsidian:
 
