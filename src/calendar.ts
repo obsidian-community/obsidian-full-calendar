@@ -48,6 +48,8 @@ export function renderCalendar(
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
 		initialView: isMobile ? "timeGrid3Days" : "timeGridWeek",
 		nowIndicator: true,
+		scrollTimeReset: false,
+
 		headerToolbar: isMobile
 			? {
 					right: "today,prev,next",
