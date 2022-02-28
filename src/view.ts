@@ -1,3 +1,4 @@
+import "./overrides.css";
 import { ItemView, Notice, request, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 
@@ -246,8 +247,6 @@ export class CalendarView extends ItemView {
 			},
 		});
 
-		calendarEl.style.height = "100%";
-
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
 		);
@@ -280,7 +279,6 @@ export class CalendarView extends ItemView {
 	onResize(): void {
 		if (this.calendar) {
 			this.calendar.render();
-			this.calendar.el.style.height = "100%";
 		}
 	}
 
