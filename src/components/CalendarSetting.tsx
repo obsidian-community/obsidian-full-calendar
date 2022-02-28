@@ -28,14 +28,26 @@ export const CalendarSettingRow = ({
 	}
 	dirOptions.sort();
 	return (
-		<div style={{ display: "flex", width: "100%", marginBottom: "0.5rem" }}>
-			<button type="button" onClick={deleteCalendar}>
+		<div
+			style={{
+				display: "flex",
+				// justifyContent: "space-between",
+				width: "100%",
+				marginBottom: "0.5rem",
+			}}
+		>
+			<button
+				type="button"
+				onClick={deleteCalendar}
+				style={{ maxWidth: "15%" }}
+			>
 				✕
 			</button>
 			{setting.type === "local" && (
 				<select
 					value={setting.directory || ""}
 					onChange={(e) => onSourceChange(e.target.value)}
+					style={{ maxWidth: "30%" }}
 				>
 					<option value="" disabled hidden>
 						Choose a directory
@@ -49,6 +61,12 @@ export const CalendarSettingRow = ({
 			)}
 			{(setting.type === "gcal" || setting.type === "ical") && (
 				<textarea
+					style={{
+						maxWidth: "30%",
+						fontSize: "8pt",
+						lineHeight: 1,
+						padding: 0,
+					}}
 					placeholder={
 						setting.type === "gcal"
 							? "Google Calendar ID (probably in the form LONG_ID@group.calendar.google.com)"
@@ -59,6 +77,7 @@ export const CalendarSettingRow = ({
 				/>
 			)}
 			<select
+				style={{ maxWidth: "30%" }}
 				value={setting.type || ""}
 				onChange={(e) => onTypeChange(e.target.value)}
 			>
@@ -69,8 +88,8 @@ export const CalendarSettingRow = ({
 				<option value={"ical"}>Remote Calendar (.ics format)</option>
 				<option value={"gcal"}>Google Calendar (Readonly)</option>
 			</select>
-			<span style={{ flexGrow: 1 }}></span>
 			<input
+				style={{ maxWidth: "25%", minWidth: "3rem" }}
 				type="color"
 				value={setting.color || defaultColor}
 				onChange={(e) => onColorChange(e.target.value)}
