@@ -129,6 +129,20 @@ export const CalendarSettings = ({
 
 	return (
 		<div style={{ width: "100%" }}>
+			<button
+				className="mod-cta"
+				style={{
+					marginBottom: "1rem",
+				}}
+				onClick={() => {
+					setSettings((state) => [
+						...state,
+						{ type: "local", color: defaultColor },
+					]);
+				}}
+			>
+				Add Calendar
+			</button>
 			{settings.map((s, idx) => (
 				<CalendarSettingRow
 					key={idx}
@@ -172,46 +186,43 @@ export const CalendarSettings = ({
 					}
 				/>
 			))}
-			<div style={{ display: "flex", paddingTop: "1em" }}>
-				<button
-					onClick={() => {
-						submit(
-							settings
-								.filter(
-									(elt) =>
-										elt.color !== undefined &&
-										elt.type !== undefined &&
-										((elt.type === "local" &&
-											elt.directory !== undefined) ||
-											(elt.type === "gcal" &&
-												elt.url !== undefined) ||
-											(elt.type === "ical" &&
-												elt.url !== undefined))
-								)
-								.map((elt) => elt as CalendarSource)
-						);
-						setDirty(false);
-					}}
-					style={{
-						backgroundColor: dirty
-							? "var(--interactive-accent)"
-							: undefined,
-						color: dirty ? "var(--text-on-accent)" : undefined,
-					}}
-				>
-					{dirty ? "Save" : "Settings Saved"}
-				</button>
-				<span style={{ flexGrow: 1 }}></span>
-				<button
-					onClick={() => {
-						setSettings((state) => [
-							...state,
-							{ type: "local", color: defaultColor },
-						]);
-					}}
-				>
-					Add Calendar
-				</button>
+			<div
+				style={{
+					display: "flex",
+					paddingTop: "1em",
+					justifyContent: "space-between",
+				}}
+			>
+				{dirty && (
+					<button
+						onClick={() => {
+							submit(
+								settings
+									.filter(
+										(elt) =>
+											elt.color !== undefined &&
+											elt.type !== undefined &&
+											((elt.type === "local" &&
+												elt.directory !== undefined) ||
+												(elt.type === "gcal" &&
+													elt.url !== undefined) ||
+												(elt.type === "ical" &&
+													elt.url !== undefined))
+									)
+									.map((elt) => elt as CalendarSource)
+							);
+							setDirty(false);
+						}}
+						style={{
+							backgroundColor: dirty
+								? "var(--interactive-accent)"
+								: undefined,
+							color: dirty ? "var(--text-on-accent)" : undefined,
+						}}
+					>
+						{dirty ? "Save" : "Settings Saved"}
+					</button>
+				)}
 			</div>
 		</div>
 	);

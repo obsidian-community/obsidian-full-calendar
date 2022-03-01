@@ -12,6 +12,7 @@ The FullCalendar library is released under the [MIT license](https://github.com/
     - [Manual Installation](#manual-installation)
   - [Features](#features)
     - [Getting Started](#getting-started)
+      - [Creating your first calendar](#creating-your-first-calendar)
       - [Add and modify local calendars](#add-and-modify-local-calendars)
     - [Opening the calendar](#opening-the-calendar)
     - [Creating Events](#creating-events)
@@ -52,6 +53,15 @@ If you don't want to use BRAT, head over to the [releases page](https://github.c
 ## Features
 
 ### Getting Started
+
+#### Creating your first calendar
+
+Open Full Calendar from the command palette or the ribbon icon for the first time and you'll be prompted to add a calendar. It's recommended that you add at least one local calendar based in a directory in your Vault so that you can create and modify events. Remote calendars are currently read-only.
+
+<details>
+<summary>Click for GIF example</summary>
+<img src='docs/assets/welcome-settings.gif'>
+</details>
 
 #### Add and modify local calendars
 

@@ -1,6 +1,16 @@
 import "./overrides.css";
-import { ItemView, Notice, request, TFile, WorkspaceLeaf } from "obsidian";
+import {
+	ItemView,
+	Notice,
+	request,
+	TFile,
+	TFolder,
+	WorkspaceLeaf,
+} from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
+import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
+import * as ReactDOM from "react-dom";
+import { createElement } from "react";
 
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
@@ -14,17 +24,19 @@ import {
 	getPathPrefix,
 } from "./crud";
 import {
+	CalendarSource,
 	GoogleCalendarSource,
 	ICalSource,
 	LocalCalendarSource,
 	PLUGIN_SLUG,
 } from "./types";
+import { CalendarSettings } from "./components/CalendarSetting";
 import { eventApiToFrontmatter } from "./frontmatter";
 import {
 	expandICalEvents,
 	makeICalExpander,
 } from "vendor/fullcalendar-ical/icalendar";
-import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
+import { renderSourceManager } from "./settings";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -112,9 +124,36 @@ export class CalendarView extends ItemView {
 		container.empty();
 		let calendarEl = container.createEl("div");
 
-		if (!sources) {
-			calendarEl.textContent =
-				"Error: the events directory was not a directory. Please change your events directory in settings.";
+		if (
+			!sources ||
+			(sources.length === 0 &&
+				this.plugin.settings.calendarSources.filter(
+					(s) => s.type === "ical"
+				).length === 0)
+		) {
+			calendarEl.style.height = "100%";
+			const nocal = calendarEl.createDiv();
+			nocal.style.height = "100%";
+			nocal.style.display = "flex";
+			nocal.style.alignItems = "center";
+			nocal.style.justifyContent = "center";
+			const notice = nocal.createDiv();
+			notice.createEl("h1").textContent = "No calendar available";
+			notice.createEl("p").textContent =
+				"Thanks for downloading Full Calendar! Create a calendar below to begin.";
+
+			const container = notice.createDiv();
+			container.style.position = "fixed";
+			renderSourceManager(
+				this.app.vault,
+				this.plugin,
+				container,
+				async (settings) => {
+					if (settings.length > 0) {
+						await this.plugin.activateView();
+					}
+				}
+			);
 			return;
 		}
 
