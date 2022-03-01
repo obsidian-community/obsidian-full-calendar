@@ -1,3 +1,47 @@
 .fc {
 	height: 100%;
+	--fc-button-text-color: var(--text-normal);
+	--fc-button-bg-color: var(--interactive-normal);
+	--fc-button-border-color: var(--interactive-normal);
+
+	--fc-button-hover-bg-color: var(--interactive-hover);
+	--fc-button-hover-border-color: var(--interactive-hover);
+
+	--fc-button-active-border-color: var(--interactive-accent);
+	--fc-button-active-bg-color: var(--interactive-accent);
+
+	--fc-event-border-color: var(--interactive-accent);
+	--fc-event-bg-color: var(--interactive-accent);
+	--fc-event-text-color: var(--text-on-accent);
+
+	--fc-list-event-hover-bg-color: var(--background-secondary);
+	--fc-neutral-bg-color: var(--background-primary-alt);
+
+	--fc-page-bg-color: var(--background-primary);
+	--fc-border-color: var(--background-modifier-border);
+
+	--fc-now-indicator-color: var(--text-error-hover);
+
+	--fc-more-link-bg-color: var(--background-primary-alt);
+	--fc-more-link-text-color: var(--text-accent);
+
+	--fc-today-bg-color: var(--background-modifier-box-shadow);
+
+	--fc-neutral-text-color: var(--text-muted);
+	--fc-neutral-bg-color: var(--interactive-normal);
+
+	--fc-event-selected-overlay-color: var(--background-secondary-alt);
+
+	--fc-highlight-color: var(--text-highlight-bg);
+	--fc-bg-event-color: var(--background-modifier-success);
+	--fc-non-business-color: var(--background-modifier-box-shadow);
+}
+
+/* TODO: FIX ACTIVE BUTTONS */
+.fc-button-active {
+	color: var(--text-on-accent) !important;
+}
+
+.fc-button-primary:focus {
+	color: var(--text-on-accent) !important;
 }
