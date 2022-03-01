@@ -66,8 +66,9 @@ export class EventModal extends Modal {
 			React.createElement(EditEvent, {
 				initialEvent: this.event,
 				submit: async (event, calendarIndex) => {
-					const source =
-						this.plugin.settings.calendarSources[calendarIndex];
+					const source = this.plugin.settings.calendarSources.filter(
+						(s) => s.type === "local"
+					)[calendarIndex];
 					if (source.type !== "local") {
 						new Notice(
 							"Sorry, remote sync is currently read-only."
