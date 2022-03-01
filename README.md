@@ -32,9 +32,7 @@ The FullCalendar library is released under the [MIT license](https://github.com/
       - [Include events in sub-folders](#include-events-in-sub-folders)
     - [Dataview integration](#dataview-integration)
   - [Coming soon](#coming-soon)
-    - [Mobile UI Optimizations](#mobile-ui-optimizations)
     - [Create event notes with a template](#create-event-notes-with-a-template)
-    - [Subscribe to public calendar feeds](#subscribe-to-public-calendar-feeds)
   - [Long term plans](#long-term-plans)
     - [Track tasks in the calendar](#track-tasks-in-the-calendar)
 
@@ -218,17 +216,9 @@ calendar.render();
 
 This plugin is in its early days -- here are some features I plan to work on next, in rough order of priority. If you have any ideas or want to vouch for one of these, [submit an issue](https://github.com/davish/obsidian-full-calendar/issues)!
 
-### Mobile UI Optimizations
-
-Full Calendar is usable on mobile at the moment, but there are some UX improvements to make it look better on small screens.
-
 ### Create event notes with a template
 
 Support for the core Templates plugin and Templater.
-
-### Subscribe to public calendar feeds
-
-Add auto-updating read-only feeds for your friends' calendars.
 
 ## Long term plans
 
