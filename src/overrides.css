@@ -37,11 +37,6 @@
 	--fc-non-business-color: var(--background-modifier-box-shadow);
 }
 
-/* TODO: FIX ACTIVE BUTTONS */
 .fc-button-active {
-	color: var(--text-on-accent) !important;
-}
-
-.fc-button-primary:focus {
 	color: var(--text-on-accent) !important;
 }
