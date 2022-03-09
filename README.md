@@ -4,7 +4,7 @@ Keep your calendar in your vault! This plugin integrates the [FullCalendar](http
 
 The FullCalendar library is released under the [MIT license](https://github.com/fullcalendar/fullcalendar/blob/master/LICENSE.txt) by [Adam Shaw](https://github.com/arshaw). It's an awesome piece of work, and it would not have been possible to make something like this plugin so easily without it.
 
-![Sample Calendar](docs/assets/sample-calendar.png)
+![Sample Calendar](https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/sample-calendar.png)
 
 - [Obsidian Full Calendar Plugin](#obsidian-full-calendar-plugin)
   - [Installation](#installation)
@@ -58,7 +58,7 @@ Open Full Calendar from the command palette or the ribbon icon for the first tim
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/welcome-settings.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/welcome-settings.gif'>
 </details>
 
 #### Add and modify local calendars
@@ -67,7 +67,7 @@ All events live in `/events` in your vault by default, but you can change this t
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/add-calendar-source.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/add-calendar-source.gif'>
 </details>
 
 ### Opening the calendar
@@ -76,7 +76,7 @@ Either click on the ribbon icon, or run the "Full Calendar: Open Calendar" comma
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/open-calendar.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/open-calendar.gif'>
 </details>
 
 ### Creating Events
@@ -87,7 +87,7 @@ Use the "Create event" command to bring up the event modal to add a new event. C
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/create-event-modal.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/create-event-modal.gif'>
 </details>
 
 #### Via click-and-drag
@@ -96,7 +96,7 @@ Just click-and-drag on the calendar to create an event. The modal will pop up wh
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/create-event.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/create-event.gif'>
 </details>
 
 #### Upgrade existing note
@@ -105,7 +105,7 @@ Add the relevant event frontmatter to any pre-existing note in your vault to get
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/upgrade-note.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/upgrade-note.gif'>
 </details>
 
 #### Full day events
@@ -114,7 +114,7 @@ Can create events that last all day instead of giving a start and end time.
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/create-event-fullday.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/create-event-fullday.gif'>
 </details>
 
 #### Recurring events
@@ -123,7 +123,7 @@ Let a single event note show up on a set schedule by checking the "Recurring eve
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/create-event-recurring.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/create-event-recurring.gif'>
 </details>
 
 ### Editing Events
@@ -135,14 +135,14 @@ to change the time range or the date of an event.
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/edit-event-drag.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/edit-event-drag.gif'>
 </details>
 
 #### Move an event around on a day or between days
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/moving-event.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/moving-event.gif'>
 </details>
 
 ### Hover for event description
@@ -151,7 +151,7 @@ Using the core Page Preview plugin, hold ctrl/cmd and hover over an event to tri
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/hover-description.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/hover-description.gif'>
 </details>
 
 ### Sync Options
@@ -166,7 +166,7 @@ Note that this is slightly faster than the GCal-specific sync below, and will be
 
 <details>
 <summary>Click for GIF walkthrough</summary>
-<img src='docs/assets/sync-setup-ics.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/sync-setup-ics.gif'>
 </details>
 
 #### [Deprecated] Add a public Google Calendar via the GCal API
@@ -184,7 +184,7 @@ Check out the walkthrough below to see the whole process in action!
 
 <details>
 <summary>Click for GIF walkthrough</summary>
-<img src='docs/assets/sync-setup-gcal.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/sync-setup-gcal.gif'>
 </details>
 
 ### Settings
@@ -195,7 +195,7 @@ By default, Full Calendar will only look for events in the top-level of each cal
 
 <details>
 <summary>Click for GIF example</summary>
-<img src='docs/assets/recursive-search.gif'>
+<img src='https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/recursive-search.gif'>
 </details>
 
 ### [Dataview](https://github.com/blacksmithgu/obsidian-dataview) integration
