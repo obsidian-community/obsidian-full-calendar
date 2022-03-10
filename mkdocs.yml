@@ -1,0 +1,49 @@
+site_name: Obsidian Full Calendar
+repo_url: https://github.com/davish/obsidian-full-calendar
+repo_name: obsidian-full-calendar
+theme:
+    name: material
+    icon:
+        repo: fontawesome/brands/github-square
+    font:
+        text: Work Sans
+    features:
+        - navigation.instant
+        - navigation.sections
+        - navigation.expand
+    palette:
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: white
+          accent: light blue
+          toggle:
+              icon: material/toggle-switch-off-outline
+              name: Switch to dark mode
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: black
+          accent: blue grey
+          toggle:
+              icon: material/toggle-switch
+              name: Switch to light mode
+markdown_extensions:
+    - toc:
+          permalink: true
+
+nav:
+    - Introduction: index.md
+    - getting_started.md
+    - Events:
+          - events/types.md
+          - events/manage.md
+          - events/recurring.md
+          - events/upgrade.md
+          - events/hover.md
+    - Settings:
+          - settings/sources.md
+          - settings/subfolders.md
+    - Calendar Sync:
+          - sync/ics.md
+          - sync/gcal-fc.md
+    - Advanced:
+          - Dataview integration: advanced/dataview.md
