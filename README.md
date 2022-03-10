@@ -4,6 +4,8 @@ Keep your calendar in your vault! This plugin integrates the [FullCalendar](http
 
 The FullCalendar library is released under the [MIT license](https://github.com/fullcalendar/fullcalendar/blob/master/LICENSE.txt) by [Adam Shaw](https://github.com/arshaw). It's an awesome piece of work, and it would not have been possible to make something like this plugin so easily without it.
 
+You can see the full documentation [here](https://davish.github.io/obsidian-full-calendar/)!
+
 ![Sample Calendar](https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/sample-calendar.png)
 
 ## Installation
