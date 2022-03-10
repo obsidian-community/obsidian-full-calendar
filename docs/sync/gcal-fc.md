@@ -11,4 +11,4 @@ There are a few steps you'll need to do to add a Google Calendar to Obsidian:
 
 Check out the walkthrough below to see the whole process in action!
 
-![](/assets/sync-setup-gcal.gif)
+![](../assets/sync-setup-gcal.gif)
