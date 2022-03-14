@@ -1,5 +1,7 @@
 name: Check
-on: push
+on:
+    - push
+    - pull_request
 jobs:
     format:
         runs-on: ubuntu-latest
@@ -12,4 +14,4 @@ jobs:
                   node-version: "16.x"
             - run: npm ci
             - run: npm run lint
-            - run: npm run compile 
+            - run: npm run compile
