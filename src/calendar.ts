@@ -22,9 +22,10 @@ interface ExtraRenderProps {
 export function renderCalendar(
 	containerEl: HTMLElement,
 	eventSources: EventSourceInput[],
-	{ eventClick, select, modifyEvent, eventMouseEnter }: ExtraRenderProps
+	settings?: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
+	const { eventClick, select, modifyEvent, eventMouseEnter } = settings || {};
 	const modifyEventCallback =
 		modifyEvent &&
 		(async ({ event, revert }: { event: EventApi; revert: () => void }) => {
