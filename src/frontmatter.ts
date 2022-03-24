@@ -12,6 +12,27 @@ import { EventFrontmatter } from "./types";
 
 const DAYS = "UMTWRFS";
 
+export function dateEndpointsToFrontmatter(
+	start: Date,
+	end: Date,
+	allDay: boolean
+): Partial<EventFrontmatter> {
+	const date = getDate(start);
+	const endDate = getDate(end);
+	return {
+		type: "single",
+		date,
+		endDate: date !== endDate ? endDate : undefined,
+		allDay,
+		...(allDay
+			? {}
+			: {
+					startTime: getTime(start),
+					endTime: getTime(end),
+			  }),
+	};
+}
+
 export function parseFrontmatter(
 	id: string,
 	frontmatter: EventFrontmatter

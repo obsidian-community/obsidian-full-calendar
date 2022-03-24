@@ -1,42 +1,20 @@
 import "./overrides.css";
-import {
-	ItemView,
-	Notice,
-	request,
-	TFile,
-	TFolder,
-	WorkspaceLeaf,
-} from "obsidian";
-import { Calendar, EventSourceInput } from "@fullcalendar/core";
-import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
-import * as ReactDOM from "react-dom";
-import { createElement } from "react";
-
+import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { Calendar } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
+import { FCError, PLUGIN_SLUG } from "./types";
 import {
-	upsertLocalEvent,
 	dateEndpointsToFrontmatter,
-	getEventInputFromFile,
-	getEventSourceFromLocalSource,
-	getFileForEvent,
-	getPathPrefix,
-} from "./crud";
-import {
-	CalendarSource,
-	GoogleCalendarSource,
-	ICalSource,
-	LocalCalendarSource,
-	PLUGIN_SLUG,
-} from "./types";
-import { CalendarSettings } from "./components/CalendarSetting";
-import { eventApiToFrontmatter } from "./frontmatter";
-import {
-	expandICalEvents,
-	makeICalExpander,
-} from "vendor/fullcalendar-ical/icalendar";
-import { renderSourceManager } from "./settings";
+	eventApiToFrontmatter,
+} from "./frontmatter";
+
+import { IcsSource, NoteSource } from "./models/EventSource";
+import { renderOnboarding } from "./onboard";
+import { CalendarEvent, LocalEvent } from "./models/Event";
+import { NoteEvent } from "./models/NoteEvent";
+import { eventFromCalendarId } from "./models";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -60,101 +38,58 @@ export class CalendarView extends ItemView {
 	}
 
 	onCacheUpdate(file: TFile) {
-		const calendar = this.plugin.settings.calendarSources.find(
+		const source = this.plugin.settings.calendarSources.find(
 			(c) => c.type === "local" && file.path.startsWith(c.directory)
 		);
-
-		let calendarEvent = this.calendar?.getEventById(file.path);
-		let newEventData = getEventInputFromFile(this.app.metadataCache, file);
-		if (calendar && newEventData !== null) {
+		const event = NoteEvent.fromFile(
+			this.app.metadataCache,
+			this.app.vault,
+			file
+		);
+		if (!event) {
+			return;
+		}
+		// Serialize ID correctly from file.
+		let calendarEvent = this.calendar?.getEventById(event.idForCalendar);
+		if (this.calendar && source && event) {
 			if (calendarEvent) {
 				calendarEvent.remove();
 			}
-			this.calendar?.addEvent({
-				color:
-					calendar.color ||
-					getComputedStyle(document.body).getPropertyValue(
-						"--interactive-accent"
-					),
-				textColor: getComputedStyle(document.body).getPropertyValue(
-					"--text-on-accent"
-				),
-				...newEventData,
-			});
+			event.addTo(this.calendar, source);
 		}
 	}
 
 	async onOpen() {
 		await this.plugin.loadSettings();
-		const sources = (
-			(
-				await Promise.all(
-					this.plugin.settings.calendarSources
-						.filter((s) => s.type === "local")
-						.map((source) =>
-							getEventSourceFromLocalSource(
-								this.app.vault,
-								this.app.metadataCache,
-								source as LocalCalendarSource, // Cast necessary because Array.filter doesn't narrow the type on a tagged union.
-								this.plugin.settings.recursiveLocal
-							)
-						)
-				)
+		const noteSourcePromises = this.plugin.settings.calendarSources
+			.flatMap((s) => (s.type === "local" ? [s] : []))
+			.map(
+				(s) => new NoteSource(this.app.vault, this.app.metadataCache, s)
 			)
-				// Filter does not narrow types :(
-				.filter((s) => s !== null) as EventSourceInput[]
-		).concat(
-			this.plugin.settings.calendarSources
-				.filter((s) => s.type === "gcal")
-				.map((gcalSource) => ({
-					editable: false,
-					googleCalendarId: (gcalSource as GoogleCalendarSource).url,
-					textColor: getComputedStyle(document.body).getPropertyValue(
-						"--text-on-accent"
-					),
-					color:
-						gcalSource.color ||
-						getComputedStyle(document.body).getPropertyValue(
-							"--interactive-accent"
-						),
-				}))
-		);
+			.map((ns) => ns.toApi(this.plugin.settings.recursiveLocal));
 
 		const container = this.containerEl.children[1];
 		container.empty();
 		let calendarEl = container.createEl("div");
-
+		const noteSourceResults = await Promise.all(noteSourcePromises);
+		const sources = noteSourceResults.flatMap((s) =>
+			s instanceof FCError ? [] : [s]
+		);
 		if (
-			!sources ||
-			(sources.length === 0 &&
-				this.plugin.settings.calendarSources.filter(
-					(s) => s.type === "ical"
-				).length === 0)
+			sources.length === 0 &&
+			this.plugin.settings.calendarSources.filter(
+				(s) => s.type === "ical"
+			).length === 0
 		) {
-			calendarEl.style.height = "100%";
-			const nocal = calendarEl.createDiv();
-			nocal.style.height = "100%";
-			nocal.style.display = "flex";
-			nocal.style.alignItems = "center";
-			nocal.style.justifyContent = "center";
-			const notice = nocal.createDiv();
-			notice.createEl("h1").textContent = "No calendar available";
-			notice.createEl("p").textContent =
-				"Thanks for downloading Full Calendar! Create a calendar below to begin.";
-
-			const container = notice.createDiv();
-			container.style.position = "fixed";
-			renderSourceManager(
-				this.app.vault,
-				this.plugin,
-				container,
-				async (settings) => {
-					if (settings.length > 0) {
-						await this.plugin.activateView();
-					}
-				}
-			);
+			renderOnboarding(this.app.vault, this.plugin, calendarEl);
 			return;
+		}
+
+		let errs = noteSourceResults.flatMap((s) =>
+			s instanceof FCError ? [s] : []
+		);
+		for (const err of errs) {
+			new Notice(err.message);
 		}
 
 		this.calendar = renderCalendar(calendarEl, sources, {
@@ -192,92 +127,57 @@ export class CalendarView extends ItemView {
 				);
 				modal.open();
 			},
-			modifyEvent: async (event) => {
-				const file = await getFileForEvent(this.app.vault, event);
-				if (!file) {
+			modifyEvent: async (newEvent, oldEvent) => {
+				try {
+					const existingEvent = await eventFromCalendarId(
+						this.app.metadataCache,
+						this.app.vault,
+						oldEvent.id
+					);
+					if (!existingEvent) {
+						return false;
+					}
+					const frontmatter = eventApiToFrontmatter(newEvent);
+					await existingEvent.setData(frontmatter);
+				} catch (e: any) {
+					new Notice(e.message);
 					return false;
 				}
-				const success = await upsertLocalEvent(
-					this.app.vault,
-					getPathPrefix(event.id),
-					eventApiToFrontmatter(event),
-					event.id
-				);
-				if (!success) {
-					new Notice(
-						"Multiple events with the same name on the same date are not yet supported. Please rename your event before moving it."
-					);
-				}
-				return success;
+				return true;
 			},
 
-			eventMouseEnter: (info) => {
-				const path = info.event.id;
-				this.app.workspace.trigger("hover-link", {
-					event: info.jsEvent,
-					source: PLUGIN_SLUG,
-					hoverParent: calendarEl,
-					targetEl: info.jsEvent.target,
-					linktext: path,
-					sourcePath: path,
-				});
+			eventMouseEnter: async (info) => {
+				const event = await eventFromCalendarId(
+					this.app.metadataCache,
+					this.app.vault,
+					info.event.id
+				);
+				if (event instanceof LocalEvent) {
+					this.app.workspace.trigger("hover-link", {
+						event: info.jsEvent,
+						source: PLUGIN_SLUG,
+						hoverParent: calendarEl,
+						targetEl: info.jsEvent.target,
+						linktext: event.path,
+						sourcePath: event.path,
+					});
+				}
 			},
 		});
 
 		this.plugin.settings.calendarSources
-			.filter((s) => s.type === "ical")
-			.map(async (s): Promise<EventSourceInput> => {
-				let url = (s as ICalSource).url;
-				if (url.startsWith("webcal")) {
-					url = "https" + url.slice("webcal".length);
-				}
-				let expander: IcalExpander | null = null;
-				const getExpander = async (): Promise<IcalExpander | null> => {
-					if (expander !== null) {
-						return expander;
+			.flatMap((s) => (s.type === "ical" ? [s] : []))
+			.map((s) => new IcsSource(s))
+			.map((s) => s.toApi())
+			.forEach((resultPromise) =>
+				resultPromise.then((result) => {
+					if (result instanceof FCError) {
+						new Notice(result.message);
+					} else {
+						this.calendar?.addEventSource(result);
 					}
-					try {
-						let text = await request({
-							url: url,
-							method: "GET",
-						});
-						expander = makeICalExpander(text);
-						return expander;
-					} catch (e) {
-						new Notice(
-							`There was an error loading a calendar. Check the console for full details.`
-						);
-						console.error(`Error loading calendar from ${url}`);
-						console.error(e);
-						return null;
-					}
-				};
-				return {
-					events: async function ({ start, end }) {
-						const ical = await getExpander();
-						if (ical === null) {
-							throw new Error("Could not get calendar.");
-						}
-						const events = expandICalEvents(ical, {
-							start,
-							end,
-						});
-						return events;
-					},
-					editable: false,
-					textColor: getComputedStyle(document.body).getPropertyValue(
-						"--text-on-accent"
-					),
-					color:
-						s.color ||
-						getComputedStyle(document.body).getPropertyValue(
-							"--interactive-accent"
-						),
-				};
-			})
-			.forEach((prom) => {
-				prom.then((source) => this.calendar?.addEventSource(source));
-			});
+				})
+			);
 
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
@@ -285,7 +185,11 @@ export class CalendarView extends ItemView {
 		this.registerEvent(
 			this.app.vault.on("delete", (file) => {
 				if (file instanceof TFile) {
-					let id = file.path;
+					// TODO: This is a HACK. Think of a way to make this generic for all types of local events.
+					let id =
+						NoteEvent.ID_PREFIX +
+						CalendarEvent.ID_SEPARATOR +
+						file.path;
 					const event = this.calendar?.getEventById(id);
 					if (event) {
 						event.remove();
@@ -295,7 +199,10 @@ export class CalendarView extends ItemView {
 		);
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
-				const oldEvent = this.calendar?.getEventById(oldPath);
+				// TODO: This is a HACK. Think of a way to make this generic for all types of local events.
+				const oldEvent = this.calendar?.getEventById(
+					NoteEvent.ID_PREFIX + CalendarEvent.ID_SEPARATOR + oldPath
+				);
 				if (oldEvent) {
 					oldEvent.remove();
 				}

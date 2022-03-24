@@ -1,3 +1,5 @@
+import { MetadataCache, Vault } from "obsidian";
+
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter
@@ -121,3 +123,10 @@ export type CalendarSource =
 	| LocalCalendarSource
 	| GoogleCalendarSource
 	| ICalSource;
+
+export class FCError {
+	message: string;
+	constructor(message: string) {
+		this.message = message;
+	}
+}
