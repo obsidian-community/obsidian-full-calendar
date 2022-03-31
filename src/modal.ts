@@ -3,57 +3,63 @@ import FullCalendarPlugin from "./main";
 import { App, Modal, Notice, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {
-	upsertLocalEvent,
-	getFrontmatterFromEvent,
-	getFrontmatterFromFile,
-} from "./crud";
 
 import { EditEvent } from "./components/EditEvent";
-import { EventFrontmatter, LocalCalendarSource } from "./types";
-import { FULL_CALENDAR_VIEW_TYPE } from "./view";
+import { EventFrontmatter } from "./types";
+import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
+import { NoteEvent } from "./models/NoteEvent";
+import { eventFromCalendarId } from "./models";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
-	event: Partial<EventFrontmatter> | undefined;
-	eventId: string | undefined;
 	calendar: Calendar | null;
+
+	data: Partial<EventFrontmatter> | undefined;
+	event: CalendarEvent | undefined;
+	file: TFile | undefined;
 
 	constructor(
 		app: App,
 		plugin: FullCalendarPlugin,
 		calendar: Calendar | null,
-		event?: Partial<EventFrontmatter>,
-		eventId?: string
+		event?: Partial<EventFrontmatter>
 	) {
 		super(app);
 		this.plugin = plugin;
-		this.event = event;
-		this.eventId = eventId;
+		this.data = event;
 		this.calendar = calendar;
 	}
 
-	async editInModal(event: EventApi | TFile) {
+	async editInModal(input: EventApi | TFile) {
 		let frontmatter = null;
-		if (event instanceof EventApi) {
-			frontmatter = await getFrontmatterFromEvent(
-				this.app.vault,
+		if (input instanceof EventApi) {
+			const event = await eventFromCalendarId(
 				this.app.metadataCache,
-				event
+				this.app.vault,
+				input.id
 			);
-			if (frontmatter) {
-				this.event = frontmatter;
-				this.eventId = event.id;
+			if (event) {
+				this.data = event.data;
+				this.event = event;
 				this.open();
 			} else {
+				new Notice(
+					"Full Calendar: No frontmatter to edit for selected event."
+				);
 				console.warn(
 					"Full Calendar: No frontmatter to edit for selected event."
 				);
 			}
-		} else if (event instanceof TFile) {
-			frontmatter = getFrontmatterFromFile(this.app.metadataCache, event);
-			this.event = frontmatter || { title: event.basename };
-			this.eventId = event.path;
+		} else if (input instanceof TFile) {
+			const e = NoteEvent.fromFile(
+				this.app.metadataCache,
+				this.app.vault,
+				input
+			);
+			frontmatter = e?.data;
+			this.file = input;
+			this.data = frontmatter || { title: input.basename };
+			this.event = e || undefined;
 			this.open();
 		}
 	}
@@ -64,8 +70,9 @@ export class EventModal extends Modal {
 
 		ReactDOM.render(
 			React.createElement(EditEvent, {
-				initialEvent: this.event,
-				submit: async (event, calendarIndex) => {
+				initialEvent: this.data,
+				submit: async (data, calendarIndex) => {
+					console.log("submitting modal");
 					const source = this.plugin.settings.calendarSources.filter(
 						(s) => s.type === "local"
 					)[calendarIndex];
@@ -77,53 +84,56 @@ export class EventModal extends Modal {
 						return;
 					}
 					const directory = source.directory;
-					const success = await upsertLocalEvent(
-						this.app.vault,
-						directory,
-						event,
-						this.eventId
-					);
-					// await this.plugin.activateView();
-					if (success) {
+					try {
+						if (this.file && !this.event) {
+							NoteEvent.upgrade(
+								this.app.metadataCache,
+								this.app.vault,
+								this.file,
+								data
+							);
+						} else if (!this.event) {
+							NoteEvent.create(
+								this.app.metadataCache,
+								this.app.vault,
+								directory,
+								data
+							);
+						} else {
+							if (this.event instanceof EditableEvent) {
+								console.log("editable event", this.event);
+								await this.event.setData(data);
+								if (this.event instanceof NoteEvent) {
+									console.log("note event", this.event);
+									await this.event.setDirectory(directory);
+								}
+							}
+						}
+					} catch (e: any) {
+						new Notice(e.message);
+					} finally {
 						this.close();
-					} else {
-						new Notice(
-							"Multiple events with the same name on the same day are not yet supported." +
-								"Please change the name of your event."
-						);
 					}
 				},
 				defaultCalendarIndex: this.plugin.settings.defaultCalendar,
 				calendars: this.plugin.settings.calendarSources,
 				open:
-					this.eventId !== undefined
+					this.event instanceof LocalEvent
 						? async () => {
-								if (this.eventId) {
-									let file =
-										this.app.vault.getAbstractFileByPath(
-											this.eventId
-										);
-									if (file instanceof TFile) {
-										let leaf =
-											this.app.workspace.getMostRecentLeaf();
-										await leaf.openFile(file);
-										this.close();
-									}
+								if (this.event instanceof LocalEvent) {
+									let leaf =
+										this.app.workspace.getMostRecentLeaf();
+									await this.event.openIn(leaf);
+									this.close();
 								}
 						  }
 						: undefined,
 				deleteEvent:
-					this.eventId !== undefined
+					this.event instanceof LocalEvent
 						? async () => {
-								if (this.eventId) {
-									let file =
-										this.app.vault.getAbstractFileByPath(
-											this.eventId
-										);
-									if (file instanceof TFile) {
-										await this.app.vault.delete(file);
-										this.close();
-									}
+								if (this.event instanceof LocalEvent) {
+									await this.event.delete();
+									this.close();
 								}
 						  }
 						: undefined,
