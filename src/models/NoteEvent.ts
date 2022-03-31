@@ -129,8 +129,19 @@ export class NoteEvent extends LocalEvent {
 	async setData(data: EventFrontmatter): Promise<void> {
 		let file = this.file;
 		let newFilename = `${basenameFromEvent(data)}.md`;
+		if (
+			this.filename !== newFilename &&
+			this.vault.getAbstractFileByPath(
+				`${file.parent.path}/${newFilename}`
+			)
+		) {
+			throw new FCError(
+				"Multiple events with the same name on the same date are not yet supported. Please rename your event before moving it."
+			);
+		}
+
 		await modifyFrontmatter(this.vault, file, data);
-		if (this.filename != newFilename) {
+		if (this.filename !== newFilename) {
 			this.filename = newFilename;
 			await this.vault.rename(file, this.path);
 		}
