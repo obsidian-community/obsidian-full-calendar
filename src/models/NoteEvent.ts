@@ -49,6 +49,23 @@ export class NoteEvent extends LocalEvent {
 		});
 	}
 
+	/**
+	 * Create an event from an existing note.
+	 */
+	static async upgrade(
+		cache: MetadataCache,
+		vault: Vault,
+		file: TFile,
+		data: EventFrontmatter
+	) {
+		await modifyFrontmatter(vault, file, data);
+
+		return new NoteEvent(cache, vault, data, {
+			directory: file.parent.path,
+			filename: file.name,
+		});
+	}
+
 	static fromFile(
 		cache: MetadataCache,
 		vault: Vault,
