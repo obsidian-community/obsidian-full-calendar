@@ -55,6 +55,7 @@ export class CalendarView extends ItemView {
 			if (calendarEvent) {
 				calendarEvent.remove();
 			}
+			// TODO: Respect recursion settings when adding event to the calendar.
 			event.addTo(this.calendar, source);
 		}
 	}

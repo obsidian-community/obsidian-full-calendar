@@ -195,13 +195,14 @@ export async function modifyFrontmatter(
 	file: TFile,
 	modifications: Partial<EventFrontmatter>
 ): Promise<void> {
-	const page = await vault.read(file);
+	let page = await vault.read(file);
 	const frontmatter = extractFrontmatter(page)?.split("\n");
 	let newFrontmatter: string[] = [];
 	if (!frontmatter) {
 		newFrontmatter = Object.entries(modifications)
 			.filter(([k, v]) => v !== undefined)
 			.map(([k, v]) => stringifyYamlLine(k, v));
+		page = "\n" + page;
 	} else {
 		const linesAdded: Set<string | number | symbol> = new Set();
 		// Modify rows in-place.
