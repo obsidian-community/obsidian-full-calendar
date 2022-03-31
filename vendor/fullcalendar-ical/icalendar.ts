@@ -61,9 +61,9 @@ interface InternalState {
 // 		}
 
 // 		/*
-//     NOTE: isRefetch is a HACK. we would do the recurring-expanding in a separate plugin hook,
-//     but we couldn't leverage built-in allDay-guessing, among other things.
-//     */
+//	 NOTE: isRefetch is a HACK. we would do the recurring-expanding in a separate plugin hook,
+//	 but we couldn't leverage built-in allDay-guessing, among other things.
+//	 */
 // 		if (!internalState || arg.isRefetch) {
 // 			internalState = meta.internalState = {
 // 				// our ghetto Promise

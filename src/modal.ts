@@ -5,6 +5,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./components/EditEvent";
+import { AddCalendarSource } from "./components/AddCalendarSource";
 import { EventFrontmatter } from "./types";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
@@ -140,6 +141,28 @@ export class EventModal extends Modal {
 			}),
 			contentEl
 		);
+	}
+
+	onClose() {
+		const { contentEl } = this;
+		ReactDOM.unmountComponentAtNode(contentEl);
+	}
+}
+
+export class ReactModal<Props, Component> extends Modal {
+	onOpenCallback: () => Promise<ReturnType<typeof React.createElement>>;
+
+	constructor(
+		app: App,
+		onOpenCallback: () => Promise<ReturnType<typeof React.createElement>>
+	) {
+		super(app);
+		this.onOpenCallback = onOpenCallback;
+	}
+
+	async onOpen() {
+		const { contentEl } = this;
+		ReactDOM.render(await this.onOpenCallback(), contentEl);
 	}
 
 	onClose() {
