@@ -8,21 +8,17 @@ type ChangeListener = <T extends Partial<CalendarSource>>(
 ) => React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement>;
 type SourceWith<T extends Partial<CalendarSource>, K> = T extends K ? T : never;
 
-interface DirectoryProps<T extends Partial<CalendarSource>> {
+interface DirectorySelectProps<T extends Partial<CalendarSource>> {
 	source: T;
 	changeListener: ChangeListener;
 	directories: string[];
 }
 
-function Directory<T extends Partial<CalendarSource>>({
+function DirectorySelect<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
 	directories,
-}: DirectoryProps<T>) {
-	if (source.type !== "local") {
-		return null;
-	}
-
+}: DirectorySelectProps<T>) {
 	const dirOptions = [...directories];
 	dirOptions.sort();
 
@@ -63,14 +59,10 @@ interface BasicProps<T extends Partial<CalendarSource>> {
 	changeListener: ChangeListener;
 }
 
-function Color<T extends Partial<CalendarSource>>({
+function ColorPicker<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
-	if (source.type === "caldav" || source.type === "icloud") {
-		return null;
-	}
-
 	return (
 		<div className="setting-item">
 			<div className="setting-item-info">
@@ -92,14 +84,10 @@ function Color<T extends Partial<CalendarSource>>({
 	);
 }
 
-function Url<T extends Partial<CalendarSource>>({
+function UrlInput<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
-	if (source.type === "local" || source.type === "icloud") {
-		return null;
-	}
-
 	let sourceWithUrl = source as SourceWith<T, { url: undefined }>;
 	return (
 		<div className="setting-item">
@@ -124,14 +112,10 @@ function Url<T extends Partial<CalendarSource>>({
 	);
 }
 
-function Username<T extends Partial<CalendarSource>>({
+function UsernameInput<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
-	if (source.type !== "caldav" && source.type !== "icloud") {
-		return null;
-	}
-
 	let sourceWithUsername = source as SourceWith<T, { username: undefined }>;
 	return (
 		<div className="setting-item">
@@ -156,14 +140,10 @@ function Username<T extends Partial<CalendarSource>>({
 	);
 }
 
-function Password<T extends Partial<CalendarSource>>({
+function PasswordInput<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
-	if (source.type !== "caldav" && source.type !== "icloud") {
-		return null;
-	}
-
 	let sourceWithPassword = source as SourceWith<T, { password: undefined }>;
 	return (
 		<div className="setting-item">
@@ -213,32 +193,49 @@ export const AddCalendarSource = ({
 		await submit(setting as CalendarSource);
 	};
 
+	const isCalDAV = source.type === "caldav" || source.type === "icloud";
 	return (
 		<div className="vertical-tab-content">
 			<form onSubmit={handleSubmit}>
-				<Color source={setting} changeListener={makeChangeListener} />
-				<Directory
-					source={setting}
-					changeListener={makeChangeListener}
-					directories={directories}
-				/>
-				<Url source={setting} changeListener={makeChangeListener} />
-				<Username
-					source={setting}
-					changeListener={makeChangeListener}
-				/>
-				<Password
-					source={setting}
-					changeListener={makeChangeListener}
-				/>
+				{!isCalDAV && (
+					// CalDAV can import multiple calendars. Instead of picking
+					// a single color to be used for all calendars, default to the
+					// colors reported from the server. Users can change that later
+					// if they wish.
+					<ColorPicker
+						source={setting}
+						changeListener={makeChangeListener}
+					/>
+				)}
+				{source.type === "local" ? (
+					<DirectorySelect
+						source={setting}
+						changeListener={makeChangeListener}
+						directories={directories}
+					/>
+				) : (
+					<UrlInput
+						source={setting}
+						changeListener={makeChangeListener}
+					/>
+				)}
+				{isCalDAV && (
+					<UsernameInput
+						source={setting}
+						changeListener={makeChangeListener}
+					/>
+				)}
+				{isCalDAV && (
+					<PasswordInput
+						source={setting}
+						changeListener={makeChangeListener}
+					/>
+				)}
 				<div className="setting-item">
 					<div className="setting-item-info" />
 					<div className="setting-control">
 						<button type="submit">
-							{setting.type === "caldav" ||
-							setting.type === "icloud"
-								? "Import Calendars"
-								: "Add Calendar"}
+							{isCalDAV ? "Import Calendars" : "Add Calendar"}
 						</button>
 					</div>
 				</div>

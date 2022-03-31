@@ -171,7 +171,7 @@ export class RemoteSource extends EventSource {
 
 			return (
 				await Promise.all(
-					account.calendars.flatMap(async (calendar) => {
+					account.calendars.map(async (calendar) => {
 						if (!calendar.components.includes("VEVENT")) {
 							return null;
 						}
@@ -189,7 +189,7 @@ export class RemoteSource extends EventSource {
 						};
 					})
 				)
-			).filter((source): source is CalDAVSource => !!source);
+			).filter((source): source is CalDAVSource => source != null);
 		} catch (e) {
 			console.error(`Error importing calendars from ${this.info.url}`);
 			console.error(e);
@@ -232,7 +232,7 @@ export class RemoteSource extends EventSource {
 				});
 
 				expanders = events
-					.flatMap((vevent) => {
+					.map((vevent) => {
 						try {
 							return vevent?.calendarData
 								? makeICalExpander(vevent.calendarData)

@@ -134,10 +134,10 @@ type AuthType = BasicAuth;
  * Read/write mirror of a remote CalDAV backed calendar at the given URL.
  */
 export type CalDAVSource = {
-    type: "caldav";
-    name: string;
-    url: string;
-    homeUrl: string;
+	type: "caldav";
+	name: string;
+	url: string;
+	homeUrl: string;
 } & CalendarSourceCommon & AuthType;
 
 /**
@@ -158,7 +158,7 @@ export type CalendarSource =
 /**
  * Construct a partial calendar source of the specified type
  */
-export function partialCalendarSource(
+export function makeDefaultPartialCalendarSource(
 	type: CalendarSource["type"]
 ): Partial<CalendarSource> {
 	if (type === "icloud") {

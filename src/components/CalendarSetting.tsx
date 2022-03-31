@@ -9,13 +9,9 @@ interface BasicProps<T extends Partial<CalendarSource>> {
 	source: T;
 }
 
-function Directory<T extends Partial<CalendarSource>>({
+function DirectorySetting<T extends Partial<CalendarSource>>({
 	source,
 }: BasicProps<T>) {
-	if (source.type !== "local") {
-		return null;
-	}
-
 	let sourceWithDirectory = source as SourceWith<T, { directory: undefined }>;
 	return (
 		<div className="setting-item-control">
@@ -33,11 +29,9 @@ function Directory<T extends Partial<CalendarSource>>({
 	);
 }
 
-function Url<T extends Partial<CalendarSource>>({ source }: BasicProps<T>) {
-	if (source.type === "local") {
-		return null;
-	}
-
+function UrlSetting<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
 	let sourceWithUrl = source as SourceWith<T, { url: undefined }>;
 	return (
 		<div className="setting-item-control">
@@ -55,11 +49,9 @@ function Url<T extends Partial<CalendarSource>>({ source }: BasicProps<T>) {
 	);
 }
 
-function Name<T extends Partial<CalendarSource>>({ source }: BasicProps<T>) {
-	if (source.type !== "caldav" && source.type !== "icloud") {
-		return null;
-	}
-
+function NameSetting<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
 	let sourceWithName = source as SourceWith<T, { name: undefined }>;
 	return (
 		<div className="setting-item-control">
@@ -80,10 +72,6 @@ function Name<T extends Partial<CalendarSource>>({ source }: BasicProps<T>) {
 function Username<T extends Partial<CalendarSource>>({
 	source,
 }: BasicProps<T>) {
-	if (source.type !== "caldav" && source.type !== "icloud") {
-		return null;
-	}
-
 	let sourceWithUsername = source as SourceWith<T, { username: undefined }>;
 	return (
 		<div className="setting-item-control">
@@ -112,6 +100,7 @@ export const CalendarSettingRow = ({
 	onColorChange,
 	deleteCalendar,
 }: CalendarSettingsProps) => {
+	const isCalDAV = setting.type === "caldav" || setting.type === "icloud";
 	return (
 		<div className="setting-item">
 			<button
@@ -121,10 +110,13 @@ export const CalendarSettingRow = ({
 			>
 				✕
 			</button>
-			<Directory source={setting} />
-			<Url source={setting} />
-			<Name source={setting} />
-			<Username source={setting} />
+			{setting.type === "local" ? (
+				<DirectorySetting source={setting} />
+			) : (
+				<UrlSetting source={setting} />
+			)}
+			{isCalDAV && <NameSetting source={setting} />}
+			{isCalDAV && <Username source={setting} />}
 			<input
 				style={{ maxWidth: "25%", minWidth: "3rem" }}
 				type="color"

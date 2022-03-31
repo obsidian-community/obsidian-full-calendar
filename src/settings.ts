@@ -1,6 +1,6 @@
 import FullCalendarPlugin from "./main";
 import { App, DropdownComponent, Notice, PluginSettingTab, Setting, TFolder, Vault } from "obsidian";
-import { partialCalendarSource, CalendarSource, FCError } from "./types";
+import { makeDefaultPartialCalendarSource, CalendarSource, FCError } from "./types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
 import { RemoteSource } from "./models/EventSource";
@@ -42,7 +42,6 @@ export function addCalendarButton(
 				local: "Local",
 				icloud: "iCloud",
 				caldav: "CalDAV",
-				gcal: "Google (Readonly)",
 				ical: "Remote (.ics format)",
 			})
 		)
@@ -61,23 +60,23 @@ export function addCalendarButton(
 						)();
 
 						return createElement(AddCalendarSource, {
-							source: partialCalendarSource(
+							source: makeDefaultPartialCalendarSource(
 								dropdown.getValue() as CalendarSource["type"]
 							),
 							directories: directories.filter(
 								(dir) => usedDirectories.indexOf(dir) === -1
 							),
-                            submit: async (source: CalendarSource) => {
-                                if (source.type === "caldav" || source.type === "icloud") {
-                                    let sources = await new RemoteSource(source).importCalendars();
-                                    if (sources instanceof FCError) {
-                                        new Notice(sources.message);
-                                    } else {
-                                        sources.forEach((source) => submitCallback(source));
-                                    }
-                                } else {
-                                    submitCallback(source);
-                                }
+							submit: async (source: CalendarSource) => {
+								if (source.type === "caldav" || source.type === "icloud") {
+									let sources = await new RemoteSource(source).importCalendars();
+									if (sources instanceof FCError) {
+										new Notice(sources.message);
+									} else {
+										sources.forEach((source) => submitCallback(source));
+									}
+								} else {
+									submitCallback(source);
+								}
 								modal.close();
 							}
 						});
