@@ -1,6 +1,5 @@
-import { DropdownComponent } from "obsidian";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { CalendarSource } from "../types";
 
 type ChangeListener = <T extends Partial<CalendarSource>>(
@@ -179,8 +178,13 @@ export const AddCalendarSource = ({
 	directories,
 	submit,
 }: AddCalendarProps) => {
-	const [setting, setSettingState] =
-		useState<Partial<CalendarSource>>(source);
+	const isCalDAV = source.type === "caldav" || source.type === "icloud";
+
+	const [setting, setSettingState] = useState(source);
+	const [submitting, setSubmitingState] = useState(false);
+	const [submitText, setSubmitText] = useState(
+		isCalDAV ? "Import Calendars" : "Add Calendar"
+	);
 
 	function makeChangeListener<T extends Partial<CalendarSource>>(
 		fromString: (val: string) => T
@@ -190,10 +194,13 @@ export const AddCalendarSource = ({
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		await submit(setting as CalendarSource);
+		if (!submitting) {
+			setSubmitingState(true);
+			setSubmitText(isCalDAV ? "Importing Calendars" : "Adding Calendar");
+			await submit(setting as CalendarSource);
+		}
 	};
 
-	const isCalDAV = source.type === "caldav" || source.type === "icloud";
 	return (
 		<div className="vertical-tab-content">
 			<form onSubmit={handleSubmit}>
@@ -207,13 +214,14 @@ export const AddCalendarSource = ({
 						changeListener={makeChangeListener}
 					/>
 				)}
-				{source.type === "local" ? (
+				{source.type === "local" && (
 					<DirectorySelect
 						source={setting}
 						changeListener={makeChangeListener}
 						directories={directories}
 					/>
-				) : (
+				)}
+				{source.type !== "local" && source.type !== "icloud" && (
 					<UrlInput
 						source={setting}
 						changeListener={makeChangeListener}
@@ -234,8 +242,12 @@ export const AddCalendarSource = ({
 				<div className="setting-item">
 					<div className="setting-item-info" />
 					<div className="setting-control">
-						<button type="submit">
-							{isCalDAV ? "Import Calendars" : "Add Calendar"}
+						<button
+							className="mod-cta"
+							type="submit"
+							disabled={submitting}
+						>
+							{submitText}
 						</button>
 					</div>
 				</div>
