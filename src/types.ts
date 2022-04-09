@@ -92,7 +92,7 @@ export function validateFrontmatter(
 // Settings
 
 type CalendarSourceCommon = {
-	color: string | null;
+	color: string;
 };
 
 /**
@@ -119,10 +119,65 @@ export type ICalSource = {
 	url: string;
 } & CalendarSourceCommon;
 
+
+/**
+ * Auth types. Currently only support Basic, but will probably support OAuth in the future.
+ */
+type BasicAuth = {
+	username: string;
+	password: string;
+} & CalendarSourceCommon;
+
+type AuthType = BasicAuth;
+
+/**
+ * Read/write mirror of a remote CalDAV backed calendar at the given URL.
+ */
+export type CalDAVSource = {
+	type: "caldav";
+	name: string;
+	url: string;
+	homeUrl: string;
+} & CalendarSourceCommon & AuthType;
+
+/**
+ * An read/write mirror of an iCloud backed calendar.
+ */
+export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
+	type: "icloud";
+	url: "https://caldav.icloud.com";
+};
+
 export type CalendarSource =
 	| LocalCalendarSource
 	| GoogleCalendarSource
-	| ICalSource;
+	| ICalSource
+	| CalDAVSource
+	| ICloudSource;
+
+/**
+ * Construct a partial calendar source of the specified type
+ */
+export function makeDefaultPartialCalendarSource(
+	type: CalendarSource["type"]
+): Partial<CalendarSource> {
+	if (type === "icloud") {
+		return {
+			type: type,
+			color: getComputedStyle(document.body)
+				.getPropertyValue("--interactive-accent")
+				.trim(),
+			url: "https://caldav.icloud.com"
+		} as Partial<ICloudSource>;
+	}
+
+	return {
+		type: type,
+		color: getComputedStyle(document.body)
+			.getPropertyValue("--interactive-accent")
+			.trim()
+	};
+}
 
 export class FCError {
 	message: string;

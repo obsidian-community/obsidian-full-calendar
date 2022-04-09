@@ -2,6 +2,7 @@ import { MetadataCache, Vault } from "obsidian";
 import { FCError } from "src/types";
 import { ICSEvent } from "./ICSEvent";
 import { NoteEvent } from "./NoteEvent";
+import { CalDAVEvent } from "./CalDAVEvent";
 
 export async function eventFromCalendarId(
 	cache: MetadataCache,
@@ -12,6 +13,7 @@ export async function eventFromCalendarId(
 	const info = rest.join("::");
 	switch (prefix) {
 		case ICSEvent.ID_PREFIX:
+		case CalDAVEvent.ID_PREFIX:
 			throw new FCError(
 				"Cannot create instance of ICS event given its ID."
 			);

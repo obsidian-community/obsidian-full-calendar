@@ -9,6 +9,7 @@
 		"noImplicitAny": true,
 		"strict": true,
 		"moduleResolution": "node",
+        "esModuleInterop": true,
 		"importHelpers": true,
 		"isolatedModules": true,
 		"lib": ["DOM", "ES5", "ES6", "ES7"],

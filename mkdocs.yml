@@ -44,6 +44,6 @@ nav:
           - settings/subfolders.md
     - Calendar Sync:
           - sync/ics.md
-          - sync/gcal-fc.md
+          - sync/caldav.md
     - Advanced:
           - Dataview integration: advanced/dataview.md
