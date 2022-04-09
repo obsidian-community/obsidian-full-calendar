@@ -12,13 +12,25 @@ export interface FullCalendarSettings {
 	calendarSources: CalendarSource[];
 	defaultCalendar: number;
 	recursiveLocal: boolean;
+	firstDay: number;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	calendarSources: [],
 	defaultCalendar: 0,
 	recursiveLocal: false,
+	firstDay: 0,
 };
+
+const WEEKDAYS = [
+	"Sunday",
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday",
+	"Saturday",
+];
 
 export function addCalendarButton(
 	app: App,
@@ -110,6 +122,20 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+
+		new Setting(containerEl)
+		.setName("Starting Day of the Week")
+		.setDesc("Choose what day of the week to start.")
+		.addDropdown((dropdown) => {
+			WEEKDAYS.forEach((day, code) => {
+				dropdown.addOption(code.toString(), day);
+			});
+			dropdown.setValue(this.plugin.settings.firstDay.toString());
+			dropdown.onChange(async (codeAsString) => {
+				this.plugin.settings.firstDay = Number(codeAsString);
+				await this.plugin.saveSettings();
+			});
+		});
 
 		addCalendarButton(
 			this.app,

@@ -20,6 +20,7 @@ interface ExtraRenderProps {
 	select?: (startDate: Date, endDate: Date, allDay: boolean) => Promise<void>;
 	modifyEvent?: (event: EventApi, oldEvent: EventApi) => Promise<boolean>;
 	eventMouseEnter?: (info: EventHoveringArg) => void;
+	firstDay?: number;
 }
 
 export function renderCalendar(
@@ -84,6 +85,7 @@ export function renderCalendar(
 				buttonText: "3",
 			},
 		},
+		firstDay: settings?.firstDay,
 		eventSources,
 		eventClick,
 
