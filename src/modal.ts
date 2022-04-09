@@ -73,7 +73,6 @@ export class EventModal extends Modal {
 			React.createElement(EditEvent, {
 				initialEvent: this.data,
 				submit: async (data, calendarIndex) => {
-					console.log("submitting modal");
 					const source = this.plugin.settings.calendarSources.filter(
 						(s) => s.type === "local"
 					)[calendarIndex];
@@ -102,10 +101,8 @@ export class EventModal extends Modal {
 							);
 						} else {
 							if (this.event instanceof EditableEvent) {
-								console.log("editable event", this.event);
 								await this.event.setData(data);
 								if (this.event instanceof NoteEvent) {
-									console.log("note event", this.event);
 									await this.event.setDirectory(directory);
 								}
 							}
