@@ -1,9 +1,10 @@
-import { Vault } from "obsidian";
+import { App } from "obsidian";
 import FullCalendarPlugin from "./main";
-import { renderSourceManager } from "./settings";
+import { addCalendarButton } from "./settings";
+import { CalendarSource } from "./types";
 
 export function renderOnboarding(
-	vault: Vault,
+	app: App,
 	plugin: FullCalendarPlugin,
 	el: HTMLElement
 ) {
@@ -20,9 +21,14 @@ export function renderOnboarding(
 
 	const container = notice.createDiv();
 	container.style.position = "fixed";
-	renderSourceManager(vault, plugin, container, async (settings) => {
-		if (settings.length > 0) {
-			await plugin.activateView();
-		}
+  addCalendarButton(
+	app,
+	plugin,
+	container,
+	async (source: CalendarSource) => {
+		const { calendarSources } = plugin.settings;
+		calendarSources.push(source);
+		await plugin.saveSettings();
+		await plugin.activateView();
 	});
 }

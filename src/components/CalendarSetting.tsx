@@ -3,39 +3,106 @@ import { SetStateAction, useState } from "react";
 
 import { CalendarSource } from "../types";
 
+type SourceWith<T extends Partial<CalendarSource>, K> = T extends K ? T : never;
+
+interface BasicProps<T extends Partial<CalendarSource>> {
+	source: T;
+}
+
+function DirectorySetting<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
+	let sourceWithDirectory = source as SourceWith<T, { directory: undefined }>;
+	return (
+		<div className="setting-item-control">
+			<input
+				disabled
+				type="text"
+				value={sourceWithDirectory.directory}
+				style={{
+					width: "100%",
+					marginLeft: 4,
+					marginRight: 4,
+				}}
+			/>
+		</div>
+	);
+}
+
+function UrlSetting<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
+	let sourceWithUrl = source as SourceWith<T, { url: undefined }>;
+	return (
+		<div className="setting-item-control">
+			<input
+				disabled
+				type="text"
+				value={sourceWithUrl.url}
+				style={{
+					width: "100%",
+					marginLeft: 4,
+					marginRight: 4,
+				}}
+			/>
+		</div>
+	);
+}
+
+function NameSetting<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
+	let sourceWithName = source as SourceWith<T, { name: undefined }>;
+	return (
+		<div className="setting-item-control">
+			<input
+				disabled
+				type="text"
+				value={sourceWithName.name}
+				style={{
+					width: "100%",
+					marginLeft: 4,
+					marginRight: 4,
+				}}
+			/>
+		</div>
+	);
+}
+
+function Username<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
+	let sourceWithUsername = source as SourceWith<T, { username: undefined }>;
+	return (
+		<div className="setting-item-control">
+			<input
+				disabled
+				type="text"
+				value={sourceWithUsername.username}
+				style={{
+					width: "100%",
+					marginLeft: 4,
+					marginRight: 4,
+				}}
+			/>
+		</div>
+	);
+}
+
 interface CalendarSettingsProps {
-	options: string[];
 	setting: Partial<CalendarSource>;
-	defaultColor: string;
 	onColorChange: (s: string) => void;
-	onSourceChange: (s: string) => void;
-	onTypeChange: (s: string) => void;
 	deleteCalendar: () => void;
 }
 
 export const CalendarSettingRow = ({
-	options,
 	setting,
-	defaultColor,
 	onColorChange,
-	onSourceChange,
-	onTypeChange,
 	deleteCalendar,
 }: CalendarSettingsProps) => {
-	const dirOptions = [...options];
-	if (setting.type === "local" && setting.directory) {
-		dirOptions.push(setting.directory);
-	}
-	dirOptions.sort();
+	const isCalDAV = setting.type === "caldav" || setting.type === "icloud";
 	return (
-		<div
-			style={{
-				display: "flex",
-				// justifyContent: "space-between",
-				width: "100%",
-				marginBottom: "0.5rem",
-			}}
-		>
+		<div className="setting-item">
 			<button
 				type="button"
 				onClick={deleteCalendar}
@@ -43,187 +110,100 @@ export const CalendarSettingRow = ({
 			>
 				✕
 			</button>
-			{setting.type === "local" && (
-				<select
-					value={setting.directory || ""}
-					onChange={(e) => onSourceChange(e.target.value)}
-					style={{ maxWidth: "30%" }}
-				>
-					<option value="" disabled hidden>
-						Choose a directory
-					</option>
-					{dirOptions.map((o, idx) => (
-						<option key={idx} value={o}>
-							{o}
-						</option>
-					))}
-				</select>
+			{setting.type === "local" ? (
+				<DirectorySetting source={setting} />
+			) : (
+				<UrlSetting source={setting} />
 			)}
-			{(setting.type === "gcal" || setting.type === "ical") && (
-				<textarea
-					style={{
-						maxWidth: "30%",
-						fontSize: "8pt",
-						lineHeight: 1,
-						padding: 0,
-					}}
-					placeholder={
-						setting.type === "gcal"
-							? "Google Calendar ID (probably in the form LONG_ID@group.calendar.google.com)"
-							: "URL for any .ics file"
-					}
-					value={setting.url || ""}
-					onChange={(e) => onSourceChange(e.target.value)}
-				/>
-			)}
-			<select
-				style={{ maxWidth: "30%" }}
-				value={setting.type || ""}
-				onChange={(e) => onTypeChange(e.target.value)}
-			>
-				<option value="" disabled hidden>
-					Calendar source
-				</option>
-				<option value={"local"}>Local calendar</option>
-				<option value={"ical"}>Remote Calendar (.ics format)</option>
-				<option value={"gcal"}>Google Calendar (Readonly)</option>
-			</select>
+			{isCalDAV && <NameSetting source={setting} />}
+			{isCalDAV && <Username source={setting} />}
 			<input
 				style={{ maxWidth: "25%", minWidth: "3rem" }}
 				type="color"
-				value={setting.color || defaultColor}
+				value={setting.color}
 				onChange={(e) => onColorChange(e.target.value)}
 			/>
 		</div>
 	);
 };
 
-interface FolderSettingProps {
-	directories: string[];
+interface CalendarSettingProps {
+	sources: CalendarSource[];
 	submit: (payload: CalendarSource[]) => void;
-	initialSetting: CalendarSource[];
-	defaultColor: string;
 }
-export const CalendarSettings = ({
-	directories,
-	initialSetting,
-	defaultColor,
-	submit,
-}: FolderSettingProps) => {
-	const [settings, setSettingState] =
-		useState<Partial<CalendarSource>[]>(initialSetting);
-
-	const setSettings = (state: SetStateAction<Partial<CalendarSource>[]>) => {
-		setSettingState(state);
-		setDirty(true);
-	};
-
-	const [dirty, setDirty] = useState(false);
-
-	const usedDirectories = settings
-		.map((s) => s.type === "local" && s.directory)
-		.filter((s) => s);
-	const options = directories.filter(
-		(dir) => usedDirectories.indexOf(dir) === -1
-	);
-
-	return (
-		<div style={{ width: "100%" }}>
-			<button
-				className="mod-cta"
-				style={{
-					marginBottom: "1rem",
-				}}
-				onClick={() => {
-					setSettings((state) => [
-						...state,
-						{ type: "local", color: defaultColor },
-					]);
-				}}
-			>
-				Add Calendar
-			</button>
-			{settings.map((s, idx) => (
-				<CalendarSettingRow
-					key={idx}
-					options={options}
-					setting={s}
-					onTypeChange={(newType) =>
-						setSettings((state) => [
-							...state.slice(0, idx),
-							{
-								...state[idx],
-								type: newType as "ical" | "local" | "gcal", // TODO: Try to DRY this out.
-							},
-							...state.slice(idx + 1),
-						])
-					}
-					onSourceChange={(src) =>
-						setSettings((state) => [
-							...state.slice(0, idx),
-							{
-								...state[idx],
-								...(state[idx].type === "local"
-									? { directory: src }
-									: { url: src }),
-							},
-							...state.slice(idx + 1),
-						])
-					}
-					onColorChange={(color) =>
-						setSettings((state) => [
-							...state.slice(0, idx),
-							{ ...state[idx], color },
-							...state.slice(idx + 1),
-						])
-					}
-					defaultColor={defaultColor}
-					deleteCalendar={() =>
-						setSettings((state) => [
-							...state.slice(0, idx),
-							...state.slice(idx + 1),
-						])
-					}
-				/>
-			))}
-			<div
-				style={{
-					display: "flex",
-					paddingTop: "1em",
-					justifyContent: "space-between",
-				}}
-			>
-				{dirty && (
-					<button
-						onClick={() => {
-							submit(
-								settings
-									.filter(
-										(elt) =>
-											elt.color !== undefined &&
-											elt.type !== undefined &&
-											((elt.type === "local" &&
-												elt.directory !== undefined) ||
-												(elt.type === "gcal" &&
-													elt.url !== undefined) ||
-												(elt.type === "ical" &&
-													elt.url !== undefined))
-									)
-									.map((elt) => elt as CalendarSource)
-							);
-							setDirty(false);
-						}}
-						style={{
-							backgroundColor: dirty
-								? "var(--interactive-accent)"
-								: undefined,
-							color: dirty ? "var(--text-on-accent)" : undefined,
-						}}
-					>
-						{dirty ? "Save" : "Settings Saved"}
-					</button>
-				)}
-			</div>
-		</div>
-	);
+type CalendarSettingState = {
+	sources: CalendarSource[];
+	dirty: boolean;
 };
+export class CalendarSettings extends React.Component<
+	CalendarSettingProps,
+	CalendarSettingState
+> {
+	constructor(props: CalendarSettingProps) {
+		super(props);
+		this.state = { sources: props.sources, dirty: false };
+	}
+
+	addSource(source: CalendarSource) {
+		this.setState((state, props) => ({
+			sources: [...state.sources, source],
+			dirty: true,
+		}));
+	}
+
+	render() {
+		return (
+			<div style={{ width: "100%" }}>
+				{this.state.sources.map((s, idx) => (
+					<CalendarSettingRow
+						key={idx}
+						setting={s}
+						onColorChange={(color) =>
+							this.setState((state, props) => ({
+								sources: [
+									...state.sources.slice(0, idx),
+									{ ...state.sources[idx], color },
+									...state.sources.slice(idx + 1),
+								],
+								dirty: true,
+							}))
+						}
+						deleteCalendar={() =>
+							this.setState((state, props) => ({
+								sources: [
+									...state.sources.slice(0, idx),
+									...state.sources.slice(idx + 1),
+								],
+								dirty: true,
+							}))
+						}
+					/>
+				))}
+				<div className="setting-item-control">
+					{this.state.dirty && (
+						<button
+							onClick={() => {
+								this.props.submit(
+									this.state.sources.map(
+										(elt) => elt as CalendarSource
+									)
+								);
+								this.setState({ dirty: false });
+							}}
+							style={{
+								backgroundColor: this.state.dirty
+									? "var(--interactive-accent)"
+									: undefined,
+								color: this.state.dirty
+									? "var(--text-on-accent)"
+									: undefined,
+							}}
+						>
+							{this.state.dirty ? "Save" : "Settings Saved"}
+						</button>
+					)}
+				</div>
+			</div>
+		);
+	}
+}

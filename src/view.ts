@@ -10,7 +10,7 @@ import {
 	eventApiToFrontmatter,
 } from "./frontmatter";
 
-import { IcsSource, NoteSource } from "./models/EventSource";
+import { IcsSource, NoteSource, RemoteSource } from "./models/EventSource";
 import { renderOnboarding } from "./onboard";
 import { CalendarEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
@@ -79,10 +79,10 @@ export class CalendarView extends ItemView {
 		if (
 			sources.length === 0 &&
 			this.plugin.settings.calendarSources.filter(
-				(s) => s.type === "ical"
+				(s) => s.type === "ical" || s.type === "caldav" || s.type === "icloud"
 			).length === 0
 		) {
-			renderOnboarding(this.app.vault, this.plugin, calendarEl);
+			renderOnboarding(this.app, this.plugin, calendarEl);
 			return;
 		}
 
@@ -169,6 +169,20 @@ export class CalendarView extends ItemView {
 		this.plugin.settings.calendarSources
 			.flatMap((s) => (s.type === "ical" ? [s] : []))
 			.map((s) => new IcsSource(s))
+			.map((s) => s.toApi())
+			.forEach((resultPromise) =>
+				resultPromise.then((result) => {
+					if (result instanceof FCError) {
+						new Notice(result.message);
+					} else {
+						this.calendar?.addEventSource(result);
+					}
+				})
+			);
+
+		this.plugin.settings.calendarSources
+			.flatMap((s) => (s.type === "caldav" || s.type === "icloud" ? [s] : []))
+			.map((s) => new RemoteSource(s))
 			.map((s) => s.toApi())
 			.forEach((resultPromise) =>
 				resultPromise.then((result) => {
