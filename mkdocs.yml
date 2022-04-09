@@ -45,6 +45,5 @@ nav:
     - Calendar Sync:
           - sync/ics.md
           - sync/caldav.md
-          - sync/gcal-fc.md
     - Advanced:
           - Dataview integration: advanced/dataview.md
