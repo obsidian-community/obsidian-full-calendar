@@ -42,6 +42,7 @@ nav:
     - Settings:
           - settings/sources.md
           - settings/subfolders.md
+          - settings/weekstart.md
     - Calendar Sync:
           - sync/ics.md
           - sync/caldav.md
