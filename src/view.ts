@@ -79,7 +79,10 @@ export class CalendarView extends ItemView {
 		if (
 			sources.length === 0 &&
 			this.plugin.settings.calendarSources.filter(
-				(s) => s.type === "ical" || s.type === "caldav" || s.type === "icloud"
+				(s) =>
+					s.type === "ical" ||
+					s.type === "caldav" ||
+					s.type === "icloud"
 			).length === 0
 		) {
 			renderOnboarding(this.app, this.plugin, calendarEl);
@@ -182,7 +185,9 @@ export class CalendarView extends ItemView {
 			);
 
 		this.plugin.settings.calendarSources
-			.flatMap((s) => (s.type === "caldav" || s.type === "icloud" ? [s] : []))
+			.flatMap((s) =>
+				s.type === "caldav" || s.type === "icloud" ? [s] : []
+			)
 			.map((s) => new RemoteSource(s))
 			.map((s) => s.toApi())
 			.forEach((resultPromise) =>

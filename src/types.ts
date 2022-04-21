@@ -119,7 +119,6 @@ export type ICalSource = {
 	url: string;
 } & CalendarSourceCommon;
 
-
 /**
  * Auth types. Currently only support Basic, but will probably support OAuth in the future.
  */
@@ -138,7 +137,8 @@ export type CalDAVSource = {
 	name: string;
 	url: string;
 	homeUrl: string;
-} & CalendarSourceCommon & AuthType;
+} & CalendarSourceCommon &
+	AuthType;
 
 /**
  * An read/write mirror of an iCloud backed calendar.
@@ -167,7 +167,7 @@ export function makeDefaultPartialCalendarSource(
 			color: getComputedStyle(document.body)
 				.getPropertyValue("--interactive-accent")
 				.trim(),
-			url: "https://caldav.icloud.com"
+			url: "https://caldav.icloud.com",
 		} as Partial<ICloudSource>;
 	}
 
@@ -175,7 +175,7 @@ export function makeDefaultPartialCalendarSource(
 		type: type,
 		color: getComputedStyle(document.body)
 			.getPropertyValue("--interactive-accent")
-			.trim()
+			.trim(),
 	};
 }
 

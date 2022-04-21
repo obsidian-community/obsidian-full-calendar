@@ -1,6 +1,18 @@
 import FullCalendarPlugin from "./main";
-import { App, DropdownComponent, Notice, PluginSettingTab, Setting, TFolder, Vault } from "obsidian";
-import { makeDefaultPartialCalendarSource, CalendarSource, FCError } from "./types";
+import {
+	App,
+	DropdownComponent,
+	Notice,
+	PluginSettingTab,
+	Setting,
+	TFolder,
+	Vault,
+} from "obsidian";
+import {
+	makeDefaultPartialCalendarSource,
+	CalendarSource,
+	FCError,
+} from "./types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
 import { RemoteSource } from "./models/EventSource";
@@ -48,52 +60,63 @@ export function addCalendarButton(
 	return new Setting(containerEl)
 		.setName("Calendars")
 		.setDesc("Add calendar")
-		.addDropdown((d) =>
-			dropdown = d
-			.addOptions({
-				local: "Local",
-				icloud: "iCloud",
-				caldav: "CalDAV",
-				ical: "Remote (.ics format)",
-			})
+		.addDropdown(
+			(d) =>
+				(dropdown = d.addOptions({
+					local: "Local",
+					icloud: "iCloud",
+					caldav: "CalDAV",
+					ical: "Remote (.ics format)",
+				}))
 		)
 		.addExtraButton((button) => {
 			button.setTooltip("Add Calendar");
 			button.setIcon("plus-with-circle");
 			button.onClick(() => {
-				let modal = new ReactModal(
-					app,
-					async () => {
-						await plugin.loadSettings();
-						const usedDirectories = (listUsedDirectories ? listUsedDirectories : () =>
-							plugin.settings.calendarSources
-								.map((s) => s.type === "local" && s.directory)
-								.filter((s): s is string => !!s)
-						)();
+				let modal = new ReactModal(app, async () => {
+					await plugin.loadSettings();
+					const usedDirectories = (
+						listUsedDirectories
+							? listUsedDirectories
+							: () =>
+									plugin.settings.calendarSources
+										.map(
+											(s) =>
+												s.type === "local" &&
+												s.directory
+										)
+										.filter((s): s is string => !!s)
+					)();
 
-						return createElement(AddCalendarSource, {
-							source: makeDefaultPartialCalendarSource(
-								dropdown.getValue() as CalendarSource["type"]
-							),
-							directories: directories.filter(
-								(dir) => usedDirectories.indexOf(dir) === -1
-							),
-							submit: async (source: CalendarSource) => {
-								if (source.type === "caldav" || source.type === "icloud") {
-									let sources = await new RemoteSource(source).importCalendars();
-									if (sources instanceof FCError) {
-										new Notice(sources.message);
-									} else {
-										sources.forEach((source) => submitCallback(source));
-									}
+					return createElement(AddCalendarSource, {
+						source: makeDefaultPartialCalendarSource(
+							dropdown.getValue() as CalendarSource["type"]
+						),
+						directories: directories.filter(
+							(dir) => usedDirectories.indexOf(dir) === -1
+						),
+						submit: async (source: CalendarSource) => {
+							if (
+								source.type === "caldav" ||
+								source.type === "icloud"
+							) {
+								let sources = await new RemoteSource(
+									source
+								).importCalendars();
+								if (sources instanceof FCError) {
+									new Notice(sources.message);
 								} else {
-									submitCallback(source);
+									sources.forEach((source) =>
+										submitCallback(source)
+									);
 								}
-								modal.close();
+							} else {
+								submitCallback(source);
 							}
-						});
-					}
-				);
+							modal.close();
+						},
+					});
+				});
 				modal.open();
 			});
 		});
@@ -124,18 +147,18 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-		.setName("Starting Day of the Week")
-		.setDesc("Choose what day of the week to start.")
-		.addDropdown((dropdown) => {
-			WEEKDAYS.forEach((day, code) => {
-				dropdown.addOption(code.toString(), day);
+			.setName("Starting Day of the Week")
+			.setDesc("Choose what day of the week to start.")
+			.addDropdown((dropdown) => {
+				WEEKDAYS.forEach((day, code) => {
+					dropdown.addOption(code.toString(), day);
+				});
+				dropdown.setValue(this.plugin.settings.firstDay.toString());
+				dropdown.onChange(async (codeAsString) => {
+					this.plugin.settings.firstDay = Number(codeAsString);
+					await this.plugin.saveSettings();
+				});
 			});
-			dropdown.setValue(this.plugin.settings.firstDay.toString());
-			dropdown.onChange(async (codeAsString) => {
-				this.plugin.settings.firstDay = Number(codeAsString);
-				await this.plugin.saveSettings();
-			});
-		});
 
 		addCalendarButton(
 			this.app,
@@ -144,9 +167,10 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 			async (source: CalendarSource) => {
 				sourceList.addSource(source);
 			},
-			() => sourceList.state.sources
-				.map((s) => s.type === "local" && s.directory)
-				.filter((s): s is string => !!s)
+			() =>
+				sourceList.state.sources
+					.map((s) => s.type === "local" && s.directory)
+					.filter((s): s is string => !!s)
 		);
 
 		const sourcesDiv = containerEl.createDiv();
