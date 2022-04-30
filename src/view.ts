@@ -9,8 +9,9 @@ import {
 	dateEndpointsToFrontmatter,
 	eventApiToFrontmatter,
 } from "./frontmatter";
-
-import { IcsSource, NoteSource, RemoteSource } from "./models/EventSource";
+import { IcsSource } from "./models/IcsSource";
+import { NoteSource } from "./models/NoteSource";
+import { RemoteSource } from "./models/RemoteSource";
 import { renderOnboarding } from "./onboard";
 import { CalendarEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";

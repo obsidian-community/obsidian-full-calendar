@@ -15,7 +15,7 @@ import {
 } from "./types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
-import { RemoteSource } from "./models/EventSource";
+import { RemoteSource } from "./models/RemoteSource";
 import * as ReactDOM from "react-dom";
 import { createElement, useState } from "react";
 import { ReactModal } from "./modal";
