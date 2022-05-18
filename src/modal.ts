@@ -40,6 +40,7 @@ export class EventModal extends Modal {
 				input.id
 			);
 			if (event) {
+				this.titleEl.setText("Edit Event");
 				this.data = event.data;
 				this.event = event;
 				this.open();
