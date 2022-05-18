@@ -1,4 +1,5 @@
 import "./overrides.css";
+import "./EditModal.css";
 import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
