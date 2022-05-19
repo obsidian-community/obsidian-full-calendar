@@ -23,12 +23,14 @@ export class EventModal extends Modal {
 		app: App,
 		plugin: FullCalendarPlugin,
 		calendar: Calendar | null,
+		title: string,
 		event?: Partial<EventFrontmatter>
 	) {
 		super(app);
 		this.plugin = plugin;
 		this.data = event;
 		this.calendar = calendar;
+		this.titleEl.setText(title);
 	}
 
 	async editInModal(input: EventApi | TFile) {
@@ -40,7 +42,6 @@ export class EventModal extends Modal {
 				input.id
 			);
 			if (event) {
-				this.titleEl.setText("Edit Event");
 				this.data = event.data;
 				this.event = event;
 				this.open();

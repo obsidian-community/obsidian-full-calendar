@@ -115,7 +115,8 @@ export class CalendarView extends ItemView {
 					new EventModal(
 						this.app,
 						this.plugin,
-						this.calendar
+						this.calendar,
+						"Edit Event"
 					).editInModal(info.event);
 				}
 			},
@@ -129,6 +130,7 @@ export class CalendarView extends ItemView {
 					this.app,
 					this.plugin,
 					this.calendar,
+					"Create Event",
 					partialEvent
 				);
 				modal.open();
