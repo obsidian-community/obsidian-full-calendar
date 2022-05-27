@@ -1,11 +1,6 @@
-import { EventInput, EventSourceInput } from "@fullcalendar/core";
+import { EventSourceInput } from "@fullcalendar/core";
 import { CacheItem, MetadataCache, Pos, TFile, TFolder, Vault } from "obsidian";
-import {
-	EventFrontmatter,
-	FCError,
-	InlineCalendarSource,
-	validateFrontmatter,
-} from "src/types";
+import { FCError, InlineCalendarSource } from "src/types";
 import { EventSource } from "./EventSource";
 import { InlineNoteEvent } from "./InlineNoteEvent";
 
@@ -26,7 +21,7 @@ export class InlineNoteSource extends EventSource {
 	}
 
 	// TODO: This is O(n*m), but it can definitely be optimized to O(n).
-	private getTextFromPositions(content: string, positions: Pos[]): string[] {
+	private extractText(content: string, positions: Pos[]): string[] {
 		return positions
 			.map((pos) => content.substring(pos.start.offset, pos.end.offset))
 			.map((s) => s.replace(/\- (\[.\] ?)?/, ""));
@@ -40,7 +35,7 @@ export class InlineNoteSource extends EventSource {
 		if (!(directory instanceof TFolder)) {
 			return new FCError("Directory must be a directory");
 		}
-		const events: EventInput[] = [];
+		const events: InlineNoteEvent[] = [];
 		for (const file of directory.children) {
 			if (!(file instanceof TFile)) {
 				continue;
@@ -49,10 +44,10 @@ export class InlineNoteSource extends EventSource {
 			if (!data || !data.listItems) {
 				continue;
 			}
-			const contents = await this.vault.read(file);
+
 			events.push(
-				...this.getTextFromPositions(
-					contents,
+				...this.extractText(
+					await this.vault.read(file),
 					data.listItems.map((i) => i.position)
 				)
 					.map((text, idx) =>
@@ -65,11 +60,10 @@ export class InlineNoteSource extends EventSource {
 						)
 					)
 					.flatMap((evt) => (evt !== null ? [evt] : []))
-					.map((evt) => evt.toCalendarEvent())
 			);
 		}
 		return {
-			events,
+			events: events.map((e) => e.toCalendarEvent()),
 			textColor: getComputedStyle(document.body).getPropertyValue(
 				"--text-on-accent"
 			),
