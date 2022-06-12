@@ -194,3 +194,40 @@ export class FCError {
 		this.message = message;
 	}
 }
+
+// export type Result<T> = T | FCError;
+export type Result<T> =
+	| {
+			ok: true;
+			value: T;
+	  }
+	| {
+			ok: false;
+			error: FCError;
+	  };
+export const Ok = <T>(value: T): Result<T> => ({ ok: true, value });
+export const Err = <T>(error: string): Result<T> => ({
+	ok: false,
+	error: new FCError(error),
+});
+
+export function collect<T>(arr: Result<T>[]): Result<T[]> {
+	const res = [];
+	for (const elt of arr) {
+		if (!elt.ok) {
+			return elt;
+		}
+		res.push(elt.value);
+	}
+	return Ok(res);
+}
+
+export function dropErrs<T>(arr: Result<T>[]): T[] {
+	const res = [];
+	for (const elt of arr) {
+		if (elt.ok) {
+			res.push(elt.value);
+		}
+	}
+	return res;
+}

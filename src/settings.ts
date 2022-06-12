@@ -103,10 +103,10 @@ export function addCalendarButton(
 								let sources = await new RemoteSource(
 									source
 								).importCalendars();
-								if (sources instanceof FCError) {
-									new Notice(sources.message);
+								if (!sources.ok) {
+									new Notice(sources.error.message);
 								} else {
-									sources.forEach((source) =>
+									sources.value.forEach((source) =>
 										submitCallback(source)
 									);
 								}

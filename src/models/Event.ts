@@ -1,7 +1,7 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
 import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
 import { parseFrontmatter } from "src/frontmatter";
-import { CalendarSource, EventFrontmatter, FCError } from "src/types";
+import { CalendarSource, EventFrontmatter, FCError, Result } from "src/types";
 
 export function basenameFromEvent(event: EventFrontmatter): string {
 	switch (event.type) {
@@ -51,7 +51,7 @@ export abstract class CalendarEvent {
 	/**
 	 * @returns An event for the FullCalendar plugin to parse and display.
 	 */
-	toCalendarEvent(): EventInput {
+	toCalendarEvent(): Result<EventInput> {
 		return parseFrontmatter(this.idForCalendar, this.data);
 	}
 

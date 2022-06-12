@@ -1,6 +1,6 @@
 import { EventSourceInput } from "@fullcalendar/core";
-import { FCError } from "src/types";
+import { FCError, Result } from "src/types";
 
 export abstract class EventSource {
-	abstract toApi(): Promise<EventSourceInput | FCError>;
+	abstract toApi(): Promise<Result<EventSourceInput>>;
 }

@@ -17,7 +17,7 @@ function getPageAttributes(
 	cache: MetadataCache,
 	file: TFile
 ): Record<string, any> {
-	const frontmatter = cache.getFileCache(file);
+	const frontmatter = cache.getFileCache(file)?.frontmatter;
 	if (!frontmatter) {
 		return {};
 	}

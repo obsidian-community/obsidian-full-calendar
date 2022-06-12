@@ -1,8 +1,9 @@
 import { EventInput, EventSourceInput } from "@fullcalendar/core";
 import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
-import { FCError, LocalCalendarSource } from "src/types";
+import { Err, FCError, LocalCalendarSource, Ok, Result } from "src/types";
 import { NoteEvent } from "./NoteEvent";
 import { EventSource } from "./EventSource";
+import { getInlineEventsFromFile } from "./InlineNoteSource";
 
 export class NoteSource extends EventSource {
 	info: LocalCalendarSource;
@@ -16,15 +17,15 @@ export class NoteSource extends EventSource {
 		this.info = info;
 	}
 
-	private getEventInputsFromPath(
+	private async getEventInputsFromPath(
 		recursive?: boolean,
 		path?: string
-	): EventInput[] | FCError {
+	): Promise<Result<EventInput[]>> {
 		const eventFolder = this.vault.getAbstractFileByPath(
 			path || this.info.directory
 		);
 		if (!(eventFolder instanceof TFolder)) {
-			return new FCError("Directory");
+			return Err("Directory");
 		}
 
 		let events: EventInput[] = [];
@@ -33,28 +34,41 @@ export class NoteSource extends EventSource {
 				let event = NoteEvent.fromFile(this.cache, this.vault, file);
 				if (event) {
 					events.push(event.toCalendarEvent());
+				} else {
+					console.log(
+						"no event in file " +
+							file.path +
+							". checking for inline events..."
+					);
+					const inlines = await getInlineEventsFromFile(
+						this.cache,
+						this.vault,
+						file
+					);
+					console.log(inlines);
+					events.push(...inlines);
 				}
 			} else if (recursive) {
-				const childEvents = this.getEventInputsFromPath(
+				const childEvents = await this.getEventInputsFromPath(
 					recursive,
 					file.path
 				);
-				if (childEvents instanceof FCError) {
+				if (!childEvents.ok) {
 					return childEvents;
 				}
-				events.push(...childEvents);
+				events.push(...childEvents.value);
 			}
 		}
-		return events;
+		return Ok(events);
 	}
 
-	async toApi(recursive = false): Promise<EventSourceInput | FCError> {
-		const events = this.getEventInputsFromPath(recursive);
-		if (events instanceof FCError) {
+	async toApi(recursive = false): Promise<Result<EventSourceInput>> {
+		const events = await this.getEventInputsFromPath(recursive);
+		if (!events.ok) {
 			return events;
 		}
-		return {
-			events,
+		return Ok({
+			events: events.value,
 			textColor: getComputedStyle(document.body).getPropertyValue(
 				"--text-on-accent"
 			),
@@ -63,6 +77,6 @@ export class NoteSource extends EventSource {
 				getComputedStyle(document.body).getPropertyValue(
 					"--interactive-accent"
 				),
-		};
+		});
 	}
 }

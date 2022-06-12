@@ -4,7 +4,7 @@ import { Calendar } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
-import { FCError, PLUGIN_SLUG } from "./types";
+import { PLUGIN_SLUG } from "./types";
 import {
 	dateEndpointsToFrontmatter,
 	eventApiToFrontmatter,
@@ -12,7 +12,6 @@ import {
 import { IcsSource } from "./models/IcsSource";
 import { NoteSource } from "./models/NoteSource";
 import { RemoteSource } from "./models/RemoteSource";
-import { InlineNoteSource } from "./models/InlineNoteSource";
 import { renderOnboarding } from "./onboard";
 import { CalendarEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
@@ -71,23 +70,12 @@ export class CalendarView extends ItemView {
 			)
 			.map((ns) => ns.toApi(this.plugin.settings.recursiveLocal));
 
-		const is = new InlineNoteSource(
-			this.app.vault,
-			this.app.metadataCache,
-			{
-				type: "inline",
-				color: "blue",
-				directory: "inline",
-			}
-		);
-		// is.printListItems();
-
 		const container = this.containerEl.children[1];
 		container.empty();
 		let calendarEl = container.createEl("div");
 		const noteSourceResults = await Promise.all(noteSourcePromises);
 		const sources = noteSourceResults.flatMap((s) =>
-			s instanceof FCError ? [] : [s]
+			s.ok ? [s.value] : []
 		);
 		if (
 			sources.length === 0 &&
@@ -102,11 +90,9 @@ export class CalendarView extends ItemView {
 			return;
 		}
 
-		let errs = noteSourceResults.flatMap((s) =>
-			s instanceof FCError ? [s] : []
-		);
+		let errs = noteSourceResults.flatMap((s) => (s.ok ? [] : [s]));
 		for (const err of errs) {
-			new Notice(err.message);
+			new Notice(err.error.message);
 		}
 
 		this.calendar = renderCalendar(calendarEl, sources, {
@@ -189,10 +175,10 @@ export class CalendarView extends ItemView {
 			.map((s) => s.toApi())
 			.forEach((resultPromise) =>
 				resultPromise.then((result) => {
-					if (result instanceof FCError) {
-						new Notice(result.message);
+					if (!result.ok) {
+						new Notice(result.error.message);
 					} else {
-						this.calendar?.addEventSource(result);
+						this.calendar?.addEventSource(result.value);
 					}
 				})
 			);
@@ -205,10 +191,10 @@ export class CalendarView extends ItemView {
 			.map((s) => s.toApi())
 			.forEach((resultPromise) =>
 				resultPromise.then((result) => {
-					if (result instanceof FCError) {
-						new Notice(result.message);
+					if (!result.ok) {
+						new Notice(result.error.message);
 					} else {
-						this.calendar?.addEventSource(result);
+						this.calendar?.addEventSource(result.value);
 					}
 				})
 			);

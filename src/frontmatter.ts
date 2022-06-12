@@ -3,12 +3,13 @@ import { DateTime, Duration } from "luxon";
 import { MetadataCache, parseYaml, TFile, Vault } from "obsidian";
 import {
 	add,
+	combineDateTimeStrings,
 	getDate,
 	getTime,
 	normalizeTimeString,
 	parseTime,
 } from "./dateUtil";
-import { EventFrontmatter } from "./types";
+import { Err, EventFrontmatter, FCError, Ok, Result } from "./types";
 
 const DAYS = "UMTWRFS";
 
@@ -36,7 +37,7 @@ export function dateEndpointsToFrontmatter(
 export function parseFrontmatter(
 	id: string,
 	frontmatter: EventFrontmatter
-): EventInput {
+): Result<EventInput> {
 	let event: EventInput = {
 		id,
 		title: frontmatter.title,
@@ -60,20 +61,31 @@ export function parseFrontmatter(
 		}
 	} else {
 		if (!frontmatter.allDay) {
+			if (!frontmatter.startTime) {
+				return Err("Non-all day event must have a start time.");
+			}
+
+			const startDateTime = combineDateTimeStrings(
+				frontmatter.date,
+				frontmatter.startTime
+			);
+			if (!startDateTime.ok) {
+				return startDateTime;
+			}
+			const endDateTime = frontmatter.endTime
+				? combineDateTimeStrings(
+						frontmatter.endDate || frontmatter.date,
+						frontmatter.endTime
+				  )
+				: undefined;
+			if (endDateTime && !endDateTime.ok) {
+				return endDateTime;
+			}
+
 			event = {
 				...event,
-				start: add(
-					DateTime.fromISO(frontmatter.date),
-					parseTime(frontmatter.startTime || "")
-				).toISO(),
-				end: frontmatter.endTime
-					? add(
-							DateTime.fromISO(
-								frontmatter.endDate || frontmatter.date
-							),
-							parseTime(frontmatter.endTime)
-					  ).toISO()
-					: undefined,
+				start: startDateTime.value,
+				end: endDateTime && endDateTime.value,
 			};
 		} else {
 			event = {
@@ -84,7 +96,7 @@ export function parseFrontmatter(
 		}
 	}
 
-	return event;
+	return Ok(event);
 }
 
 export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {

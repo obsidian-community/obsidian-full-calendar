@@ -1,8 +1,42 @@
-import { EventSourceInput } from "@fullcalendar/core";
-import { CacheItem, MetadataCache, Pos, TFile, TFolder, Vault } from "obsidian";
-import { FCError, InlineCalendarSource } from "src/types";
+import { EventInput, EventSourceInput } from "@fullcalendar/core";
+import { MetadataCache, Pos, TFile, TFolder, Vault } from "obsidian";
+import { Err, FCError, InlineCalendarSource, Ok, Result } from "src/types";
 import { EventSource } from "./EventSource";
 import { InlineNoteEvent } from "./InlineNoteEvent";
+
+// TODO: This is O(n*m), but it can definitely be optimized to O(n).
+function extractTextFromPositions(content: string, positions: Pos[]): string[] {
+	return positions
+		.map((pos) => content.substring(pos.start.offset, pos.end.offset))
+		.map((s) => s.replace(/\- (\[.\] ?)?/, ""));
+}
+
+export async function getInlineEventsFromFile(
+	cache: MetadataCache,
+	vault: Vault,
+	file: TFile
+): Promise<EventInput[]> {
+	const data = cache.getFileCache(file);
+	if (!data || !data.listItems) {
+		return [];
+	}
+	const items = data.listItems;
+	return extractTextFromPositions(
+		await vault.read(file),
+		items.map((i) => i.position)
+	)
+		.map((text, idx) =>
+			InlineNoteEvent.fromTextAndPosition(
+				cache,
+				vault,
+				file,
+				text,
+				items[idx].position
+			)
+		)
+		.flatMap((evt) => (evt !== null ? [evt] : []))
+		.map((e) => e.toCalendarEvent());
+}
 
 export class InlineNoteSource extends EventSource {
 	info: InlineCalendarSource;
@@ -20,50 +54,26 @@ export class InlineNoteSource extends EventSource {
 		this.info = info;
 	}
 
-	// TODO: This is O(n*m), but it can definitely be optimized to O(n).
-	private extractText(content: string, positions: Pos[]): string[] {
-		return positions
-			.map((pos) => content.substring(pos.start.offset, pos.end.offset))
-			.map((s) => s.replace(/\- (\[.\] ?)?/, ""));
-	}
-
-	async toApi(): Promise<EventSourceInput | FCError> {
+	async toApi(): Promise<Result<EventSourceInput>> {
 		const directory = this.vault.getAbstractFileByPath(this.info.directory);
 		if (directory === null) {
-			return new FCError("Directory does not exist");
+			return Err("Directory does not exist");
 		}
 		if (!(directory instanceof TFolder)) {
-			return new FCError("Directory must be a directory");
+			return Err("Directory must be a directory");
 		}
-		const events: InlineNoteEvent[] = [];
+		const events: EventInput[] = [];
 		for (const file of directory.children) {
 			if (!(file instanceof TFile)) {
 				continue;
 			}
-			const data = this.cache.getFileCache(file);
-			if (!data || !data.listItems) {
-				continue;
-			}
 
 			events.push(
-				...this.extractText(
-					await this.vault.read(file),
-					data.listItems.map((i) => i.position)
-				)
-					.map((text, idx) =>
-						InlineNoteEvent.fromTextAndPosition(
-							this.cache,
-							this.vault,
-							file,
-							text,
-							(data.listItems as CacheItem[])[idx].position
-						)
-					)
-					.flatMap((evt) => (evt !== null ? [evt] : []))
+				...(await getInlineEventsFromFile(this.cache, this.vault, file))
 			);
 		}
-		return {
-			events: events.map((e) => e.toCalendarEvent()),
+		return Ok({
+			events,
 			textColor: getComputedStyle(document.body).getPropertyValue(
 				"--text-on-accent"
 			),
@@ -72,6 +82,6 @@ export class InlineNoteSource extends EventSource {
 				getComputedStyle(document.body).getPropertyValue(
 					"--interactive-accent"
 				),
-		};
+		});
 	}
 }

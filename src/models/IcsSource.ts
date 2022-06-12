@@ -1,6 +1,6 @@
 import { EventSourceInput } from "@fullcalendar/core";
 import { request } from "obsidian";
-import { FCError, ICalSource } from "src/types";
+import { Err, FCError, ICalSource, Ok, Result } from "src/types";
 import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
 import {
 	expandICalEvents,
@@ -15,15 +15,15 @@ export class IcsSource extends EventSource {
 		this.info = info;
 	}
 
-	async toApi(): Promise<EventSourceInput | FCError> {
+	async toApi(): Promise<Result<EventSourceInput>> {
 		let url = this.info.url;
 		if (url.startsWith("webcal")) {
 			url = "https" + url.slice("webcal".length);
 		}
 		let expander: IcalExpander | null = null;
-		const getExpander = async (): Promise<IcalExpander | FCError> => {
+		const getExpander = async (): Promise<Result<IcalExpander>> => {
 			if (expander !== null) {
-				return expander;
+				return Ok(expander);
 			}
 			try {
 				let text = await request({
@@ -31,22 +31,24 @@ export class IcsSource extends EventSource {
 					method: "GET",
 				});
 				expander = makeICalExpander(text);
-				return expander;
+				return Ok(expander);
 			} catch (e) {
 				console.error(`Error loading calendar from ${url}`);
 				console.error(e);
-				return new FCError(
+				return Err(
 					`There was an error loading a calendar. Check the console for full details.`
 				);
 			}
 		};
-		return {
+		return Ok({
 			events: async function ({ start, end }) {
 				const ical = await getExpander();
-				if (ical instanceof FCError) {
-					throw new Error("Could not get calendar: " + ical.message);
+				if (!ical.ok) {
+					throw new Error(
+						"Could not get calendar: " + ical.error.message
+					);
 				}
-				const events = expandICalEvents(ical, {
+				const events = expandICalEvents(ical.value, {
 					start,
 					end,
 				});
@@ -61,6 +63,6 @@ export class IcsSource extends EventSource {
 				getComputedStyle(document.body).getPropertyValue(
 					"--interactive-accent"
 				),
-		};
+		});
 	}
 }
