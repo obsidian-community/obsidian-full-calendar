@@ -21,6 +21,7 @@ interface ExtraRenderProps {
 	modifyEvent?: (event: EventApi, oldEvent: EventApi) => Promise<boolean>;
 	eventMouseEnter?: (info: EventHoveringArg) => void;
 	firstDay?: number;
+	timeFormat24h?: boolean;
 }
 
 export function renderCalendar(
@@ -86,6 +87,19 @@ export function renderCalendar(
 			},
 		},
 		firstDay: settings?.firstDay,
+		...(settings?.timeFormat24h &&
+			{
+				eventTimeFormat: {
+					hour: 'numeric',
+					minute: '2-digit',
+					hour12: false
+				},
+				slotLabelFormat: {
+					hour: 'numeric',
+					minute: '2-digit',
+					hour12: false
+				}
+			}),
 		eventSources,
 		eventClick,
 

@@ -25,6 +25,7 @@ export interface FullCalendarSettings {
 	defaultCalendar: number;
 	recursiveLocal: boolean;
 	firstDay: number;
+	timeFormat24h: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -32,6 +33,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	defaultCalendar: 0,
 	recursiveLocal: false,
 	firstDay: 0,
+	timeFormat24h: false
 };
 
 const WEEKDAYS = [
@@ -156,6 +158,17 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				dropdown.setValue(this.plugin.settings.firstDay.toString());
 				dropdown.onChange(async (codeAsString) => {
 					this.plugin.settings.firstDay = Number(codeAsString);
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("24-hour format")
+			.setDesc("Display the time in a 24-hour format.")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.timeFormat24h);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.timeFormat24h = val;
 					await this.plugin.saveSettings();
 				});
 			});
