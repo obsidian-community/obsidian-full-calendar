@@ -5,7 +5,6 @@ import {
 	Notice,
 	PluginSettingTab,
 	Setting,
-	TextComponent,
 	TFolder,
 	Vault,
 } from "obsidian";
