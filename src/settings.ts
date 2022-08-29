@@ -48,7 +48,7 @@ const WEEKDAYS = [
 
 const INITIAL_VIEW_OPTIONS = {
 	"timeGridDay": "Day",
-	"dayGridWeek": "Week",
+	"timeGridWeek": "Week",
 	"dayGridMonth": "Month",
 	"listWeek": "List",
 }
