@@ -5,6 +5,7 @@ import {
 	Notice,
 	PluginSettingTab,
 	Setting,
+	TextComponent,
 	TFolder,
 	Vault,
 } from "obsidian";
@@ -25,6 +26,7 @@ export interface FullCalendarSettings {
 	defaultCalendar: number;
 	recursiveLocal: boolean;
 	firstDay: number;
+	initialView: string;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	defaultCalendar: 0,
 	recursiveLocal: false,
 	firstDay: 0,
+	initialView: "timeGridDay"
 };
 
 const WEEKDAYS = [
@@ -43,6 +46,13 @@ const WEEKDAYS = [
 	"Friday",
 	"Saturday",
 ];
+
+const INITIAL_VIEW_OPTIONS = {
+	"timeGridDay": "Day",
+	"dayGridWeek": "Week",
+	"dayGridMonth": "Month",
+	"listWeek": "List",
+}
 
 export function addCalendarButton(
 	app: App,
@@ -156,6 +166,20 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				dropdown.setValue(this.plugin.settings.firstDay.toString());
 				dropdown.onChange(async (codeAsString) => {
 					this.plugin.settings.firstDay = Number(codeAsString);
+					await this.plugin.saveSettings();
+				});
+			})
+
+		new Setting(containerEl)
+			.setName("Initial view")
+			.setDesc("Choose the initial view range.")
+			.addDropdown((dropdown) => {
+				Object.entries(INITIAL_VIEW_OPTIONS).forEach(([value, display]) => {
+					dropdown.addOption(value, display);
+				});
+				dropdown.setValue(this.plugin.settings.initialView);
+				dropdown.onChange(async (initialView) => {
+					this.plugin.settings.initialView = initialView;
 					await this.plugin.saveSettings();
 				});
 			});
