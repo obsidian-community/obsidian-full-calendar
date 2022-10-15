@@ -25,7 +25,10 @@ export interface FullCalendarSettings {
 	defaultCalendar: number;
 	recursiveLocal: boolean;
 	firstDay: number;
-	initialView: string;
+	initialView: {
+		desktop: string;
+		mobile: string;
+	};
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -33,7 +36,10 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	defaultCalendar: 0,
 	recursiveLocal: false,
 	firstDay: 0,
-	initialView: "timeGridDay"
+	initialView: {
+		desktop: "timeGridDay",
+		mobile: "timeGrid3Days",
+	},
 };
 
 const WEEKDAYS = [
@@ -47,11 +53,18 @@ const WEEKDAYS = [
 ];
 
 const INITIAL_VIEW_OPTIONS = {
-	"timeGridDay": "Day",
-	"timeGridWeek": "Week",
-	"dayGridMonth": "Month",
-	"listWeek": "List",
-}
+	DESKTOP: {
+		timeGridDay: "Day",
+		timeGridWeek: "Week",
+		dayGridMonth: "Month",
+		listWeek: "List",
+	},
+	MOBILE: {
+		timeGrid3Days: "3 Days",
+		timeGridDay: "Day",
+		listWeek: "List",
+	},
+};
 
 export function addCalendarButton(
 	app: App,
@@ -167,18 +180,36 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 					this.plugin.settings.firstDay = Number(codeAsString);
 					await this.plugin.saveSettings();
 				});
-			})
+			});
 
 		new Setting(containerEl)
-			.setName("Initial view")
-			.setDesc("Choose the initial view range.")
+			.setName("Desktop Initial View")
+			.setDesc("Choose the initial view range on desktop devices.")
 			.addDropdown((dropdown) => {
-				Object.entries(INITIAL_VIEW_OPTIONS).forEach(([value, display]) => {
-					dropdown.addOption(value, display);
-				});
-				dropdown.setValue(this.plugin.settings.initialView);
+				Object.entries(INITIAL_VIEW_OPTIONS.DESKTOP).forEach(
+					([value, display]) => {
+						dropdown.addOption(value, display);
+					}
+				);
+				dropdown.setValue(this.plugin.settings.initialView.desktop);
 				dropdown.onChange(async (initialView) => {
-					this.plugin.settings.initialView = initialView;
+					this.plugin.settings.initialView.desktop = initialView;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Mobile Initial View")
+			.setDesc("Choose the initial view range on mobile devices.")
+			.addDropdown((dropdown) => {
+				Object.entries(INITIAL_VIEW_OPTIONS.MOBILE).forEach(
+					([value, display]) => {
+						dropdown.addOption(value, display);
+					}
+				);
+				dropdown.setValue(this.plugin.settings.initialView.mobile);
+				dropdown.onChange(async (initialView) => {
+					this.plugin.settings.initialView.mobile = initialView;
 					await this.plugin.saveSettings();
 				});
 			});
