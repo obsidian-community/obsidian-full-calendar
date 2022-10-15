@@ -87,19 +87,18 @@ export function renderCalendar(
 			},
 		},
 		firstDay: settings?.firstDay,
-		...(settings?.timeFormat24h &&
-			{
-				eventTimeFormat: {
-					hour: 'numeric',
-					minute: '2-digit',
-					hour12: false
-				},
-				slotLabelFormat: {
-					hour: 'numeric',
-					minute: '2-digit',
-					hour12: false
-				}
-			}),
+		...(settings?.timeFormat24h && {
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: false,
+			},
+			slotLabelFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: false,
+			},
+		}),
 		eventSources,
 		eventClick,
 

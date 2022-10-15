@@ -33,7 +33,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	defaultCalendar: 0,
 	recursiveLocal: false,
 	firstDay: 0,
-	timeFormat24h: false
+	timeFormat24h: false,
 };
 
 const WEEKDAYS = [
