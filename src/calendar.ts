@@ -3,6 +3,7 @@
  */
 import {
 	Calendar,
+	Duration,
 	EventApi,
 	EventClickArg,
 	EventHoveringArg,
@@ -20,7 +21,12 @@ interface ExtraRenderProps {
 	select?: (startDate: Date, endDate: Date, allDay: boolean) => Promise<void>;
 	modifyEvent?: (event: EventApi, oldEvent: EventApi) => Promise<boolean>;
 	eventMouseEnter?: (info: EventHoveringArg) => void;
+	locale?: string;
 	firstDay?: number;
+	validRange?: { start: string; end: string };
+	slotMinTime?: Duration | string;
+	slotMaxTime?: Duration | string;
+	expandRows?: boolean;
 }
 
 export function renderCalendar(
@@ -29,7 +35,19 @@ export function renderCalendar(
 	settings?: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
-	const { eventClick, select, modifyEvent, eventMouseEnter } = settings || {};
+	const {
+		eventClick,
+		select,
+		modifyEvent,
+		eventMouseEnter,
+		firstDay,
+		locale,
+		validRange,
+		slotMinTime,
+		slotMaxTime,
+		expandRows,
+	} = settings || {};
+
 	const modifyEventCallback =
 		modifyEvent &&
 		(async ({
@@ -71,7 +89,7 @@ export function renderCalendar(
 			: {
 					left: "prev,next today",
 					center: "title",
-					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+					right: "dayGridMonth,timeGridWeek,timeGrid2Weeks,timeGridDay,listWeek",
 			  },
 		views: {
 			timeGridDay: {
@@ -84,10 +102,18 @@ export function renderCalendar(
 				duration: { days: 3 },
 				buttonText: "3",
 			},
+			timeGrid2Weeks: {
+				type: "timeGrid",
+				duration: { weeks: 2 },
+				buttonText: "two weeks",
+			},
 		},
-		firstDay: settings?.firstDay,
 		eventSources,
+		validRange,
 		eventClick,
+		slotMinTime: slotMinTime ?? "00:00:00",
+		slotMaxTime: slotMaxTime ?? "24:00:00",
+		expandRows,
 
 		selectable: select && true,
 		selectMirror: select && true,
@@ -103,7 +129,14 @@ export function renderCalendar(
 		eventResize: modifyEventCallback,
 
 		eventMouseEnter,
+
+		firstDay,
+		locale:
+			!locale || locale === "default"
+				? window.localStorage.getItem("language") ?? "en"
+				: locale,
 	});
+
 	cal.render();
 	return cal;
 }
