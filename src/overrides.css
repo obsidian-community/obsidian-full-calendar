@@ -40,3 +40,8 @@
 .fc-button-active {
 	color: var(--text-on-accent) !important;
 }
+.fc .fc-button {
+	border: 0px solid transparent !important;
+	line-height: 1 !important;
+	padding: var(--size-4-1) var(--size-4-3) !important;
+}
