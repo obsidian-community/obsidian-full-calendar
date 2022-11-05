@@ -1,6 +1,6 @@
 import "./overrides.css";
 import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import { Calendar } from "@fullcalendar/core";
+import { Calendar, Duration } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
@@ -169,8 +169,10 @@ export class CalendarView extends ItemView {
 				}
 			},
 			firstDay: this.plugin.settings.firstDay,
+			locale: this.plugin.settings.locale,
+			slotMinTime: this.plugin.settings.slotMinTime,
+			slotMaxTime: this.plugin.settings.slotMaxTime,
 		});
-
 		this.plugin.settings.calendarSources
 			.flatMap((s) => (s.type === "ical" ? [s] : []))
 			.map((s) => new IcsSource(s))

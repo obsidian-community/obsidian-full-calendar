@@ -2,10 +2,14 @@ import FullCalendarPlugin from "./main";
 import {
 	App,
 	DropdownComponent,
+	moment,
+	MomentFormatComponent,
 	Notice,
 	PluginSettingTab,
 	Setting,
+	TextComponent,
 	TFolder,
+	ValueComponent,
 	Vault,
 } from "obsidian";
 import {
@@ -25,6 +29,9 @@ export interface FullCalendarSettings {
 	defaultCalendar: number;
 	recursiveLocal: boolean;
 	firstDay: number;
+	locale: string;
+	slotMinTime: string;
+	slotMaxTime: string;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -32,6 +39,10 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	defaultCalendar: 0,
 	recursiveLocal: false,
 	firstDay: 0,
+	//locale: "window.localStorage.getItem("language") ?? "en"",
+	locale: "default",
+	slotMinTime: "00:00:00",
+	slotMaxTime: "24:00:00",
 };
 
 const WEEKDAYS = [
@@ -43,6 +54,34 @@ const WEEKDAYS = [
 	"Friday",
 	"Saturday",
 ];
+
+const LANGUAGES = new Map<string, string>([
+	["default", "Obsidian default"],
+	["en", "English"],
+	["zh", "简体中文"],
+	["zh- TW", "繁體中文"],
+	["ru", "Pусский"],
+	["ko", "한국어"],
+	["it", "Italiano"],
+	["id", "Bahasa Indonesia"],
+	["ro", "Română"],
+	["pt- BR", "Portugues do Brasil"],
+	["cz", "čeština"],
+	["de", "Deutsch"],
+	["es", "Español"],
+	["fr", "Français"],
+	["no", "Norsk"],
+	["pl", "język polski"],
+	["pt", "Português"],
+	["ja", "日本語"],
+	["da", "Dansk"],
+	["uk", "Український"],
+	["sq", "Shqip"],
+	["tr", "Türkçe (kısmi)"],
+	["hi", "हिन्दी (आंशिक)"],
+	["nl", "Nederlands (gedeeltelijk)"],
+	["ar", "العربية (جزئي)"],
+]);
 
 export function addCalendarButton(
 	app: App,
@@ -158,6 +197,79 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 					this.plugin.settings.firstDay = Number(codeAsString);
 					await this.plugin.saveSettings();
 				});
+			});
+
+		new Setting(containerEl)
+			.setName("Language")
+			.setDesc(
+				"Set the language of your calendars. (This only changes the days and month in the calendar view)."
+			)
+			.addDropdown((dropdown) => {
+				LANGUAGES.forEach(
+					(countryName: string, countryCode: string) => {
+						dropdown.addOption(countryCode, countryName);
+					}
+				);
+				dropdown.setValue(this.plugin.settings.locale);
+				dropdown.onChange(async (countryCode) => {
+					this.plugin.settings.locale = countryCode;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Start time")
+			.setDesc(
+				"Set the starting time of your calendars. For example 09:00:00 starts the calendar view at 9am."
+			)
+			.addText((text: TextComponent) => {
+				text.setPlaceholder(this.plugin.settings.slotMinTime);
+				text.setValue(this.plugin.settings.slotMinTime);
+				text.onChange(async (newValue: string) => {
+					if (newValue.length > 8) {
+						new Notice(`Please input the starting time using the following format : 09:30:00
+first slot : hour (e.g 9 am)
+second slot : minutes (e.g 30 minutes)
+third slot : seconds (e.g 0 seconds)
+						`);
+						return;
+					}
+					this.plugin.settings.slotMinTime = newValue;
+					await this.plugin.saveSettings();
+				});
+				// So that we let the user only input [0-9] | :
+				text.inputEl.setAttr(
+					"onkeypress",
+					"return event.charCode <= 58 && event.charCode >= 48"
+				);
+			});
+
+		new Setting(containerEl)
+			.setName("End time")
+			.setDesc(
+				"Set the ending time of your calendars. For example 24:00:00 stops the calendar view at midnight."
+			)
+			.addText((text: TextComponent) => {
+				text.setPlaceholder(this.plugin.settings.slotMaxTime);
+				text.setValue(this.plugin.settings.slotMaxTime);
+				text.onChange(async (newValue: string) => {
+					if (newValue.length > 8) {
+						new Notice(`Please input the ending time using the following format : 
+						23:30:00
+						first slot : hour (e.g 11 pm)
+						second slot : minutes (e.g 30 minutes)
+						third slot : seconds (e.g 0 seconds)
+						`);
+						return;
+					}
+					this.plugin.settings.slotMaxTime = newValue;
+					await this.plugin.saveSettings();
+				});
+				// So that we let the user only input [0-9] | :
+				text.inputEl.setAttr(
+					"onkeypress",
+					"return event.charCode <= 58 && event.charCode >= 48"
+				);
 			});
 
 		addCalendarButton(
