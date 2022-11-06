@@ -37,7 +37,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	recursiveLocal: false,
 	firstDay: 0,
 	initialView: {
-		desktop: "timeGridDay",
+		desktop: "timeGridWeek",
 		mobile: "timeGrid3Days",
 	},
 };
