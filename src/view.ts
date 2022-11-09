@@ -180,7 +180,7 @@ export class CalendarView extends ItemView {
 				);
 				if (event instanceof LocalEvent) {
 					menu.addItem((item) =>
-						item.setTitle("Go to...").onClick(() => {
+						item.setTitle("Go to note").onClick(() => {
 							let leaf = this.app.workspace.getMostRecentLeaf();
 							event.openIn(leaf);
 							new Notice(`Opening "${e.title}"`);
