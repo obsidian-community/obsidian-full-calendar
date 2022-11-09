@@ -23,6 +23,10 @@ interface ExtraRenderProps {
 	firstDay?: number;
 	initialView?: { desktop: string; mobile: string };
 	timeFormat24h?: boolean;
+	openContextMenuForEvent?: (
+		event: EventApi,
+		mouseEvent: MouseEvent
+	) => Promise<void>;
 }
 
 export function renderCalendar(
@@ -31,7 +35,13 @@ export function renderCalendar(
 	settings?: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
-	const { eventClick, select, modifyEvent, eventMouseEnter } = settings || {};
+	const {
+		eventClick,
+		select,
+		modifyEvent,
+		eventMouseEnter,
+		openContextMenuForEvent,
+	} = settings || {};
 	const modifyEventCallback =
 		modifyEvent &&
 		(async ({
@@ -119,6 +129,13 @@ export function renderCalendar(
 		eventResize: modifyEventCallback,
 
 		eventMouseEnter,
+
+		eventDidMount: ({ event, el }) => {
+			el.addEventListener("contextmenu", (e) => {
+				e.preventDefault();
+				openContextMenuForEvent && openContextMenuForEvent(event, e);
+			});
+		},
 	});
 	cal.render();
 	return cal;

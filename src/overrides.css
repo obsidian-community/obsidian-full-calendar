@@ -30,8 +30,6 @@
 	--fc-neutral-text-color: var(--text-muted);
 	--fc-neutral-bg-color: var(--interactive-normal);
 
-	--fc-event-selected-overlay-color: var(--background-secondary-alt);
-
 	--fc-highlight-color: var(--text-highlight-bg);
 	--fc-bg-event-color: var(--background-modifier-success);
 	--fc-non-business-color: var(--background-modifier-box-shadow);

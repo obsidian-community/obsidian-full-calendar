@@ -43,6 +43,7 @@ nav:
           - events/recurring.md
           - events/upgrade.md
           - events/hover.md
+          - events/context-menu.md
     - Settings:
           - settings/sources.md
           - settings/subfolders.md
