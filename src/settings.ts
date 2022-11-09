@@ -157,33 +157,8 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 	async display(): Promise<void> {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Events settings" });
 
-		new Setting(containerEl)
-			.setName("Recursive event folders")
-			.setDesc("Search through sub-folders for events")
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.recursiveLocal);
-				toggle.onChange(async (val) => {
-					this.plugin.settings.recursiveLocal = val;
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("Starting Day of the Week")
-			.setDesc("Choose what day of the week to start.")
-			.addDropdown((dropdown) => {
-				WEEKDAYS.forEach((day, code) => {
-					dropdown.addOption(code.toString(), day);
-				});
-				dropdown.setValue(this.plugin.settings.firstDay.toString());
-				dropdown.onChange(async (codeAsString) => {
-					this.plugin.settings.firstDay = Number(codeAsString);
-					await this.plugin.saveSettings();
-				});
-			});
-
+		containerEl.createEl("h2", { text: "Calendar Preferences" });
 		new Setting(containerEl)
 			.setName("Desktop Initial View")
 			.setDesc("Choose the initial view range on desktop devices.")
@@ -216,6 +191,20 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
+			.setName("Starting Day of the Week")
+			.setDesc("Choose what day of the week to start.")
+			.addDropdown((dropdown) => {
+				WEEKDAYS.forEach((day, code) => {
+					dropdown.addOption(code.toString(), day);
+				});
+				dropdown.setValue(this.plugin.settings.firstDay.toString());
+				dropdown.onChange(async (codeAsString) => {
+					this.plugin.settings.firstDay = Number(codeAsString);
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
 			.setName("24-hour format")
 			.setDesc("Display the time in a 24-hour format.")
 			.addToggle((toggle) => {
@@ -226,6 +215,18 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				});
 			});
 
+		containerEl.createEl("h2", { text: "Events settings" });
+		new Setting(containerEl)
+			.setName("Recursive event folders")
+			.setDesc("Search through sub-folders for events")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.recursiveLocal);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.recursiveLocal = val;
+					await this.plugin.saveSettings();
+				});
+			});
+		containerEl.createEl("h2", { text: "Manage Calendars" });
 		addCalendarButton(
 			this.app,
 			this.plugin,
