@@ -22,6 +22,7 @@ interface ExtraRenderProps {
 	eventMouseEnter?: (info: EventHoveringArg) => void;
 	firstDay?: number;
 	initialView?: { desktop: string; mobile: string };
+	timeFormat24h?: boolean;
 }
 
 export function renderCalendar(
@@ -60,7 +61,9 @@ export function renderCalendar(
 			iCalendarPlugin,
 		],
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
-		initialView: settings?.initialView?.[isMobile ? "mobile" : "desktop"] || (isMobile ? "timeGrid3Days" : "timeGridWeek"),
+		initialView:
+			settings?.initialView?.[isMobile ? "mobile" : "desktop"] ||
+			(isMobile ? "timeGrid3Days" : "timeGridWeek"),
 		nowIndicator: true,
 		scrollTimeReset: false,
 
@@ -87,6 +90,18 @@ export function renderCalendar(
 			},
 		},
 		firstDay: settings?.firstDay,
+		...(settings?.timeFormat24h && {
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: false,
+			},
+			slotLabelFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: false,
+			},
+		}),
 		eventSources,
 		eventClick,
 

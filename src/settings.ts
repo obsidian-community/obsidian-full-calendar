@@ -29,6 +29,7 @@ export interface FullCalendarSettings {
 		desktop: string;
 		mobile: string;
 	};
+	timeFormat24h: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -40,6 +41,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 		desktop: "timeGridWeek",
 		mobile: "timeGrid3Days",
 	},
+	timeFormat24h: false,
 };
 
 const WEEKDAYS = [
@@ -210,6 +212,16 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				dropdown.setValue(this.plugin.settings.initialView.mobile);
 				dropdown.onChange(async (initialView) => {
 					this.plugin.settings.initialView.mobile = initialView;
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("24-hour format")
+			.setDesc("Display the time in a 24-hour format.")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.timeFormat24h);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.timeFormat24h = val;
 					await this.plugin.saveSettings();
 				});
 			});
