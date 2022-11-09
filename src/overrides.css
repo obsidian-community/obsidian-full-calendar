@@ -37,6 +37,10 @@
 	--fc-non-business-color: var(--background-modifier-box-shadow);
 }
 
+.fc a {
+	text-decoration-line: none;
+}
+
 .fc-button-active {
 	color: var(--text-on-accent) !important;
 }
