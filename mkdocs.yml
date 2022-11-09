@@ -46,6 +46,6 @@ nav:
     - Settings:
           - settings/sources.md
           - settings/subfolders.md
-          - settings/weekstart.md
+          - settings/fc_config.md
     - Advanced:
           - Dataview integration: advanced/dataview.md

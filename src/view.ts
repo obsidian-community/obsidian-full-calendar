@@ -169,6 +169,7 @@ export class CalendarView extends ItemView {
 				}
 			},
 			firstDay: this.plugin.settings.firstDay,
+			initialView: this.plugin.settings.initialView,
 			timeFormat24h: this.plugin.settings.timeFormat24h,
 		});
 
