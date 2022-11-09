@@ -60,7 +60,7 @@ export function renderCalendar(
 			iCalendarPlugin,
 		],
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
-		initialView: settings?.initialView?.[isMobile ? "mobile" : "desktop"],
+		initialView: settings?.initialView?.[isMobile ? "mobile" : "desktop"] || (isMobile ? "timeGrid3Days" : "timeGridWeek"),
 		nowIndicator: true,
 		scrollTimeReset: false,
 
