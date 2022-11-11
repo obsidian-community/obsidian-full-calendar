@@ -141,6 +141,8 @@ export function renderCalendar(
 				openContextMenuForEvent && openContextMenuForEvent(event, e);
 			});
 		},
+
+		longPressDelay: 250,
 	});
 	cal.render();
 	return cal;
