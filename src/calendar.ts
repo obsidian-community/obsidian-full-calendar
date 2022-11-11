@@ -58,6 +58,7 @@ export function renderCalendar(
 				revert();
 			}
 		});
+
 	const cal = new Calendar(containerEl, {
 		plugins: [
 			// View plugins
@@ -77,16 +78,20 @@ export function renderCalendar(
 		nowIndicator: true,
 		scrollTimeReset: false,
 
-		headerToolbar: isMobile
+		headerToolbar: !isMobile
+			? {
+					left: "prev,next today",
+					center: "title",
+					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+			  }
+			: false,
+		footerToolbar: isMobile
 			? {
 					right: "today,prev,next",
 					left: "timeGrid3Days,timeGridDay,listWeek",
 			  }
-			: {
-					left: "prev,next today",
-					center: "title",
-					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-			  },
+			: false,
+
 		views: {
 			timeGridDay: {
 				type: "timeGrid",
