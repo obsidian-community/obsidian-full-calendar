@@ -10,22 +10,16 @@ You can see the full documentation [here](https://davish.github.io/obsidian-full
 
 ## Installation
 
-Full Calendar is available from the Obsidian Community Plugins list -- just search for "Full Calendar", or [click here](obsidian://show-plugin?id=obsidian-full-calendar)!
+Full Calendar is available from the Obsidian Community Plugins list -- just search for "Full Calendar" paste this link into your browser: `obsidian://show-plugin?id=obsidian-full-calendar`.
 
 ### Manual Installation
 
 You can also head over to the [releases page](https://github.com/davish/obsidian-full-calendar/releases) and unzip the latest release inside of the `.obsidian/plugins` directory inside your vault.
 
-## Coming soon
+## Contributing
 
-This plugin is in its early days -- here are some features I plan to work on next, in rough order of priority. If you have any ideas or want to vouch for one of these, [submit an issue](https://github.com/davish/obsidian-full-calendar/issues)!
+Full Calendar is open to contributions!
 
-### Create event notes with a template
-
-Support for the core Templates plugin and Templater.
-
-## Long term plans
-
-### Track tasks in the calendar
-
-Surface tasks from throughout your vault on your calendar, and schedule them in blocks during your day to fill out your agenda. Inspired by (the as-yet-unreleased) [amie calendar](https://amie.so).
+-   If you want to develop locally, make sure to make a symbolic link from `main.css` to `styles.css`. Obsidian expects a css file called `styles.css`, but esbuild will output one names `main.css`.
+-   You can build the plugin for development by running `npm run dev`.
+-   The [hot reload plugin](https://github.com/pjeby/hot-reload) makes development a lot easier.
