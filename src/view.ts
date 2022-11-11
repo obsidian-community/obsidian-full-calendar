@@ -1,5 +1,5 @@
 import "./overrides.css";
-import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, Menu, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
@@ -167,6 +167,39 @@ export class CalendarView extends ItemView {
 				}
 			},
 			firstDay: this.plugin.settings.firstDay,
+			initialView: this.plugin.settings.initialView,
+			timeFormat24h: this.plugin.settings.timeFormat24h,
+			openContextMenuForEvent: async (e, mouseEvent) => {
+				const menu = new Menu(this.app);
+				const event = await eventFromCalendarId(
+					this.app.metadataCache,
+					this.app.vault,
+					e.id
+				);
+				if (event instanceof LocalEvent) {
+					menu.addItem((item) =>
+						item.setTitle("Go to note").onClick(() => {
+							let leaf = this.app.workspace.getMostRecentLeaf();
+							event.openIn(leaf);
+							new Notice(`Opening "${e.title}"`);
+						})
+					);
+					menu.addItem((item) =>
+						item.setTitle("Delete").onClick(async () => {
+							await event.delete();
+							new Notice(`Deleted event "${e.title}".`);
+						})
+					);
+				} else {
+					menu.addItem((item) => {
+						item.setTitle(
+							"No actions available on remote events"
+						).setDisabled(true);
+					});
+				}
+
+				menu.showAtMouseEvent(mouseEvent);
+			},
 		});
 
 		this.plugin.settings.calendarSources

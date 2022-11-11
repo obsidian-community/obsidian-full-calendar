@@ -1,3 +1,6 @@
+.is-phone .fc {
+	height: calc(100% - 4rem);
+}
 .fc {
 	height: 100%;
 	--fc-button-text-color: var(--text-normal);
@@ -25,18 +28,25 @@
 	--fc-more-link-bg-color: var(--background-primary-alt);
 	--fc-more-link-text-color: var(--text-accent);
 
-	--fc-today-bg-color: var(--background-modifier-box-shadow);
+	--fc-today-bg-color: var(--background-modifier-cover);
 
 	--fc-neutral-text-color: var(--text-muted);
 	--fc-neutral-bg-color: var(--interactive-normal);
-
-	--fc-event-selected-overlay-color: var(--background-secondary-alt);
 
 	--fc-highlight-color: var(--text-highlight-bg);
 	--fc-bg-event-color: var(--background-modifier-success);
 	--fc-non-business-color: var(--background-modifier-box-shadow);
 }
 
+.fc a {
+	text-decoration-line: none;
+}
+
 .fc-button-active {
 	color: var(--text-on-accent) !important;
+}
+.fc .fc-button {
+	border: 0px solid transparent !important;
+	line-height: 1 !important;
+	padding: var(--size-4-1) var(--size-4-3) !important;
 }

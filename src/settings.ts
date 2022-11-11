@@ -25,6 +25,11 @@ export interface FullCalendarSettings {
 	defaultCalendar: number;
 	recursiveLocal: boolean;
 	firstDay: number;
+	initialView: {
+		desktop: string;
+		mobile: string;
+	};
+	timeFormat24h: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -32,6 +37,11 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 	defaultCalendar: 0,
 	recursiveLocal: false,
 	firstDay: 0,
+	initialView: {
+		desktop: "timeGridWeek",
+		mobile: "timeGrid3Days",
+	},
+	timeFormat24h: false,
 };
 
 const WEEKDAYS = [
@@ -43,6 +53,20 @@ const WEEKDAYS = [
 	"Friday",
 	"Saturday",
 ];
+
+const INITIAL_VIEW_OPTIONS = {
+	DESKTOP: {
+		timeGridDay: "Day",
+		timeGridWeek: "Week",
+		dayGridMonth: "Month",
+		listWeek: "List",
+	},
+	MOBILE: {
+		timeGrid3Days: "3 Days",
+		timeGridDay: "Day",
+		listWeek: "List",
+	},
+};
 
 export function addCalendarButton(
 	app: App,
@@ -133,16 +157,36 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 	async display(): Promise<void> {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Events settings" });
+
+		containerEl.createEl("h2", { text: "Calendar Preferences" });
+		new Setting(containerEl)
+			.setName("Desktop Initial View")
+			.setDesc("Choose the initial view range on desktop devices.")
+			.addDropdown((dropdown) => {
+				Object.entries(INITIAL_VIEW_OPTIONS.DESKTOP).forEach(
+					([value, display]) => {
+						dropdown.addOption(value, display);
+					}
+				);
+				dropdown.setValue(this.plugin.settings.initialView.desktop);
+				dropdown.onChange(async (initialView) => {
+					this.plugin.settings.initialView.desktop = initialView;
+					await this.plugin.saveSettings();
+				});
+			});
 
 		new Setting(containerEl)
-			.setName("Recursive event folders")
-			.setDesc("Search through sub-folders for events")
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.recursiveLocal);
-				toggle.onChange(async (val) => {
-					this.plugin.settings.recursiveLocal = val;
-					await this.plugin.saveSettings();
+			.setName("Mobile Initial View")
+			.setDesc("Choose the initial view range on mobile devices.")
+			.addDropdown((dropdown) => {
+				Object.entries(INITIAL_VIEW_OPTIONS.MOBILE).forEach(
+					([value, display]) => {
+						dropdown.addOption(value, display);
+					}
+				);
+				dropdown.setValue(this.plugin.settings.initialView.mobile);
+				dropdown.onChange(async (initialView) => {
+					this.plugin.settings.initialView.mobile = initialView;
 				});
 			});
 
@@ -160,6 +204,29 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				});
 			});
 
+		new Setting(containerEl)
+			.setName("24-hour format")
+			.setDesc("Display the time in a 24-hour format.")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.timeFormat24h);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.timeFormat24h = val;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		containerEl.createEl("h2", { text: "Events settings" });
+		new Setting(containerEl)
+			.setName("Recursive event folders")
+			.setDesc("Search through sub-folders for events")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.recursiveLocal);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.recursiveLocal = val;
+					await this.plugin.saveSettings();
+				});
+			});
+		containerEl.createEl("h2", { text: "Manage Calendars" });
 		addCalendarButton(
 			this.app,
 			this.plugin,

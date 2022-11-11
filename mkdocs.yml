@@ -4,7 +4,7 @@ repo_name: obsidian-full-calendar
 theme:
     name: material
     icon:
-        repo: fontawesome/brands/github-square
+        repo: fontawesome/brands/square-github
     font:
         text: Work Sans
     features:
@@ -43,9 +43,10 @@ nav:
           - events/recurring.md
           - events/upgrade.md
           - events/hover.md
+          - events/context-menu.md
     - Settings:
           - settings/sources.md
           - settings/subfolders.md
-          - settings/weekstart.md
+          - settings/fc_config.md
     - Advanced:
           - Dataview integration: advanced/dataview.md

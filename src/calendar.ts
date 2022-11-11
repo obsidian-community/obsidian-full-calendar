@@ -21,6 +21,12 @@ interface ExtraRenderProps {
 	modifyEvent?: (event: EventApi, oldEvent: EventApi) => Promise<boolean>;
 	eventMouseEnter?: (info: EventHoveringArg) => void;
 	firstDay?: number;
+	initialView?: { desktop: string; mobile: string };
+	timeFormat24h?: boolean;
+	openContextMenuForEvent?: (
+		event: EventApi,
+		mouseEvent: MouseEvent
+	) => Promise<void>;
 }
 
 export function renderCalendar(
@@ -29,7 +35,13 @@ export function renderCalendar(
 	settings?: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
-	const { eventClick, select, modifyEvent, eventMouseEnter } = settings || {};
+	const {
+		eventClick,
+		select,
+		modifyEvent,
+		eventMouseEnter,
+		openContextMenuForEvent,
+	} = settings || {};
 	const modifyEventCallback =
 		modifyEvent &&
 		(async ({
@@ -46,6 +58,7 @@ export function renderCalendar(
 				revert();
 			}
 		});
+
 	const cal = new Calendar(containerEl, {
 		plugins: [
 			// View plugins
@@ -59,20 +72,26 @@ export function renderCalendar(
 			iCalendarPlugin,
 		],
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
-		initialView: isMobile ? "timeGrid3Days" : "timeGridWeek",
+		initialView:
+			settings?.initialView?.[isMobile ? "mobile" : "desktop"] ||
+			(isMobile ? "timeGrid3Days" : "timeGridWeek"),
 		nowIndicator: true,
 		scrollTimeReset: false,
 
-		headerToolbar: isMobile
+		headerToolbar: !isMobile
+			? {
+					left: "prev,next today",
+					center: "title",
+					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+			  }
+			: false,
+		footerToolbar: isMobile
 			? {
 					right: "today,prev,next",
 					left: "timeGrid3Days,timeGridDay,listWeek",
 			  }
-			: {
-					left: "prev,next today",
-					center: "title",
-					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-			  },
+			: false,
+
 		views: {
 			timeGridDay: {
 				type: "timeGrid",
@@ -86,6 +105,18 @@ export function renderCalendar(
 			},
 		},
 		firstDay: settings?.firstDay,
+		...(settings?.timeFormat24h && {
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: false,
+			},
+			slotLabelFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: false,
+			},
+		}),
 		eventSources,
 		eventClick,
 
@@ -103,6 +134,15 @@ export function renderCalendar(
 		eventResize: modifyEventCallback,
 
 		eventMouseEnter,
+
+		eventDidMount: ({ event, el }) => {
+			el.addEventListener("contextmenu", (e) => {
+				e.preventDefault();
+				openContextMenuForEvent && openContextMenuForEvent(event, e);
+			});
+		},
+
+		longPressDelay: 250,
 	});
 	cal.render();
 	return cal;

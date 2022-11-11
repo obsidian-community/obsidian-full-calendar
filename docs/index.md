@@ -6,4 +6,6 @@ The FullCalendar library is released under the [MIT license](https://github.com/
 
 Most of this documentation is presented as GIF walkthroughs. If something is unclear, don't hesitate to [submit an issue on GitHub](https://github.com/davish/obsidian-full-calendar/issues) or comment on an existing one.
 
+<!-- comment -->
+
 ![Sample Calendar](assets/sample-calendar.png)

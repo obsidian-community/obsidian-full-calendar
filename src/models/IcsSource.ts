@@ -1,12 +1,13 @@
 import { EventSourceInput } from "@fullcalendar/core";
 import { request } from "obsidian";
-import { Err, FCError, ICalSource, Ok, Result } from "src/types";
+import { Err, ICalSource, Ok, Result } from "src/types";
 import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
 import {
 	expandICalEvents,
 	makeICalExpander,
 } from "vendor/fullcalendar-ical/icalendar";
 import { EventSource } from "./EventSource";
+import { getColors } from "./util";
 
 export class IcsSource extends EventSource {
 	info: ICalSource;
@@ -55,14 +56,7 @@ export class IcsSource extends EventSource {
 				return events;
 			},
 			editable: false,
-			textColor: getComputedStyle(document.body).getPropertyValue(
-				"--text-on-accent"
-			),
-			color:
-				this.info.color ||
-				getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
+			...getColors(this.info.color),
 		});
 	}
 }

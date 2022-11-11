@@ -5,6 +5,7 @@ on:
             - main
         paths:
             - docs/**
+            - mkdocs.yml # this isn't actual docs but could affect rendering
 jobs:
     deploy:
         runs-on: ubuntu-latest
