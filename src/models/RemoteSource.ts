@@ -9,6 +9,7 @@ import Color from "color";
 import * as dav from "dav";
 import * as transport from "src/transport";
 import { EventSource } from "./EventSource";
+import { getColors } from "./util";
 
 export class RemoteSource extends EventSource {
 	info: CalDAVSource | ICloudSource;
@@ -147,14 +148,7 @@ export class RemoteSource extends EventSource {
 				return events;
 			},
 			editable: false,
-			textColor: getComputedStyle(document.body).getPropertyValue(
-				"--text-on-accent"
-			),
-			color:
-				this.info.color ||
-				getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
+			...getColors(this.info.color),
 		};
 	}
 }

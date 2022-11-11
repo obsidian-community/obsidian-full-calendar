@@ -3,6 +3,7 @@ import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
 import { FCError, LocalCalendarSource } from "src/types";
 import { NoteEvent } from "./NoteEvent";
 import { EventSource } from "./EventSource";
+import { getColors } from "./util";
 
 export class NoteSource extends EventSource {
 	info: LocalCalendarSource;
@@ -55,14 +56,7 @@ export class NoteSource extends EventSource {
 		}
 		return {
 			events,
-			textColor: getComputedStyle(document.body).getPropertyValue(
-				"--text-on-accent"
-			),
-			color:
-				this.info.color ||
-				getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
+			...getColors(this.info.color),
 		};
 	}
 }
