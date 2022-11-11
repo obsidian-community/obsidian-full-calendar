@@ -1,3 +1,6 @@
+.is-phone .fc {
+	height: calc(100% - 2.25rem);
+}
 .fc {
 	height: 100%;
 	--fc-button-text-color: var(--text-normal);

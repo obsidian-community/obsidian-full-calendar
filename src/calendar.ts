@@ -7,6 +7,7 @@ import {
 	EventClickArg,
 	EventHoveringArg,
 	EventSourceInput,
+	ToolbarInput,
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -58,6 +59,25 @@ export function renderCalendar(
 				revert();
 			}
 		});
+
+	const toolbar: {
+		headerToolbar?: ToolbarInput;
+		footerToolbar?: ToolbarInput;
+	} = isMobile
+		? {
+				headerToolbar: {
+					left: "prev,next today",
+					center: "title",
+					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+				},
+		  }
+		: {
+				footerToolbar: {
+					right: "today,prev,next",
+					left: "timeGrid3Days,timeGridDay,listWeek",
+				},
+		  };
+
 	const cal = new Calendar(containerEl, {
 		plugins: [
 			// View plugins
@@ -77,16 +97,19 @@ export function renderCalendar(
 		nowIndicator: true,
 		scrollTimeReset: false,
 
-		headerToolbar: isMobile
+		footerToolbar: isMobile
 			? {
 					right: "today,prev,next",
 					left: "timeGrid3Days,timeGridDay,listWeek",
 			  }
-			: {
+			: false,
+		headerToolbar: !isMobile
+			? {
 					left: "prev,next today",
 					center: "title",
 					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-			  },
+			  }
+			: false,
 		views: {
 			timeGridDay: {
 				type: "timeGrid",
@@ -136,6 +159,7 @@ export function renderCalendar(
 				openContextMenuForEvent && openContextMenuForEvent(event, e);
 			});
 		},
+		// ...toolbar,
 	});
 	cal.render();
 	return cal;
