@@ -1,5 +1,3 @@
-import { text } from "stream/consumers";
-
 export function getColors(color: string | null | undefined): {
 	color: string;
 	textColor: string;
