@@ -2,6 +2,7 @@ import { Calendar, EventInput } from "@fullcalendar/core";
 import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
 import { parseFrontmatter } from "src/frontmatter";
 import { CalendarSource, EventFrontmatter, FCError } from "src/types";
+import { getColors } from "./util";
 
 export function basenameFromEvent(event: EventFrontmatter): string {
 	switch (event.type) {
@@ -45,14 +46,7 @@ export abstract class CalendarEvent {
 
 	addTo(calendar: Calendar, source: CalendarSource) {
 		calendar.addEvent({
-			color:
-				source.color ||
-				getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
-			textColor: getComputedStyle(document.body).getPropertyValue(
-				"--text-on-accent"
-			),
+			...getColors(source.color),
 			...this.toCalendarEvent(),
 		});
 	}

@@ -7,6 +7,7 @@ import {
 	makeICalExpander,
 } from "vendor/fullcalendar-ical/icalendar";
 import { EventSource } from "./EventSource";
+import { getColors } from "./util";
 
 export class IcsSource extends EventSource {
 	info: ICalSource;
@@ -53,14 +54,7 @@ export class IcsSource extends EventSource {
 				return events;
 			},
 			editable: false,
-			textColor: getComputedStyle(document.body).getPropertyValue(
-				"--text-on-accent"
-			),
-			color:
-				this.info.color ||
-				getComputedStyle(document.body).getPropertyValue(
-					"--interactive-accent"
-				),
+			...getColors(this.info.color),
 		};
 	}
 }
