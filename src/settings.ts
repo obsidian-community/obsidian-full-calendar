@@ -8,11 +8,7 @@ import {
 	TFolder,
 	Vault,
 } from "obsidian";
-import {
-	makeDefaultPartialCalendarSource,
-	CalendarSource,
-	FCError,
-} from "./types";
+import { makeDefaultPartialCalendarSource, CalendarSource } from "./types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
 import { RemoteSource } from "./models/RemoteSource";

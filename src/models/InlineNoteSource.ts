@@ -35,7 +35,8 @@ export async function getInlineEventsFromFile(
 			)
 		)
 		.flatMap((evt) => (evt !== null ? [evt] : []))
-		.map((e) => e.toCalendarEvent());
+		.map((e) => e.toCalendarEvent())
+		.flatMap((r) => (r.ok ? [r.value] : []));
 }
 
 export class InlineNoteSource extends EventSource {

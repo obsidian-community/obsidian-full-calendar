@@ -9,7 +9,7 @@ import {
 	normalizeTimeString,
 	parseTime,
 } from "./dateUtil";
-import { Err, EventFrontmatter, FCError, Ok, Result } from "./types";
+import { Err, EventFrontmatter, Ok, Result } from "./types";
 
 const DAYS = "UMTWRFS";
 

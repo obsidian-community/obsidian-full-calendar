@@ -34,7 +34,10 @@ export class NoteSource extends EventSource {
 			if (file instanceof TFile) {
 				let event = NoteEvent.fromFile(this.cache, this.vault, file);
 				if (event) {
-					events.push(event.toCalendarEvent());
+					let calEvent = event.toCalendarEvent();
+					if (calEvent.ok) {
+						events.push(calEvent.value);
+					}
 				} else {
 					console.log(
 						"no event in file " +

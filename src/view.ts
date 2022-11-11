@@ -4,7 +4,7 @@ import { Calendar } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
-import { PLUGIN_SLUG } from "./types";
+import { dropErrs, PLUGIN_SLUG } from "./types";
 import {
 	dateEndpointsToFrontmatter,
 	eventApiToFrontmatter,
@@ -74,9 +74,10 @@ export class CalendarView extends ItemView {
 		container.empty();
 		let calendarEl = container.createEl("div");
 		const noteSourceResults = await Promise.all(noteSourcePromises);
-		const sources = noteSourceResults.flatMap((s) =>
-			s.ok ? [s.value] : []
-		);
+		// const sources = noteSourceResults.flatMap((s) =>
+		// 	s.ok ? [s.value] : []
+		// );
+		const sources = dropErrs(noteSourceResults);
 		if (
 			sources.length === 0 &&
 			this.plugin.settings.calendarSources.filter(

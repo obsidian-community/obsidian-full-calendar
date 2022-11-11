@@ -1,5 +1,5 @@
 import { DateTime, Duration } from "luxon";
-import { Err, FCError, Ok, Result } from "./types";
+import { Err, Ok, Result } from "./types";
 
 export const parseTime = (time: string): Result<Duration> => {
 	let parsed = DateTime.fromFormat(time, "h:mm a");
@@ -7,7 +7,7 @@ export const parseTime = (time: string): Result<Duration> => {
 		parsed = DateTime.fromFormat(time, "HH:mm");
 	}
 	if (parsed.invalidReason) {
-		return Err(`Invalid time string: ${parsed.invalidReason}`);
+		return Err(`Invalid time string ${time}: ${parsed.invalidReason}`);
 	}
 	return Ok(
 		Duration.fromISOTime(

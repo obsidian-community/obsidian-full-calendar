@@ -42,6 +42,7 @@ export function renderCalendar(
 		eventMouseEnter,
 		openContextMenuForEvent,
 	} = settings || {};
+	console.log("sources to render", eventSources);
 	const modifyEventCallback =
 		modifyEvent &&
 		(async ({
