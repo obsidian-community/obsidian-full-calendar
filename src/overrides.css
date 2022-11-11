@@ -28,7 +28,7 @@
 	--fc-more-link-bg-color: var(--background-primary-alt);
 	--fc-more-link-text-color: var(--text-accent);
 
-	--fc-today-bg-color: var(--background-modifier-box-shadow);
+	--fc-today-bg-color: var(--background-modifier-cover);
 
 	--fc-neutral-text-color: var(--text-muted);
 	--fc-neutral-bg-color: var(--interactive-normal);
