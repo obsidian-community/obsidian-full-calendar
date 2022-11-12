@@ -118,7 +118,10 @@ export class CalendarView extends ItemView {
 					).editInModal(info.event);
 				}
 			},
-			select: async (start, end, allDay) => {
+			select: async (start, end, allDay, viewType) => {
+				if (viewType === "dayGridMonth") {
+					end.setDate(end.getDate() - 1);
+				}
 				const partialEvent = dateEndpointsToFrontmatter(
 					start,
 					end,
