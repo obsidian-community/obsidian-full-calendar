@@ -17,7 +17,12 @@ import iCalendarPlugin from "@fullcalendar/icalendar";
 
 interface ExtraRenderProps {
 	eventClick?: (info: EventClickArg) => void;
-	select?: (startDate: Date, endDate: Date, allDay: boolean) => Promise<void>;
+	select?: (
+		startDate: Date,
+		endDate: Date,
+		allDay: boolean,
+		viewType: string
+	) => Promise<void>;
 	modifyEvent?: (event: EventApi, oldEvent: EventApi) => Promise<boolean>;
 	eventMouseEnter?: (info: EventHoveringArg) => void;
 	firstDay?: number;
@@ -125,7 +130,7 @@ export function renderCalendar(
 		select:
 			select &&
 			(async (info) => {
-				await select(info.start, info.end, info.allDay);
+				await select(info.start, info.end, info.allDay, info.view.type);
 				info.view.calendar.unselect();
 			}),
 
