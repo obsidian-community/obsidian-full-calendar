@@ -130,7 +130,6 @@ export function renderCalendar(
 		select:
 			select &&
 			(async (info) => {
-				console.log("select info", info);
 				await select(info.start, info.end, info.allDay, info.view.type);
 				info.view.calendar.unselect();
 			}),
