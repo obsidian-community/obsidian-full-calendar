@@ -2,7 +2,6 @@ import { Calendar, EventInput } from "@fullcalendar/core";
 import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
 import { parseFrontmatter } from "src/frontmatter";
 import { CalendarSource, EventFrontmatter, FCError } from "src/types";
-import internal from "stream";
 import { getColors } from "./util";
 
 export function basenameFromEvent(event: EventFrontmatter): string {
