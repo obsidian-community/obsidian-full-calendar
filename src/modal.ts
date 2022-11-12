@@ -48,7 +48,8 @@ export class EventModal extends Modal {
 					"Full Calendar: No frontmatter to edit for selected event."
 				);
 				console.warn(
-					"Full Calendar: No frontmatter to edit for selected event."
+					"Full Calendar: No frontmatter to edit for selected event.",
+					input
 				);
 			}
 		} else if (input instanceof TFile) {
@@ -68,6 +69,19 @@ export class EventModal extends Modal {
 	async onOpen() {
 		const { contentEl } = this;
 		await this.plugin.loadSettings();
+
+		const calIdx = (() => {
+			const event = this.event;
+			if (!event) {
+				return null;
+			}
+			if (!(event instanceof NoteEvent)) {
+				return null;
+			}
+			return this.plugin.settings.calendarSources
+				.flatMap((c) => (c.type == "local" ? [c] : []))
+				.findIndex((c) => event.directory.startsWith(c.directory));
+		})();
 
 		ReactDOM.render(
 			React.createElement(EditEvent, {
@@ -113,7 +127,10 @@ export class EventModal extends Modal {
 						this.close();
 					}
 				},
-				defaultCalendarIndex: this.plugin.settings.defaultCalendar,
+
+				defaultCalendarIndex:
+					calIdx || this.plugin.settings.defaultCalendar,
+
 				calendars: this.plugin.settings.calendarSources,
 				open:
 					this.event instanceof LocalEvent
