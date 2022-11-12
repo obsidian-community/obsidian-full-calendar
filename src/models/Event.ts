@@ -36,7 +36,7 @@ export abstract class CalendarEvent {
 		return this.PREFIX + CalendarEvent.ID_SEPARATOR + this.identifier;
 	}
 
-	toCalendarEvent(): EventInput {
+	toCalendarEvent(): EventInput | null {
 		return parseFrontmatter(this.idForCalendar, this.data);
 	}
 
@@ -45,9 +45,14 @@ export abstract class CalendarEvent {
 	}
 
 	addTo(calendar: Calendar, source: CalendarSource) {
+		let event = this.toCalendarEvent();
+		if (!event) {
+			console.error("Malformed event, will not add to calendar.", this);
+			return;
+		}
 		calendar.addEvent({
+			...event,
 			...getColors(source.color),
-			...this.toCalendarEvent(),
 		});
 	}
 }

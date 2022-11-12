@@ -3,6 +3,7 @@ import { DateTime, Duration } from "luxon";
 import { MetadataCache, parseYaml, TFile, Vault } from "obsidian";
 import {
 	add,
+	combineDateTimeStrings,
 	getDate,
 	getTime,
 	normalizeTimeString,
@@ -36,7 +37,7 @@ export function dateEndpointsToFrontmatter(
 export function parseFrontmatter(
 	id: string,
 	frontmatter: EventFrontmatter
-): EventInput {
+): EventInput | null {
 	let event: EventInput = {
 		id,
 		title: frontmatter.title,
@@ -60,20 +61,28 @@ export function parseFrontmatter(
 		}
 	} else {
 		if (!frontmatter.allDay) {
+			const start = combineDateTimeStrings(
+				frontmatter.date,
+				frontmatter.startTime
+			);
+			if (!start) {
+				return null;
+			}
+			let end = undefined;
+			if (frontmatter.endTime) {
+				end = combineDateTimeStrings(
+					frontmatter.endDate || frontmatter.date,
+					frontmatter.endTime
+				);
+				if (!end) {
+					return null;
+				}
+			}
+
 			event = {
 				...event,
-				start: add(
-					DateTime.fromISO(frontmatter.date),
-					parseTime(frontmatter.startTime || "")
-				).toISO(),
-				end: frontmatter.endTime
-					? add(
-							DateTime.fromISO(
-								frontmatter.endDate || frontmatter.date
-							),
-							parseTime(frontmatter.endTime)
-					  ).toISO()
-					: undefined,
+				start,
+				end,
 			};
 		} else {
 			event = {

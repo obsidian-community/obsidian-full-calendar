@@ -33,7 +33,15 @@ export class NoteSource extends EventSource {
 			if (file instanceof TFile) {
 				let event = NoteEvent.fromFile(this.cache, this.vault, file);
 				if (event) {
-					events.push(event.toCalendarEvent());
+					let calEvent = event.toCalendarEvent();
+					if (calEvent) {
+						events.push(calEvent);
+					} else {
+						console.error(
+							"FC: Event malformed, will not add to calendar.",
+							event
+						);
+					}
 				}
 			} else if (recursive) {
 				const childEvents = await this.getEventInputsFromPath(
