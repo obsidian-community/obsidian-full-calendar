@@ -138,6 +138,10 @@ export const EditEvent = ({
 
 	const [calendarIndex, setCalendarIndex] = useState(defaultCalendarIndex);
 
+	const [complete, setComplete] = useState(
+		initialEvent?.type === "single" && initialEvent.completed
+	);
+
 	const titleRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
 		if (titleRef.current) {
@@ -163,6 +167,7 @@ export const EditEvent = ({
 					: {
 							date,
 							endDate,
+							completed: complete,
 					  }),
 			},
 			calendarIndex

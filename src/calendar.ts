@@ -32,6 +32,7 @@ interface ExtraRenderProps {
 		event: EventApi,
 		mouseEvent: MouseEvent
 	) => Promise<void>;
+	toggleTask?: (event: EventApi, isComplete: boolean) => Promise<void>;
 }
 
 export function renderCalendar(
@@ -46,6 +47,7 @@ export function renderCalendar(
 		modifyEvent,
 		eventMouseEnter,
 		openContextMenuForEvent,
+		toggleTask,
 	} = settings || {};
 	const modifyEventCallback =
 		modifyEvent &&
@@ -141,10 +143,38 @@ export function renderCalendar(
 		eventMouseEnter,
 
 		eventDidMount: ({ event, el }) => {
+			console.log("MOUNT");
 			el.addEventListener("contextmenu", (e) => {
 				e.preventDefault();
 				openContextMenuForEvent && openContextMenuForEvent(event, e);
 			});
+			if (toggleTask) {
+				if (event.extendedProps.isTask) {
+					const checkbox = document.createElement("input");
+					checkbox.type = "checkbox";
+					checkbox.checked =
+						event.extendedProps.taskCompleted !== false;
+					checkbox.onclick = (e) => {
+						e.stopPropagation();
+						if (e.target) {
+							toggleTask(
+								event,
+								(e.target as HTMLInputElement).checked
+							);
+						}
+					};
+
+					const container = el.querySelector(".fc-event-time");
+					container?.prepend(checkbox);
+				}
+			}
+		},
+
+		eventContent: (info) => {
+			// return null;
+			// return {
+			// 	html: `<input type="checkbox" onclick="event.stopPropagation()"/> ${info.event.title}`,
+			// };
 		},
 
 		longPressDelay: 250,

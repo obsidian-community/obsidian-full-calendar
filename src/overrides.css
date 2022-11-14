@@ -50,3 +50,7 @@
 	line-height: 1 !important;
 	padding: var(--size-4-1) var(--size-4-3) !important;
 }
+
+.fc-event-time {
+	display: flex;
+}

@@ -49,6 +49,7 @@ export function parseFrontmatter(
 			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
 			startRecur: frontmatter.startRecur,
 			endRecur: frontmatter.endRecur,
+			extendedProps: { isTask: false },
 		};
 		if (!frontmatter.allDay) {
 			event = {
@@ -83,12 +84,20 @@ export function parseFrontmatter(
 				...event,
 				start,
 				end,
+				extendedProps: {
+					isTask: frontmatter.completed !== undefined,
+					taskCompleted: frontmatter.completed,
+				},
 			};
 		} else {
 			event = {
 				...event,
 				start: frontmatter.date,
 				end: frontmatter.endDate || undefined,
+				extendedProps: {
+					isTask: frontmatter.completed !== undefined,
+					taskCompleted: frontmatter.completed,
+				},
 			};
 		}
 	}
@@ -127,6 +136,7 @@ export function eventApiToFrontmatter(event: EventApi): EventFrontmatter {
 					type: "single",
 					date: startDate,
 					...(startDate !== endDate ? { endDate } : {}),
+					completed: event.extendedProps.taskCompleted,
 			  }),
 	};
 }
