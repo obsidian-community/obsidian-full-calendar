@@ -140,7 +140,11 @@ export const EditEvent = ({
 	const [calendarIndex, setCalendarIndex] = useState(defaultCalendarIndex);
 
 	const [complete, setComplete] = useState(
-		initialEvent?.type === "single" && initialEvent.completed
+		initialEvent?.type === "single" &&
+			initialEvent.completed !== null &&
+			initialEvent.completed !== undefined
+			? initialEvent.completed
+			: false
 	);
 
 	const [isTask, setIsTask] = useState(
