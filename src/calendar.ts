@@ -143,7 +143,6 @@ export function renderCalendar(
 		eventMouseEnter,
 
 		eventDidMount: ({ event, el }) => {
-			console.log("MOUNT");
 			el.addEventListener("contextmenu", (e) => {
 				e.preventDefault();
 				openContextMenuForEvent && openContextMenuForEvent(event, e);
@@ -164,7 +163,14 @@ export function renderCalendar(
 						}
 					};
 
-					const container = el.querySelector(".fc-event-time");
+					if (checkbox.checked) {
+						el.addClass("ofc-task-completed");
+					}
+
+					const container =
+						el.querySelector(".fc-event-time") ||
+						el.querySelector(".fc-event-title");
+					container?.addClass("ofc-has-checkbox");
 					container?.prepend(checkbox);
 				}
 			}

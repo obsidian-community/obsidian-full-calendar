@@ -85,7 +85,9 @@ export function parseFrontmatter(
 				start,
 				end,
 				extendedProps: {
-					isTask: frontmatter.completed !== undefined,
+					isTask:
+						frontmatter.completed !== undefined &&
+						frontmatter.completed !== null,
 					taskCompleted: frontmatter.completed,
 				},
 			};
@@ -95,7 +97,9 @@ export function parseFrontmatter(
 				start: frontmatter.date,
 				end: frontmatter.endDate || undefined,
 				extendedProps: {
-					isTask: frontmatter.completed !== undefined,
+					isTask:
+						frontmatter.completed !== undefined &&
+						frontmatter.completed !== null,
 					taskCompleted: frontmatter.completed,
 				},
 			};

@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import { DropdownComponent } from "obsidian";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -142,6 +143,12 @@ export const EditEvent = ({
 		initialEvent?.type === "single" && initialEvent.completed
 	);
 
+	const [isTask, setIsTask] = useState(
+		initialEvent?.type === "single" &&
+			initialEvent.completed !== undefined &&
+			initialEvent.completed !== null
+	);
+
 	const titleRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
 		if (titleRef.current) {
@@ -167,7 +174,7 @@ export const EditEvent = ({
 					: {
 							date,
 							endDate,
-							completed: complete,
+							completed: isTask ? complete : null,
 					  }),
 			},
 			calendarIndex
@@ -295,6 +302,37 @@ export const EditEvent = ({
 								)}
 							/>
 						</p>
+					</>
+				)}
+				<p>
+					<label htmlFor="task">Task Event </label>
+					<input
+						id="task"
+						checked={isTask}
+						onChange={(e) => {
+							setIsTask(e.target.checked);
+						}}
+						type="checkbox"
+					/>
+				</p>
+
+				{isTask && (
+					<>
+						<label htmlFor="taskStatus">Complete? </label>
+						<input
+							id="taskStatus"
+							checked={
+								!(complete === false || complete === undefined)
+							}
+							onChange={(e) =>
+								setComplete(
+									e.target.checked
+										? DateTime.now().toISO()
+										: false
+								)
+							}
+							type="checkbox"
+						/>
 					</>
 				)}
 

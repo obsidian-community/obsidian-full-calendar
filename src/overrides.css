@@ -51,6 +51,14 @@
 	padding: var(--size-4-1) var(--size-4-3) !important;
 }
 
-.fc-event-time {
-	display: flex;
+.ofc-has-checkbox {
+	display: flex !important;
+}
+
+.ofc-task-completed .fc-event-title {
+	text-decoration: line-through;
+}
+
+.ofc-task-completed {
+	opacity: 0.8;
 }
