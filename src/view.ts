@@ -17,6 +17,7 @@ import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromCalendarId } from "./models";
 import { DateTime } from "luxon";
+
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
 export class CalendarView extends ItemView {

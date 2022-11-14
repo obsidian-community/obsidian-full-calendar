@@ -176,13 +176,6 @@ export function renderCalendar(
 			}
 		},
 
-		eventContent: (info) => {
-			// return null;
-			// return {
-			// 	html: `<input type="checkbox" onclick="event.stopPropagation()"/> ${info.event.title}`,
-			// };
-		},
-
 		longPressDelay: 250,
 	});
 	cal.render();
