@@ -21,6 +21,7 @@ export type SingleEventFrontmatter = {
 	type?: "single";
 	date: string;
 	endDate?: string;
+	completed?: string | false | null;
 } & CommonEventFrontmatter;
 
 export type RecurringEventFrontmatter = {
@@ -70,6 +71,7 @@ export function validateFrontmatter(
 			type: "single",
 			date: obj.date,
 			endDate: obj.endDate,
+			completed: obj.completed,
 			...timeInfo,
 		};
 	} else if (obj.type === "recurring") {

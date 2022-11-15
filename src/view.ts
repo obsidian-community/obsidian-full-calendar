@@ -13,9 +13,10 @@ import { IcsSource } from "./models/IcsSource";
 import { NoteSource } from "./models/NoteSource";
 import { RemoteSource } from "./models/RemoteSource";
 import { renderOnboarding } from "./onboard";
-import { CalendarEvent, LocalEvent } from "./models/Event";
+import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromCalendarId } from "./models";
+import { DateTime } from "luxon";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -186,7 +187,27 @@ export class CalendarView extends ItemView {
 					this.app.vault,
 					e.id
 				);
+				if (event instanceof EditableEvent) {
+					if (!event.isTask) {
+						menu.addItem((item) =>
+							item
+								.setTitle("Turn into task")
+								.onClick(async () => {
+									await event.setIsTask(true);
+								})
+						);
+					} else {
+						menu.addItem((item) =>
+							item
+								.setTitle("Remove checkbox")
+								.onClick(async () => {
+									await event.setIsTask(false);
+								})
+						);
+					}
+				}
 				if (event instanceof LocalEvent) {
+					menu.addSeparator();
 					menu.addItem((item) =>
 						item.setTitle("Go to note").onClick(() => {
 							let leaf = this.app.workspace.getMostRecentLeaf();
@@ -209,6 +230,27 @@ export class CalendarView extends ItemView {
 				}
 
 				menu.showAtMouseEvent(mouseEvent);
+			},
+			toggleTask: async (e, isDone) => {
+				const event = await eventFromCalendarId(
+					this.app.metadataCache,
+					this.app.vault,
+					e.id
+				);
+				if (!event) {
+					return;
+				}
+				const newData = event.data;
+				if (newData.type !== "single") {
+					return;
+				}
+				if (isDone) {
+					const completionDate = DateTime.now().toISO();
+					newData.completed = completionDate;
+				} else {
+					newData.completed = false;
+				}
+				event.setData(newData);
 			},
 		});
 

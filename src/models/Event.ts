@@ -30,6 +30,14 @@ export abstract class CalendarEvent {
 		this._data = data;
 	}
 
+	get isTask(): boolean {
+		return (
+			this._data.type === "single" &&
+			this._data.completed !== undefined &&
+			this._data.completed !== null
+		);
+	}
+
 	abstract get identifier(): string;
 	abstract get PREFIX(): string;
 	get idForCalendar(): string {
@@ -64,6 +72,21 @@ export abstract class EditableEvent extends CalendarEvent {
 
 	get editable(): boolean {
 		return true;
+	}
+
+	async setIsTask(isTask: boolean): Promise<void> {
+		if (this._data.type !== "single") {
+			return;
+		}
+		if (
+			isTask &&
+			(this._data.completed === undefined ||
+				this._data.completed === null)
+		) {
+			await this.setData({ ...this._data, completed: false });
+		} else if (!isTask) {
+			await this.setData({ ...this._data, completed: null });
+		}
 	}
 
 	abstract setData(data: EventFrontmatter): Promise<void>;

@@ -14,7 +14,7 @@ export function getColors(color: string | null | undefined): {
 				g = parseInt(m[1], 16),
 				b = parseInt(m[2], 16);
 			const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-			if (brightness > 114) {
+			if (brightness > 150) {
 				textVar = "black";
 			}
 		}

@@ -50,3 +50,33 @@
 	line-height: 1 !important;
 	padding: var(--size-4-1) var(--size-4-3) !important;
 }
+
+.ofc-has-checkbox {
+	display: flex !important;
+}
+
+.ofc-has-checkbox.fc-list-event-title {
+	align-items: center;
+}
+
+.ofc-task-completed .fc-event-title {
+	text-decoration: line-through;
+}
+
+.ofc-task-completed .fc-list-event-title {
+	text-decoration: line-through;
+}
+
+.ofc-task-completed {
+	opacity: 0.8;
+}
+
+.ofc-checkbox-white {
+	border-color: white !important;
+	border-width: 1px !important;
+}
+
+.ofc-checkbox-black {
+	border-color: black !important;
+	border-width: 1px !important;
+}

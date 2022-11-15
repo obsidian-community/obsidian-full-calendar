@@ -32,6 +32,7 @@ interface ExtraRenderProps {
 		event: EventApi,
 		mouseEvent: MouseEvent
 	) => Promise<void>;
+	toggleTask?: (event: EventApi, isComplete: boolean) => Promise<void>;
 }
 
 export function renderCalendar(
@@ -46,6 +47,7 @@ export function renderCalendar(
 		modifyEvent,
 		eventMouseEnter,
 		openContextMenuForEvent,
+		toggleTask,
 	} = settings || {};
 	const modifyEventCallback =
 		modifyEvent &&
@@ -140,11 +142,47 @@ export function renderCalendar(
 
 		eventMouseEnter,
 
-		eventDidMount: ({ event, el }) => {
+		eventDidMount: ({ event, el, textColor }) => {
 			el.addEventListener("contextmenu", (e) => {
 				e.preventDefault();
 				openContextMenuForEvent && openContextMenuForEvent(event, e);
 			});
+			if (toggleTask) {
+				if (event.extendedProps.isTask) {
+					const checkbox = document.createElement("input");
+					checkbox.type = "checkbox";
+					checkbox.checked =
+						event.extendedProps.taskCompleted !== false;
+					checkbox.onclick = (e) => {
+						e.stopPropagation();
+						if (e.target) {
+							toggleTask(
+								event,
+								(e.target as HTMLInputElement).checked
+							);
+						}
+					};
+					// Make the checkbox more visible against different color events.
+					if (textColor == "black") {
+						checkbox.addClass("ofc-checkbox-black");
+					} else {
+						checkbox.addClass("ofc-checkbox-white");
+					}
+
+					if (checkbox.checked) {
+						el.addClass("ofc-task-completed");
+					}
+
+					// Depending on the view, we should put the checkbox in a different spot.
+					const container =
+						el.querySelector(".fc-event-time") ||
+						el.querySelector(".fc-event-title") ||
+						el.querySelector(".fc-list-event-title");
+
+					container?.addClass("ofc-has-checkbox");
+					container?.prepend(checkbox);
+				}
+			}
 		},
 
 		longPressDelay: 250,
