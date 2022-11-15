@@ -142,7 +142,7 @@ export function renderCalendar(
 
 		eventMouseEnter,
 
-		eventDidMount: ({ event, el }) => {
+		eventDidMount: ({ event, el, textColor }) => {
 			el.addEventListener("contextmenu", (e) => {
 				e.preventDefault();
 				openContextMenuForEvent && openContextMenuForEvent(event, e);
@@ -162,15 +162,23 @@ export function renderCalendar(
 							);
 						}
 					};
+					// Make the checkbox more visible against different color events.
+					if (textColor == "black") {
+						checkbox.addClass("ofc-checkbox-black");
+					} else {
+						checkbox.addClass("ofc-checkbox-white");
+					}
 
 					if (checkbox.checked) {
 						el.addClass("ofc-task-completed");
 					}
 
+					// Depending on the view, we should put the checkbox in a different spot.
 					const container =
 						el.querySelector(".fc-event-time") ||
 						el.querySelector(".fc-event-title") ||
 						el.querySelector(".fc-list-event-title");
+
 					container?.addClass("ofc-has-checkbox");
 					container?.prepend(checkbox);
 				}

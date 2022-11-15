@@ -67,3 +67,13 @@
 .ofc-task-completed {
 	opacity: 0.8;
 }
+
+.ofc-checkbox-white {
+	border-color: white !important;
+	border-width: 1px !important;
+}
+
+.ofc-checkbox-black {
+	border-color: black !important;
+	border-width: 1px !important;
+}
