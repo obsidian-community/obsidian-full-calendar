@@ -53,6 +53,9 @@
 
 .ofc-has-checkbox {
 	display: flex !important;
+}
+
+.ofc-has-checkbox.fc-list-event-title {
 	align-items: center;
 }
 
