@@ -169,7 +169,8 @@ export function renderCalendar(
 
 					const container =
 						el.querySelector(".fc-event-time") ||
-						el.querySelector(".fc-event-title");
+						el.querySelector(".fc-event-title") ||
+						el.querySelector(".fc-list-event-title");
 					container?.addClass("ofc-has-checkbox");
 					container?.prepend(checkbox);
 				}

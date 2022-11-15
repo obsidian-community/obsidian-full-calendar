@@ -53,9 +53,14 @@
 
 .ofc-has-checkbox {
 	display: flex !important;
+	align-items: center;
 }
 
 .ofc-task-completed .fc-event-title {
+	text-decoration: line-through;
+}
+
+.ofc-task-completed .fc-list-event-title {
 	text-decoration: line-through;
 }
 
