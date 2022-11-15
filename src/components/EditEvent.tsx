@@ -4,9 +4,9 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
 	CalendarSource,
-	EventFrontmatter,
+	OFCEvent,
 	LocalCalendarSource,
-	SingleEventFrontmatter,
+	SingleEventData,
 } from "../types";
 
 function makeChangeListener<T>(
@@ -82,13 +82,10 @@ const DaySelect = ({
 };
 
 interface EditEventProps {
-	submit: (
-		frontmatter: EventFrontmatter,
-		calendarIndex: number
-	) => Promise<void>;
+	submit: (frontmatter: OFCEvent, calendarIndex: number) => Promise<void>;
 	readonly calendars: CalendarSource[];
 	defaultCalendarIndex: number;
-	initialEvent?: Partial<EventFrontmatter>;
+	initialEvent?: Partial<OFCEvent>;
 	open?: () => Promise<void>;
 	deleteEvent?: () => Promise<void>;
 }
@@ -105,7 +102,7 @@ export const EditEvent = ({
 		initialEvent
 			? initialEvent.type !== "recurring"
 				? // Discriminated union on unset type not working well within Partial<>
-				  (initialEvent as SingleEventFrontmatter).date
+				  (initialEvent as SingleEventData).date
 				: initialEvent.startRecur || ""
 			: ""
 	);

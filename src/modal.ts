@@ -6,7 +6,7 @@ import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./components/EditEvent";
 import { AddCalendarSource } from "./components/AddCalendarSource";
-import { EventFrontmatter } from "./types";
+import { OFCEvent } from "./types";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromCalendarId } from "./models";
@@ -15,7 +15,7 @@ export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
 	calendar: Calendar | null;
 
-	data: Partial<EventFrontmatter> | undefined;
+	data: Partial<OFCEvent> | undefined;
 	event: CalendarEvent | undefined;
 	file: TFile | undefined;
 
@@ -23,7 +23,7 @@ export class EventModal extends Modal {
 		app: App,
 		plugin: FullCalendarPlugin,
 		calendar: Calendar | null,
-		event?: Partial<EventFrontmatter>
+		event?: Partial<OFCEvent>
 	) {
 		super(app);
 		this.plugin = plugin;

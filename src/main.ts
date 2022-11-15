@@ -3,7 +3,7 @@ import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./view";
 import { renderCalendar } from "./calendar";
 
 import { EventModal } from "./modal";
-import { parseFrontmatter } from "./frontmatter";
+import { parseFrontmatter } from "./fullcalendar_interop";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,

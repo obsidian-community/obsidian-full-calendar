@@ -8,7 +8,7 @@ import { FCError, PLUGIN_SLUG } from "./types";
 import {
 	dateEndpointsToFrontmatter,
 	eventApiToFrontmatter,
-} from "./frontmatter";
+} from "./fullcalendar_interop";
 import { IcsSource } from "./models/IcsSource";
 import { NoteSource } from "./models/NoteSource";
 import { RemoteSource } from "./models/RemoteSource";

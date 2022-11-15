@@ -3,37 +3,35 @@ import { MetadataCache, Vault } from "obsidian";
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter
-export type AllDayFrontmatter = {
+export type AllDayData = {
 	allDay: true;
 };
 
-export type RangeTimeFrontmatter = {
+export type RangeTimeData = {
 	allDay: false;
 	startTime: string;
 	endTime: string | null;
 };
 
-export type CommonEventFrontmatter = {
+export type CommonEventData = {
 	title?: string;
-} & (RangeTimeFrontmatter | AllDayFrontmatter);
+} & (RangeTimeData | AllDayData);
 
-export type SingleEventFrontmatter = {
+export type SingleEventData = {
 	type?: "single";
 	date: string;
 	endDate?: string;
 	completed?: string | false | null;
-} & CommonEventFrontmatter;
+} & CommonEventData;
 
-export type RecurringEventFrontmatter = {
+export type RecurringEventData = {
 	type: "recurring";
 	daysOfWeek: string[];
 	startRecur?: string;
 	endRecur?: string;
-} & CommonEventFrontmatter;
+} & CommonEventData;
 
-export type EventFrontmatter =
-	| SingleEventFrontmatter
-	| RecurringEventFrontmatter;
+export type OFCEvent = SingleEventData | RecurringEventData;
 
 /*
  * Validates that an incoming object from a JS object (presumably parsed from a note's frontmatter)
@@ -41,7 +39,7 @@ export type EventFrontmatter =
  */
 export function validateFrontmatter(
 	obj?: Record<string, any>
-): EventFrontmatter | null {
+): OFCEvent | null {
 	if (obj === undefined) {
 		return null;
 	}
@@ -54,7 +52,7 @@ export function validateFrontmatter(
 		return null;
 	}
 
-	const timeInfo: RangeTimeFrontmatter | AllDayFrontmatter = obj.allDay
+	const timeInfo: RangeTimeData | AllDayData = obj.allDay
 		? { allDay: true }
 		: {
 				allDay: false,

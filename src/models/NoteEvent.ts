@@ -1,6 +1,6 @@
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
-import { modifyFrontmatter } from "src/frontmatter";
-import { EventFrontmatter, FCError, validateFrontmatter } from "src/types";
+import { modifyFrontmatter } from "src/serialization/frontmatter";
+import { OFCEvent, FCError, validateFrontmatter } from "src/types";
 import { basenameFromEvent, LocalEvent } from "./Event";
 
 export class NoteEvent extends LocalEvent {
@@ -22,7 +22,7 @@ export class NoteEvent extends LocalEvent {
 	constructor(
 		cache: MetadataCache,
 		vault: Vault,
-		data: EventFrontmatter,
+		data: OFCEvent,
 		{ directory, filename }: { directory: string; filename: string }
 	) {
 		super(cache, vault, data);
@@ -34,7 +34,7 @@ export class NoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		directory: string,
-		data: EventFrontmatter
+		data: OFCEvent
 	): Promise<NoteEvent> {
 		const filename = `${directory}/${basenameFromEvent(data)}.md`;
 		if (vault.getAbstractFileByPath(filename)) {
@@ -56,7 +56,7 @@ export class NoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		file: TFile,
-		data: EventFrontmatter
+		data: OFCEvent
 	) {
 		await modifyFrontmatter(vault, file, data);
 
@@ -143,7 +143,7 @@ export class NoteEvent extends LocalEvent {
 		this.directory = newDirectory;
 	}
 
-	async setData(data: EventFrontmatter): Promise<void> {
+	async setData(data: OFCEvent): Promise<void> {
 		let file = this.file;
 		let newFilename = `${basenameFromEvent(data)}.md`;
 		if (

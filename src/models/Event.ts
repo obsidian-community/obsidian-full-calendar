@@ -1,10 +1,10 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
 import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
-import { parseFrontmatter } from "src/frontmatter";
-import { CalendarSource, EventFrontmatter, FCError } from "src/types";
+import { parseFrontmatter } from "src/fullcalendar_interop";
+import { CalendarSource, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
 
-export function basenameFromEvent(event: EventFrontmatter): string {
+export function basenameFromEvent(event: OFCEvent): string {
 	switch (event.type) {
 		case "single":
 		case undefined:
@@ -22,9 +22,9 @@ export abstract class CalendarEvent {
 	cache: MetadataCache;
 	vault: Vault;
 
-	protected _data: EventFrontmatter;
+	protected _data: OFCEvent;
 
-	constructor(cache: MetadataCache, vault: Vault, data: EventFrontmatter) {
+	constructor(cache: MetadataCache, vault: Vault, data: OFCEvent) {
 		this.cache = cache;
 		this.vault = vault;
 		this._data = data;
@@ -48,7 +48,7 @@ export abstract class CalendarEvent {
 		return parseFrontmatter(this.idForCalendar, this.data);
 	}
 
-	get data(): EventFrontmatter {
+	get data(): OFCEvent {
 		return { ...this._data };
 	}
 
@@ -66,7 +66,7 @@ export abstract class CalendarEvent {
 }
 
 export abstract class EditableEvent extends CalendarEvent {
-	constructor(cache: MetadataCache, vault: Vault, data: EventFrontmatter) {
+	constructor(cache: MetadataCache, vault: Vault, data: OFCEvent) {
 		super(cache, vault, data);
 	}
 
@@ -89,7 +89,7 @@ export abstract class EditableEvent extends CalendarEvent {
 		}
 	}
 
-	abstract setData(data: EventFrontmatter): Promise<void>;
+	abstract setData(data: OFCEvent): Promise<void>;
 	abstract delete(): Promise<void>;
 }
 
