@@ -1,6 +1,6 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
 import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
-import { parseFrontmatter } from "src/fullcalendar_interop";
+import { toEventInput } from "src/fullcalendar_interop";
 import { CalendarSource, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
 
@@ -45,7 +45,7 @@ export abstract class CalendarEvent {
 	}
 
 	toCalendarEvent(): EventInput | null {
-		return parseFrontmatter(this.idForCalendar, this.data);
+		return toEventInput(this.idForCalendar, this.data);
 	}
 
 	get data(): OFCEvent {

@@ -7,7 +7,7 @@ import { EventModal } from "./modal";
 import { FCError, PLUGIN_SLUG } from "./types";
 import {
 	dateEndpointsToFrontmatter,
-	eventApiToFrontmatter,
+	fromEventApi,
 } from "./fullcalendar_interop";
 import { IcsSource } from "./models/IcsSource";
 import { NoteSource } from "./models/NoteSource";
@@ -151,7 +151,7 @@ export class CalendarView extends ItemView {
 					if (!existingEvent) {
 						return false;
 					}
-					const frontmatter = eventApiToFrontmatter(newEvent);
+					const frontmatter = fromEventApi(newEvent);
 					await existingEvent.setData(frontmatter);
 				} catch (e: any) {
 					new Notice(e.message);

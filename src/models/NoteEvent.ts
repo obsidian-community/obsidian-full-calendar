@@ -1,6 +1,6 @@
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { modifyFrontmatter } from "src/serialization/frontmatter";
-import { OFCEvent, FCError, validateFrontmatter } from "src/types";
+import { OFCEvent, FCError, validateEvent } from "src/types";
 import { basenameFromEvent, LocalEvent } from "./Event";
 
 export class NoteEvent extends LocalEvent {
@@ -71,7 +71,7 @@ export class NoteEvent extends LocalEvent {
 		vault: Vault,
 		file: TFile
 	): NoteEvent | null {
-		let data = validateFrontmatter(cache.getFileCache(file)?.frontmatter);
+		let data = validateEvent(cache.getFileCache(file)?.frontmatter);
 
 		if (!data) return null;
 		if (!data.title) {

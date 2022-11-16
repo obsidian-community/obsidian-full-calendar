@@ -30,7 +30,7 @@ export function dateEndpointsToFrontmatter(
 	};
 }
 
-export function parseFrontmatter(
+export function toEventInput(
 	id: string,
 	frontmatter: OFCEvent
 ): EventInput | null {
@@ -105,7 +105,7 @@ export function parseFrontmatter(
 	return event;
 }
 
-export function eventApiToFrontmatter(event: EventApi): OFCEvent {
+export function fromEventApi(event: EventApi): OFCEvent {
 	const isRecurring: boolean = event.extendedProps.daysOfWeek !== undefined;
 	const startDate = getDate(event.start as Date);
 	const endDate = getDate(event.end as Date);

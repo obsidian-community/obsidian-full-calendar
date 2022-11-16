@@ -37,9 +37,7 @@ export type OFCEvent = SingleEventData | RecurringEventData;
  * Validates that an incoming object from a JS object (presumably parsed from a note's frontmatter)
  * is a valid event, and returns that event if so. If any required fields are missing, then returns null.
  */
-export function validateFrontmatter(
-	obj?: Record<string, any>
-): OFCEvent | null {
+export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 	if (obj === undefined) {
 		return null;
 	}
@@ -104,6 +102,15 @@ export type LocalCalendarSource = {
 } & CalendarSourceCommon;
 
 /**
+ * Local calendar with events stored inline in daily notes. Under a certain heading.
+ */
+export type DailyNoteCalendarSource = {
+	type: "dailynote";
+	directory: string;
+	heading: string;
+} & CalendarSourceCommon;
+
+/**
  * Public google calendars using the FullCalendar integration.
  */
 export type GoogleCalendarSource = {
@@ -150,6 +157,7 @@ export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
 
 export type CalendarSource =
 	| LocalCalendarSource
+	| DailyNoteCalendarSource
 	| GoogleCalendarSource
 	| ICalSource
 	| CalDAVSource
