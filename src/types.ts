@@ -106,7 +106,6 @@ export type LocalCalendarSource = {
  */
 export type DailyNoteCalendarSource = {
 	type: "dailynote";
-	directory: string;
 	heading: string;
 } & CalendarSourceCommon;
 

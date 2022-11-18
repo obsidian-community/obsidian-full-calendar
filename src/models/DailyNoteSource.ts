@@ -1,5 +1,6 @@
 import { EventSourceInput } from "@fullcalendar/core";
 import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import { toEventInput } from "src/fullcalendar_interop";
 import { getAllInlineEventsFromFile } from "src/serialization/inline";
 import { DailyNoteCalendarSource, FCError } from "src/types";
@@ -23,7 +24,15 @@ export class DailyNoteSource extends EventSource {
 	}
 
 	async toApi(): Promise<EventSourceInput | FCError> {
-		const folder = this.vault.getAbstractFileByPath(this.info.directory);
+		const dailyNoteSettings = getDailyNoteSettings();
+
+		if (!dailyNoteSettings.folder) {
+			return new FCError("No daily note folder found.");
+		}
+
+		const folder = this.vault.getAbstractFileByPath(
+			dailyNoteSettings.folder
+		);
 		if (!(folder instanceof TFolder)) {
 			return new FCError("Directory");
 		}

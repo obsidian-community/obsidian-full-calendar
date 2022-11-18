@@ -91,6 +91,7 @@ export function addCalendarButton(
 					icloud: "iCloud",
 					caldav: "CalDAV",
 					ical: "Remote (.ics format)",
+					dailynote: "Daily Note",
 				}))
 		)
 		.addExtraButton((button) => {

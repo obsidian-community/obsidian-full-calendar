@@ -139,6 +139,34 @@ function UsernameInput<T extends Partial<CalendarSource>>({
 	);
 }
 
+function HeadingInput<T extends Partial<CalendarSource>>({
+	source,
+	changeListener,
+}: BasicProps<T>) {
+	let sourceWithHeading = source as SourceWith<T, { heading: undefined }>;
+	return (
+		<div className="setting-item">
+			<div className="setting-item-info">
+				<div className="setting-item-name">Heading</div>
+				<div className="setting-item-description">
+					Heading to store events under in the daily note.
+				</div>
+			</div>
+			<div className="setting-item-control">
+				<input
+					required
+					type="text"
+					value={sourceWithHeading.heading || ""}
+					onChange={changeListener((x) => ({
+						...sourceWithHeading,
+						heading: x,
+					}))}
+				/>
+			</div>
+		</div>
+	);
+}
+
 function PasswordInput<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
@@ -221,12 +249,20 @@ export const AddCalendarSource = ({
 						directories={directories}
 					/>
 				)}
-				{source.type !== "local" && source.type !== "icloud" && (
-					<UrlInput
+				{source.type === "dailynote" && (
+					<HeadingInput
 						source={setting}
 						changeListener={makeChangeListener}
 					/>
 				)}
+				{source.type === "gcal" ||
+					source.type === "ical" ||
+					(source.type === "caldav" && (
+						<UrlInput
+							source={setting}
+							changeListener={makeChangeListener}
+						/>
+					))}
 				{isCalDAV && (
 					<UsernameInput
 						source={setting}
