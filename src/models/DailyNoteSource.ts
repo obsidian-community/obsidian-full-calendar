@@ -1,8 +1,15 @@
 import { EventSourceInput } from "@fullcalendar/core";
-import { MetadataCache, TFile, TFolder, Vault } from "obsidian";
-import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import { MetadataCache, Vault } from "obsidian";
+import {
+	appHasDailyNotesPluginLoaded,
+	getAllDailyNotes,
+	getDateFromFile,
+} from "obsidian-daily-notes-interface";
 import { toEventInput } from "src/fullcalendar_interop";
-import { getAllInlineEventsFromFile } from "src/serialization/inline";
+import {
+	getAllInlineEventsFromFile,
+	getListsUnderHeading,
+} from "src/serialization/inline";
 import { DailyNoteCalendarSource, FCError } from "src/types";
 import { EventSource } from "./EventSource";
 import { getColors } from "./util";
@@ -24,39 +31,41 @@ export class DailyNoteSource extends EventSource {
 	}
 
 	async toApi(): Promise<EventSourceInput | FCError> {
-		const dailyNoteSettings = getDailyNoteSettings();
-
-		if (!dailyNoteSettings.folder) {
-			return new FCError("No daily note folder found.");
+		if (!appHasDailyNotesPluginLoaded()) {
+			console.warn(
+				"Daily note calendar can't be loaded without daily notes plugin."
+			);
+			return new FCError(
+				"Daily note calendar cannot be loaded without daily notes plugin."
+			);
 		}
-
-		const folder = this.vault.getAbstractFileByPath(
-			dailyNoteSettings.folder
-		);
-		if (!(folder instanceof TFolder)) {
-			return new FCError("Directory");
-		}
-		const files = folder.children.flatMap((f) =>
-			f instanceof TFile ? [f] : []
-		);
-
 		const events = (
 			await Promise.all(
-				files.map(async (f) => {
-					const text = await this.vault.read(f);
-					const listItems = this.cache.getFileCache(f)?.listItems;
-					if (!listItems) {
+				Object.values(getAllDailyNotes()).map(async (f) => {
+					const fileDate = getDateFromFile(f, "day")?.format(
+						"YYYY-MM-DD"
+					);
+					if (!fileDate) {
 						return null;
 					}
-					// TODO: Add in global attrs
-					return getAllInlineEventsFromFile(text, listItems, {}).map(
-						({ event, pos }) =>
-							toEventInput(
-								`dailynote:::${f.name}:::${JSON.stringify(
-									pos
-								)}`,
-								event
-							)
+					const cache = this.cache.getFileCache(f);
+					if (!cache) {
+						return null;
+					}
+					const listItems = getListsUnderHeading(
+						this.info.heading,
+						cache
+					);
+
+					const text = await this.vault.read(f);
+
+					return getAllInlineEventsFromFile(text, listItems, {
+						date: fileDate,
+					}).map(({ event, pos }) =>
+						toEventInput(
+							`dailynote:::${f.name}:::${JSON.stringify(pos)}`,
+							event
+						)
 					);
 				})
 			)

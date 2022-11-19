@@ -17,11 +17,7 @@ import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromCalendarId } from "./models";
 import { DateTime } from "luxon";
-import {
-	getAllDailyNotes,
-	getDailyNoteSettings,
-	getTemplateInfo,
-} from "obsidian-daily-notes-interface";
+import { DailyNoteSource } from "./models/DailyNoteSource";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -102,13 +98,6 @@ export class CalendarView extends ItemView {
 		for (const err of errs) {
 			new Notice(err.message);
 		}
-		let s = getDailyNoteSettings();
-		console.log("daily note settings", s);
-		console.log(
-			"daily note template",
-			s.template && (await getTemplateInfo(s.template))
-		);
-		console.log("get all daily notes", Object.values(getAllDailyNotes()));
 
 		this.calendar = renderCalendar(calendarEl, sources, {
 			eventClick: async (info) => {
@@ -295,7 +284,26 @@ export class CalendarView extends ItemView {
 					}
 				})
 			);
-
+		this.plugin.settings.calendarSources
+			.flatMap((s) => (s.type === "dailynote" ? [s] : []))
+			.map(
+				(s) =>
+					new DailyNoteSource(
+						this.app.vault,
+						this.app.metadataCache,
+						s
+					)
+			)
+			.map((s) => s.toApi())
+			.forEach((resultPromise) =>
+				resultPromise.then((result) => {
+					if (result instanceof FCError) {
+						new Notice(result.message);
+					} else {
+						this.calendar?.addEventSource(result);
+					}
+				})
+			);
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
 		);

@@ -44,11 +44,9 @@ export class EventModal extends Modal {
 				this.event = event;
 				this.open();
 			} else {
-				new Notice(
-					"Full Calendar: No frontmatter to edit for selected event."
-				);
+				new Notice("Full Calendar: Selected event cannot be edited.");
 				console.warn(
-					"Full Calendar: No frontmatter to edit for selected event.",
+					"Full Calendar: Selected event cannot be edited.",
 					input
 				);
 			}

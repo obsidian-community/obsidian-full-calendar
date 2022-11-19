@@ -1,5 +1,12 @@
 import { EventInput } from "@fullcalendar/core";
-import { ListItemCache, MetadataCache, Pos, TFile, Vault } from "obsidian";
+import {
+	CachedMetadata,
+	ListItemCache,
+	MetadataCache,
+	Pos,
+	TFile,
+	Vault,
+} from "obsidian";
 import { toEventInput } from "src/fullcalendar_interop";
 import { OFCEvent, validateEvent } from "src/types";
 
@@ -24,6 +31,53 @@ function getInlineAttributes(s: string): Record<string, string | boolean> {
 		Array.from(s.matchAll(fieldRegex)).map((m) => [m[1], parseBool(m[2])])
 	);
 }
+
+export const getHeadingPosition = (
+	headingText: string,
+	metadata: CachedMetadata
+): Pos | null => {
+	if (!metadata.headings) {
+		return null;
+	}
+
+	let level: number | null = null;
+	let startingPos: Pos | null = null;
+	let endingPos: Pos | null = null;
+
+	for (const heading of metadata.headings) {
+		if (!level && heading.heading === headingText) {
+			level = heading.level;
+			startingPos = heading.position;
+		} else if (level && heading.level <= level) {
+			endingPos = heading.position;
+			break;
+		}
+	}
+
+	if (!level || !startingPos || !endingPos) {
+		return null;
+	}
+
+	return { start: startingPos.end, end: endingPos.start };
+};
+
+export const getListsUnderHeading = (
+	headingText: string,
+	metadata: CachedMetadata
+): ListItemCache[] => {
+	if (!metadata.listItems) {
+		return [];
+	}
+	const headingPos = getHeadingPosition(headingText, metadata);
+	if (!headingPos) {
+		return [];
+	}
+	return metadata.listItems?.filter(
+		(l) =>
+			headingPos.start.offset < l.position.start.offset &&
+			l.position.end.offset < headingPos.end.offset
+	);
+};
 
 const getInlineEventFromLine = (
 	text: string,

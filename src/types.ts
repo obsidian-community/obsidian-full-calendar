@@ -8,7 +8,7 @@ export type AllDayData = {
 };
 
 export type RangeTimeData = {
-	allDay: false;
+	allDay?: false;
 	startTime: string;
 	endTime: string | null;
 };
@@ -53,7 +53,6 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 	const timeInfo: RangeTimeData | AllDayData = obj.allDay
 		? { allDay: true }
 		: {
-				allDay: false,
 				startTime: obj.startTime,
 				endTime: obj.endTime,
 		  };
