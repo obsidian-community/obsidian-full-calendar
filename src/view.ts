@@ -239,11 +239,15 @@ export class CalendarView extends ItemView {
 					e.id
 				);
 				if (!event) {
-					return;
+					return false;
+				}
+				if (!(event instanceof NoteEvent)) {
+					new Notice("Not implemented on Daily Note events");
+					return false;
 				}
 				const newData = event.data;
 				if (newData.type !== "single") {
-					return;
+					return false;
 				}
 				if (isDone) {
 					const completionDate = DateTime.now().toISO();
@@ -251,7 +255,15 @@ export class CalendarView extends ItemView {
 				} else {
 					newData.completed = false;
 				}
-				event.setData(newData);
+				try {
+					event.setData(newData);
+				} catch (e) {
+					if (e instanceof FCError) {
+						new Notice(e.message);
+					}
+					return false;
+				}
+				return true;
 			},
 		});
 

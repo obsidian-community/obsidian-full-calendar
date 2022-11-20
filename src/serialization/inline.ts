@@ -94,7 +94,17 @@ export const getInlineEventFromLine = (
 	});
 };
 
-const listRegex = /^(\s*)\-(\s+)(\[.\]\s+)?/g;
+const listRegex = /^(\s*)\-(\s+)(\[.\]\s+)?/;
+const checkboxRegex = /^\s*\-\s+\[(.)\]\s+/;
+
+const checkboxTodo = (s: string) => {
+	const match = s.match(checkboxRegex);
+	if (!match || !match[1]) {
+		return null;
+	}
+	return match[1] === " " ? false : "yes";
+};
+
 export function getAllInlineEventsFromFile(
 	fileText: string,
 	listItems: ListItemCache[],
@@ -108,10 +118,11 @@ export function getAllInlineEventsFromFile(
 	return listItemText
 		.map((l) => ({
 			pos: l.pos,
-			event: getInlineEventFromLine(
-				l.text.replace(listRegex, ""),
-				fileGlobalAttrs
-			),
+			event: getInlineEventFromLine(l.text.replace(listRegex, ""), {
+				...fileGlobalAttrs,
+				completed: checkboxTodo(l.text),
+				type: "single",
+			}),
 		}))
 		.flatMap(({ event, pos }) => (event ? [{ event, pos }] : []));
 }
