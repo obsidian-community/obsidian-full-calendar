@@ -109,17 +109,6 @@ export class NoteEvent extends LocalEvent {
 		await this.vault.trash(this.file, true);
 	}
 
-	get file(): TFile {
-		const file = this.vault.getAbstractFileByPath(this.path);
-		if (file instanceof TFile) {
-			return file;
-		} else {
-			throw new FCError(
-				`Cannot find file for NoteEvent at path ${this.path}.`
-			);
-		}
-	}
-
 	async setDirectory(newDirectory: string): Promise<void> {
 		// Since calendars may contain events in nested folders, don't move this file
 		// if it would simply move "up" to a base folder.

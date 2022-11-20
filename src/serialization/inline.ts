@@ -1,21 +1,18 @@
-import { EventInput } from "@fullcalendar/core";
-import {
-	CachedMetadata,
-	ListItemCache,
-	MetadataCache,
-	Pos,
-	TFile,
-	Vault,
-} from "obsidian";
-import { toEventInput } from "src/fullcalendar_interop";
+import { CachedMetadata, ListItemCache, Pos, TFile, Vault } from "obsidian";
 import { OFCEvent, validateEvent } from "src/types";
+
+// PARSING
 
 type Line = {
 	text: string;
 	pos: Pos;
 };
+
 // TODO: This is O(n*m), but it can definitely be optimized to O(n).
-function extractTextFromPositions(content: string, positions: Pos[]): Line[] {
+export function extractTextFromPositions(
+	content: string,
+	positions: Pos[]
+): Line[] {
 	return positions.map((pos) => ({
 		text: content.substring(pos.start.offset, pos.end.offset),
 		pos,
@@ -79,7 +76,7 @@ export const getListsUnderHeading = (
 	);
 };
 
-const getInlineEventFromLine = (
+export const getInlineEventFromLine = (
 	text: string,
 	globalAttrs: Partial<OFCEvent>
 ): OFCEvent | null => {
@@ -97,6 +94,7 @@ const getInlineEventFromLine = (
 	});
 };
 
+const listRegex = /^(\s*)\-(\s+)(\[.\]\s+)?/g;
 export function getAllInlineEventsFromFile(
 	fileText: string,
 	listItems: ListItemCache[],
@@ -105,15 +103,29 @@ export function getAllInlineEventsFromFile(
 	const listItemText: Line[] = extractTextFromPositions(
 		fileText,
 		listItems.map((i) => i.position)
-	).map((l) => ({
-		...l,
-		text: l.text.replace(/\- (\[.\] ?)?/, ""),
-	}));
+	);
 
 	return listItemText
 		.map((l) => ({
 			pos: l.pos,
-			event: getInlineEventFromLine(l.text, fileGlobalAttrs),
+			event: getInlineEventFromLine(
+				l.text.replace(listRegex, ""),
+				fileGlobalAttrs
+			),
 		}))
 		.flatMap(({ event, pos }) => (event ? [{ event, pos }] : []));
 }
+
+// SERIALIZATION
+
+export const modifyListItem = async (
+	vault: Vault,
+	file: TFile,
+	position: Pos,
+	modifications: Partial<OFCEvent> & { title: string }
+): Promise<void> => {
+	const page = await vault.read(file);
+	let line = page.substring(position.start.offset, position.end.offset);
+	const prefix = line.match(listRegex)?.[0] || "";
+	line = line.replace(listRegex, "");
+};

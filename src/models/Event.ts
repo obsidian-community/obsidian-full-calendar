@@ -1,5 +1,5 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
-import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
+import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { toEventInput } from "src/fullcalendar_interop";
 import { CalendarSource, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
@@ -10,7 +10,7 @@ export function basenameFromEvent(event: OFCEvent): string {
 		case undefined:
 			return `${event.date} ${event.title}`;
 		case "recurring":
-			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
+			return `(Every ${event.daysOfWeek.join(",")}) ${event.title}`;
 	}
 }
 
@@ -96,4 +96,15 @@ export abstract class EditableEvent extends CalendarEvent {
 export abstract class LocalEvent extends EditableEvent {
 	abstract openIn(leaf: WorkspaceLeaf): Promise<void>;
 	abstract get path(): string;
+
+	get file(): TFile {
+		const file = this.vault.getAbstractFileByPath(this.path);
+		if (file instanceof TFile) {
+			return file;
+		} else {
+			throw new FCError(
+				`Cannot find file for NoteEvent at path ${this.path}.`
+			);
+		}
+	}
 }

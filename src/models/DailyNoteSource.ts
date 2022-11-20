@@ -14,6 +14,8 @@ import { DailyNoteCalendarSource, FCError } from "src/types";
 import { EventSource } from "./EventSource";
 import { getColors } from "./util";
 
+export const DATE_FORMAT = "YYYY-MM-DD";
+
 export class DailyNoteSource extends EventSource {
 	info: DailyNoteCalendarSource;
 	vault: Vault;
@@ -43,7 +45,7 @@ export class DailyNoteSource extends EventSource {
 			await Promise.all(
 				Object.values(getAllDailyNotes()).map(async (f) => {
 					const fileDate = getDateFromFile(f, "day")?.format(
-						"YYYY-MM-DD"
+						DATE_FORMAT
 					);
 					if (!fileDate) {
 						return null;
@@ -63,7 +65,7 @@ export class DailyNoteSource extends EventSource {
 						date: fileDate,
 					}).map(({ event, pos }) =>
 						toEventInput(
-							`dailynote:::${f.name}:::${JSON.stringify(pos)}`,
+							`dailynote::${f.path}::${JSON.stringify(pos)}`,
 							event
 						)
 					);
@@ -72,7 +74,6 @@ export class DailyNoteSource extends EventSource {
 		)
 			.flat()
 			.flatMap((e) => (e ? [e] : []));
-
 		return {
 			events,
 			...getColors(this.info.color),
