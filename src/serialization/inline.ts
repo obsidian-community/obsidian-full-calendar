@@ -76,6 +76,9 @@ export const getListsUnderHeading = (
 	);
 };
 
+const listRegex = /^(\s*)\-\s+(\[(.)\]\s+)?/;
+const checkboxRegex = /^\s*\-\s+\[(.)\]\s+/;
+
 export const getInlineEventFromLine = (
 	text: string,
 	globalAttrs: Partial<OFCEvent>
@@ -88,14 +91,11 @@ export const getInlineEventFromLine = (
 	}
 
 	return validateEvent({
-		title: text.replace(fieldRegex, "").trim(),
+		title: text.replace(listRegex, "").replace(fieldRegex, "").trim(),
 		...globalAttrs,
 		...attrs,
 	});
 };
-
-const listRegex = /^(\s*)\-\s+(\[(.)\]\s+)?/;
-const checkboxRegex = /^\s*\-\s+\[(.)\]\s+/;
 
 const checkboxTodo = (s: string) => {
 	const match = s.match(checkboxRegex);
@@ -176,7 +176,7 @@ export const modifyListItem = (
 		return null;
 	}
 	const attrs = getInlineAttributes(line) as Partial<SingleEventData>;
-	const oldTitle = line.replace(fieldRegex, "").trim();
+	const oldTitle = line.replace(listRegex, "").replace(fieldRegex, "").trim();
 	const { completed: newCompleted, title: newTitle } = modifications;
 	const checkbox = (() => {
 		if (newCompleted !== null && newCompleted !== undefined) {
@@ -192,6 +192,14 @@ export const modifyListItem = (
 	}
 
 	const newAttrs = { ...attrs, ...modifications };
+
+	for (const key of <(keyof SingleEventData)[]>Object.keys(newAttrs)) {
+		if (newAttrs[key] === undefined) {
+			delete newAttrs[key];
+		}
+	}
+
+	console.log("list regex match", { listMatch, oldTitle, newTitle });
 	const newLine = `${listMatch[1]}- ${checkbox || ""} ${
 		newTitle || oldTitle
 	} ${generateInlineAttributes(newAttrs)}`;
