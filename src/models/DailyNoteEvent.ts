@@ -113,7 +113,7 @@ export class DailyNoteEvent extends LocalEvent {
 		await withFile(this.vault, this.file, modifyListItem)(
 			this.position,
 			data,
-			["date", "allDay", "type"]
+			["date", "type"]
 		);
 	}
 	async delete(): Promise<void> {

@@ -42,6 +42,7 @@ export class DailyNoteSource extends EventSource {
 			return null;
 		}
 		const listItems = getListsUnderHeading(this.info.heading, cache);
+		console.log("listItems", listItems);
 
 		const text = await this.vault.read(f);
 

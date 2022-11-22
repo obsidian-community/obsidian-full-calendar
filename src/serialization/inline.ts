@@ -78,7 +78,13 @@ export const getListsUnderHeading = (
 
 const listRegex = /^(\s*)\-\s+(\[(.)\]\s+)?/;
 const checkboxRegex = /^\s*\-\s+\[(.)\]\s+/;
-
+const checkboxTodo = (s: string) => {
+	const match = s.match(checkboxRegex);
+	if (!match || !match[1]) {
+		return null;
+	}
+	return match[1] === " " ? false : match[1];
+};
 export const getInlineEventFromLine = (
 	text: string,
 	globalAttrs: Partial<OFCEvent>
@@ -92,17 +98,10 @@ export const getInlineEventFromLine = (
 
 	return validateEvent({
 		title: text.replace(listRegex, "").replace(fieldRegex, "").trim(),
+		completed: checkboxTodo(text),
 		...globalAttrs,
 		...attrs,
 	});
-};
-
-const checkboxTodo = (s: string) => {
-	const match = s.match(checkboxRegex);
-	if (!match || !match[1]) {
-		return null;
-	}
-	return match[1] === " " ? false : match[1];
 };
 
 export function getAllInlineEventsFromFile(
@@ -118,9 +117,8 @@ export function getAllInlineEventsFromFile(
 	return listItemText
 		.map((l) => ({
 			pos: l.pos,
-			event: getInlineEventFromLine(l.text.replace(listRegex, ""), {
+			event: getInlineEventFromLine(l.text, {
 				...fileGlobalAttrs,
-				completed: checkboxTodo(l.text),
 				type: "single",
 			}),
 		}))
@@ -163,7 +161,7 @@ const replaceAtPos = (
 export const modifyListItem = (
 	page: string,
 	position: Pos,
-	modifications: Partial<SingleEventData>,
+	newListItem: SingleEventData,
 	keysToIgnore: (keyof SingleEventData)[]
 ): string | null => {
 	let line = page.substring(position.start.offset, position.end.offset);
@@ -175,9 +173,8 @@ export const modifyListItem = (
 		);
 		return null;
 	}
-	const attrs = getInlineAttributes(line) as Partial<SingleEventData>;
 	const oldTitle = line.replace(listRegex, "").replace(fieldRegex, "").trim();
-	const { completed: newCompleted, title: newTitle } = modifications;
+	const { completed: newCompleted, title: newTitle } = newListItem;
 	const checkbox = (() => {
 		if (newCompleted !== null && newCompleted !== undefined) {
 			return `[${newCompleted ? "x" : " "}]`;
@@ -185,18 +182,22 @@ export const modifyListItem = (
 		return null;
 	})();
 
-	delete modifications["completed"];
-	delete modifications["title"];
+	delete newListItem["completed"];
+	delete newListItem["title"];
 	for (const key of keysToIgnore) {
-		delete modifications[key];
+		delete newListItem[key];
 	}
 
-	const newAttrs = { ...attrs, ...modifications };
+	const newAttrs: Partial<SingleEventData> = { ...newListItem };
 
 	for (const key of <(keyof SingleEventData)[]>Object.keys(newAttrs)) {
-		if (newAttrs[key] === undefined) {
+		if (newAttrs[key] === undefined || newAttrs[key] === null) {
 			delete newAttrs[key];
 		}
+	}
+
+	if (!newAttrs["allDay"]) {
+		delete newAttrs["allDay"];
 	}
 
 	console.log("list regex match", { listMatch, oldTitle, newTitle });
