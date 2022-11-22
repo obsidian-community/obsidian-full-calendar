@@ -5,13 +5,14 @@ import { NoteEvent } from "./NoteEvent";
 import { CalDAVEvent } from "./CalDAVEvent";
 import { DailyNoteEvent } from "./DailyNoteEvent";
 import { CalendarEvent } from "./Event";
+import { EventApi } from "@fullcalendar/core";
 
-export async function eventFromCalendarId(
+export async function eventFromApi(
 	cache: MetadataCache,
 	vault: Vault,
-	id: string
+	event: EventApi
 ) {
-	const [prefix, ...rest] = id.split(CalendarEvent.ID_SEPARATOR);
+	const [prefix, ...rest] = event.id.split(CalendarEvent.ID_SEPARATOR);
 	switch (prefix) {
 		case ICSEvent.ID_PREFIX:
 		case CalDAVEvent.ID_PREFIX:
@@ -23,8 +24,9 @@ export async function eventFromCalendarId(
 			return NoteEvent.fromPath(cache, vault, path);
 		}
 		case DailyNoteEvent.ID_PREFIX: {
-			const [path, pos] = rest;
-			return DailyNoteEvent.fromPath(cache, vault, path, JSON.parse(pos));
+			const [path, idx] = rest;
+			const { inlinePosition } = event.extendedProps;
+			return DailyNoteEvent.fromPath(cache, vault, path, inlinePosition);
 		}
 	}
 }

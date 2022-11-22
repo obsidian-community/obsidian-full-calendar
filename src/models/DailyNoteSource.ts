@@ -1,9 +1,9 @@
 import { EventSourceInput } from "@fullcalendar/core";
-import { MetadataCache, Vault } from "obsidian";
+import { MetadataCache, TFile, Vault } from "obsidian";
 import {
 	appHasDailyNotesPluginLoaded,
 	getAllDailyNotes,
-	getDateFromFile,
+	getDateFromPath,
 } from "obsidian-daily-notes-interface";
 import { toEventInput } from "src/fullcalendar_interop";
 import {
@@ -32,6 +32,37 @@ export class DailyNoteSource extends EventSource {
 		this.info = info;
 	}
 
+	async getAllEventsFromFile(f: TFile) {
+		const fileDate = getDateFromPath(f.path, "day")?.format(DATE_FORMAT);
+		if (!fileDate) {
+			return null;
+		}
+		const cache = this.cache.getFileCache(f);
+		if (!cache) {
+			return null;
+		}
+		const listItems = getListsUnderHeading(this.info.heading, cache);
+
+		const text = await this.vault.read(f);
+
+		let i = 0;
+		return getAllInlineEventsFromFile(text, listItems, {
+			date: fileDate,
+		}).map(({ event, pos }) => {
+			const evt = toEventInput(`dailynote::${f.path}::${i}`, event);
+			if (evt) {
+				// IDs of events must be continuous, so only increment the ID counter
+				// if an event is properly parsed.
+				++i;
+				evt.extendedProps = {
+					...(evt.extendedProps || {}),
+					inlinePosition: pos,
+				};
+			}
+			return evt;
+		});
+	}
+
 	async toApi(): Promise<EventSourceInput | FCError> {
 		if (!appHasDailyNotesPluginLoaded()) {
 			console.warn(
@@ -43,33 +74,9 @@ export class DailyNoteSource extends EventSource {
 		}
 		const events = (
 			await Promise.all(
-				Object.values(getAllDailyNotes()).map(async (f) => {
-					const fileDate = getDateFromFile(f, "day")?.format(
-						DATE_FORMAT
-					);
-					if (!fileDate) {
-						return null;
-					}
-					const cache = this.cache.getFileCache(f);
-					if (!cache) {
-						return null;
-					}
-					const listItems = getListsUnderHeading(
-						this.info.heading,
-						cache
-					);
-
-					const text = await this.vault.read(f);
-
-					return getAllInlineEventsFromFile(text, listItems, {
-						date: fileDate,
-					}).map(({ event, pos }) =>
-						toEventInput(
-							`dailynote::${f.path}::${JSON.stringify(pos)}`,
-							event
-						)
-					);
-				})
+				Object.values(getAllDailyNotes()).map((f) =>
+					this.getAllEventsFromFile(f)
+				)
 			)
 		)
 			.flat()

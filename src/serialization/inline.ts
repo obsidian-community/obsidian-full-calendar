@@ -1,5 +1,5 @@
 import { CachedMetadata, ListItemCache, Pos, TFile, Vault } from "obsidian";
-import { OFCEvent, validateEvent } from "src/types";
+import { OFCEvent, SingleEventData, validateEvent } from "src/types";
 
 // PARSING
 
@@ -94,7 +94,7 @@ export const getInlineEventFromLine = (
 	});
 };
 
-const listRegex = /^(\s*)\-(\s+)(\[.\]\s+)?/;
+const listRegex = /^(\s*)\-\s+(\[(.)\]\s+)?/;
 const checkboxRegex = /^\s*\-\s+\[(.)\]\s+/;
 
 const checkboxTodo = (s: string) => {
@@ -102,7 +102,7 @@ const checkboxTodo = (s: string) => {
 	if (!match || !match[1]) {
 		return null;
 	}
-	return match[1] === " " ? false : "yes";
+	return match[1] === " " ? false : match[1];
 };
 
 export function getAllInlineEventsFromFile(
@@ -129,14 +129,72 @@ export function getAllInlineEventsFromFile(
 
 // SERIALIZATION
 
-export const modifyListItem = async (
+export function withFile(
 	vault: Vault,
 	file: TFile,
+	processText: (text: string, ...other: any[]) => string | null
+) {
+	return async (...other: any[]) => {
+		const modifiedFile = processText(await vault.read(file), ...other);
+		if (!modifiedFile) {
+			return;
+		}
+		return vault.modify(file, modifiedFile);
+	};
+}
+
+export const generateInlineAttributes = (
+	attrs: Record<string, any>
+): string => {
+	return Object.entries(attrs)
+		.map(([k, v]) => `[${k}:: ${v}]`)
+		.join("  ");
+};
+
+const replaceAtPos = (
+	text: string,
 	position: Pos,
-	modifications: Partial<OFCEvent> & { title: string }
-): Promise<void> => {
-	const page = await vault.read(file);
+	replacement: string
+): string =>
+	text.substring(0, position.start.offset) +
+	replacement +
+	text.substring(position.end.offset);
+
+export const modifyListItem = (
+	page: string,
+	position: Pos,
+	modifications: Partial<SingleEventData>,
+	keysToIgnore: (keyof SingleEventData)[]
+): string | null => {
 	let line = page.substring(position.start.offset, position.end.offset);
-	const prefix = line.match(listRegex)?.[0] || "";
-	line = line.replace(listRegex, "");
+	const listMatch = line.match(listRegex);
+	if (!listMatch) {
+		console.warn(
+			"Tried modifying a list item with a position that wasn't a list item",
+			{ position, line }
+		);
+		return null;
+	}
+	const attrs = getInlineAttributes(line) as Partial<SingleEventData>;
+	const oldTitle = line.replace(fieldRegex, "").trim();
+	const { completed: newCompleted, title: newTitle } = modifications;
+	const checkbox = (() => {
+		if (newCompleted !== null && newCompleted !== undefined) {
+			return `[${newCompleted ? "x" : " "}]`;
+		}
+		return null;
+	})();
+
+	delete modifications["completed"];
+	delete modifications["title"];
+	for (const key of keysToIgnore) {
+		delete modifications[key];
+	}
+
+	const newAttrs = { ...attrs, ...modifications };
+	const newLine = `${listMatch[1]}- ${checkbox || ""} ${
+		newTitle || oldTitle
+	} ${generateInlineAttributes(newAttrs)}`;
+
+	return replaceAtPos(page, position, newLine);
 };

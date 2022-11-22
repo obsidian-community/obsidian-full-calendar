@@ -13,6 +13,8 @@ import {
 import {
 	extractTextFromPositions,
 	getInlineEventFromLine,
+	modifyListItem,
+	withFile,
 } from "src/serialization/inline";
 import { FCError, OFCEvent } from "src/types";
 import { DATE_FORMAT } from "./DailyNoteSource";
@@ -108,7 +110,11 @@ export class DailyNoteEvent extends LocalEvent {
 			// TODO: Move events between daily notes.
 			throw new Error("Cannot move events between daily notes.");
 		}
-		throw new Error("Method not implemented.");
+		await withFile(this.vault, this.file, modifyListItem)(
+			this.position,
+			data,
+			["date", "allDay", "type"]
+		);
 	}
 	async delete(): Promise<void> {
 		throw new Error("Method not implemented.");

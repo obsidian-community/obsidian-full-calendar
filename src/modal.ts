@@ -9,7 +9,7 @@ import { AddCalendarSource } from "./components/AddCalendarSource";
 import { OFCEvent } from "./types";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
-import { eventFromCalendarId } from "./models";
+import { eventFromApi } from "./models";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
@@ -34,10 +34,10 @@ export class EventModal extends Modal {
 	async editInModal(input: EventApi | TFile) {
 		let frontmatter = null;
 		if (input instanceof EventApi) {
-			const event = await eventFromCalendarId(
+			const event = await eventFromApi(
 				this.app.metadataCache,
 				this.app.vault,
-				input.id
+				input
 			);
 			if (event) {
 				this.data = event.data;
