@@ -7,6 +7,7 @@ import {
 	OFCEvent,
 	LocalCalendarSource,
 	SingleEventData,
+	RangeTimeData,
 } from "../types";
 
 function makeChangeListener<T>(
@@ -114,9 +115,13 @@ export const EditEvent = ({
 
 	let initialStartTime = "";
 	let initialEndTime = "";
-	if (initialEvent && initialEvent.allDay === false) {
-		initialStartTime = initialEvent.startTime || "";
-		initialEndTime = initialEvent.endTime || "";
+	if (
+		initialEvent &&
+		(initialEvent.allDay === false || initialEvent.allDay === undefined)
+	) {
+		const { startTime, endTime } = initialEvent as RangeTimeData;
+		initialStartTime = startTime || "";
+		initialEndTime = endTime || "";
 	}
 
 	const [startTime, setStartTime] = useState(initialStartTime);
@@ -212,10 +217,16 @@ export const EditEvent = ({
 						)}
 					>
 						{calendars
-							.filter((cal) => cal.type === "local")
+							.flatMap((cal) =>
+								cal.type === "local" || cal.type === "dailynote"
+									? [cal]
+									: []
+							)
 							.map((cal, idx) => (
 								<option key={idx} value={idx}>
-									{(cal as LocalCalendarSource).directory}
+									{cal.type === "local"
+										? cal.directory
+										: "Daily Note"}
 								</option>
 							))}
 					</select>

@@ -200,7 +200,6 @@ export const modifyListItem = (
 		delete newAttrs["allDay"];
 	}
 
-	console.log("list regex match", { listMatch, oldTitle, newTitle });
 	const newLine = `${listMatch[1]}- ${checkbox || ""} ${
 		newTitle || oldTitle
 	} ${generateInlineAttributes(newAttrs)}`;

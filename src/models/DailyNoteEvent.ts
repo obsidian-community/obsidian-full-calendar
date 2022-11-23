@@ -6,10 +6,7 @@ import {
 	Vault,
 	WorkspaceLeaf,
 } from "obsidian";
-import {
-	getDateFromFile,
-	getDateFromPath,
-} from "obsidian-daily-notes-interface";
+import { getDateFromPath } from "obsidian-daily-notes-interface";
 import {
 	extractTextFromPositions,
 	getInlineEventFromLine,
@@ -22,8 +19,6 @@ import { CalendarEvent, LocalEvent } from "./Event";
 
 export class DailyNoteEvent extends LocalEvent {
 	static ID_PREFIX = "dailynote";
-	filename: string;
-	directory: string;
 	position: Pos;
 
 	constructor(
@@ -36,10 +31,7 @@ export class DailyNoteEvent extends LocalEvent {
 			position,
 		}: { directory: string; filename: string; position: Pos }
 	) {
-		super(cache, vault, data);
-
-		this.directory = directory;
-		this.filename = filename;
+		super(cache, vault, data, directory, filename);
 		this.position = position;
 	}
 

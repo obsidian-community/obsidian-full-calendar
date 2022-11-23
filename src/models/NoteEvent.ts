@@ -4,9 +4,6 @@ import { OFCEvent, FCError, validateEvent } from "src/types";
 import { basenameFromEvent, LocalEvent } from "./Event";
 
 export class NoteEvent extends LocalEvent {
-	directory: string;
-	filename: string;
-
 	get path(): string {
 		return `${this.directory}/${this.filename}`;
 	}
@@ -25,9 +22,7 @@ export class NoteEvent extends LocalEvent {
 		data: OFCEvent,
 		{ directory, filename }: { directory: string; filename: string }
 	) {
-		super(cache, vault, data);
-		this.directory = directory;
-		this.filename = filename;
+		super(cache, vault, data, directory, filename);
 	}
 
 	static async create(

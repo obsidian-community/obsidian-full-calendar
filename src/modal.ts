@@ -5,11 +5,11 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./components/EditEvent";
-import { AddCalendarSource } from "./components/AddCalendarSource";
-import { OFCEvent } from "./types";
+import { FCError, OFCEvent } from "./types";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromApi } from "./models";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
@@ -33,12 +33,14 @@ export class EventModal extends Modal {
 
 	async editInModal(input: EventApi | TFile) {
 		let frontmatter = null;
+		console.log({ input });
 		if (input instanceof EventApi) {
 			const event = await eventFromApi(
 				this.app.metadataCache,
 				this.app.vault,
 				input
 			);
+			console.log({ event });
 			if (event) {
 				this.data = event.data;
 				this.event = event;
@@ -73,49 +75,67 @@ export class EventModal extends Modal {
 			if (!event) {
 				return null;
 			}
-			if (!(event instanceof NoteEvent)) {
+			if (!(event instanceof LocalEvent)) {
 				return null;
 			}
 			return this.plugin.settings.calendarSources
-				.flatMap((c) => (c.type == "local" ? [c] : []))
-				.findIndex((c) => event.directory.startsWith(c.directory));
+				.flatMap((c) =>
+					c.type == "local" || c.type == "dailynote" ? [c] : []
+				)
+				.findIndex((c) =>
+					event.directory.startsWith(
+						c.type === "local"
+							? c.directory
+							: getDailyNoteSettings().folder || "::UNMATCHABLE::"
+					)
+				);
 		})();
 
 		ReactDOM.render(
 			React.createElement(EditEvent, {
 				initialEvent: this.data,
 				submit: async (data, calendarIndex) => {
-					const source = this.plugin.settings.calendarSources.filter(
-						(s) => s.type === "local"
+					const source = this.plugin.settings.calendarSources.flatMap(
+						(s) =>
+							s.type === "local" || s.type === "dailynote"
+								? [s]
+								: []
 					)[calendarIndex];
-					if (source.type !== "local") {
-						new Notice(
-							"Sorry, remote sync is currently read-only."
-						);
-						this.close();
-						return;
-					}
-					const directory = source.directory;
+
 					try {
-						if (this.file && !this.event) {
-							NoteEvent.upgrade(
-								this.app.metadataCache,
-								this.app.vault,
-								this.file,
-								data
-							);
-						} else if (!this.event) {
-							NoteEvent.create(
-								this.app.metadataCache,
-								this.app.vault,
-								directory,
-								data
-							);
+						if (!this.event) {
+							if (source.type === "local") {
+								const directory = source.directory;
+								if (this.file && !this.event) {
+									NoteEvent.upgrade(
+										this.app.metadataCache,
+										this.app.vault,
+										this.file,
+										data
+									);
+								} else if (!this.event) {
+									NoteEvent.create(
+										this.app.metadataCache,
+										this.app.vault,
+										directory,
+										data
+									);
+								}
+							} else if (source.type === "dailynote") {
+								throw new FCError(
+									"Cannot create new event in daily note."
+								);
+							}
 						} else {
 							if (this.event instanceof EditableEvent) {
 								await this.event.setData(data);
-								if (this.event instanceof NoteEvent) {
-									await this.event.setDirectory(directory);
+								if (
+									source.type === "local" &&
+									this.event instanceof NoteEvent
+								) {
+									await this.event.setDirectory(
+										source.directory
+									);
 								}
 							}
 						}

@@ -1,4 +1,5 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
+import { dir } from "console";
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { toEventInput } from "src/fullcalendar_interop";
 import { CalendarSource, OFCEvent, FCError } from "src/types";
@@ -94,6 +95,21 @@ export abstract class EditableEvent extends CalendarEvent {
 }
 
 export abstract class LocalEvent extends EditableEvent {
+	filename: string;
+	directory: string;
+
+	constructor(
+		cache: MetadataCache,
+		vault: Vault,
+		data: OFCEvent,
+		directory: string,
+		filename: string
+	) {
+		super(cache, vault, data);
+		this.directory = directory;
+		this.filename = filename;
+	}
+
 	abstract openIn(leaf: WorkspaceLeaf): Promise<void>;
 	abstract get path(): string;
 
