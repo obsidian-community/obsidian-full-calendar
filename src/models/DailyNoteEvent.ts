@@ -1,14 +1,12 @@
 import {
 	MarkdownView,
 	MetadataCache,
-	Pos,
 	TFile,
 	Vault,
 	WorkspaceLeaf,
 } from "obsidian";
 import { getDateFromPath } from "obsidian-daily-notes-interface";
 import {
-	extractTextFromPositions,
 	getInlineEventFromLine,
 	modifyListItem,
 	withFile,
@@ -19,7 +17,7 @@ import { CalendarEvent, LocalEvent } from "./Event";
 
 export class DailyNoteEvent extends LocalEvent {
 	static ID_PREFIX = "dailynote";
-	position: Pos;
+	lineNumber: number;
 
 	constructor(
 		cache: MetadataCache,
@@ -28,19 +26,19 @@ export class DailyNoteEvent extends LocalEvent {
 		{
 			directory,
 			filename,
-			position,
-		}: { directory: string; filename: string; position: Pos }
+			lineNumber,
+		}: { directory: string; filename: string; lineNumber: number }
 	) {
 		super(cache, vault, data, directory, filename);
-		this.position = position;
+		this.lineNumber = lineNumber;
 	}
 
 	async openIn(leaf: WorkspaceLeaf): Promise<void> {
 		await leaf.openFile(this.file);
 		if (leaf.view instanceof MarkdownView) {
 			leaf.view.editor.setCursor({
-				line: this.position.start.line,
-				ch: this.position.start.col,
+				line: this.lineNumber,
+				ch: 0,
 			});
 		}
 	}
@@ -49,24 +47,24 @@ export class DailyNoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		file: TFile,
-		position: Pos
+		lineNumber: number
 	): Promise<DailyNoteEvent | null> {
 		const contents = await vault.read(file);
+		const lines = contents.split("\n");
+		const line = lines[lineNumber];
+
 		const date = getDateFromPath(file.path, "day")?.format(DATE_FORMAT);
 		if (!date) {
 			return null;
 		}
-		const event = getInlineEventFromLine(
-			extractTextFromPositions(contents, [position])[0].text,
-			{ date }
-		);
+		const event = getInlineEventFromLine(line, { date });
 		if (!event) {
 			return null;
 		}
 		return new DailyNoteEvent(cache, vault, event, {
 			directory: file.parent.path,
 			filename: file.name,
-			position,
+			lineNumber,
 		});
 	}
 
@@ -74,18 +72,19 @@ export class DailyNoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		path: string,
-		position: Pos
+		lineNumber: number
 	) {
 		const file = vault.getAbstractFileByPath(path);
 		if (!(file instanceof TFile)) {
 			throw new FCError(`File not found at path: ${path}`);
 		}
-		return this.fromFile(cache, vault, file, position);
+		return this.fromFile(cache, vault, file, lineNumber);
 	}
 
 	get path(): string {
 		return `${this.directory}/${this.filename}`;
 	}
+
 	async setData(data: OFCEvent): Promise<void> {
 		const oldData = this.data;
 		if (data.type === "recurring" || oldData.type === "recurring") {
@@ -103,7 +102,7 @@ export class DailyNoteEvent extends LocalEvent {
 			throw new Error("Cannot move events between daily notes.");
 		}
 		await withFile(this.vault, this.file, modifyListItem)(
-			this.position,
+			this.lineNumber,
 			data,
 			["date", "type"]
 		);
@@ -113,7 +112,7 @@ export class DailyNoteEvent extends LocalEvent {
 	}
 	get identifier(): string {
 		return `${this.filename}${CalendarEvent.ID_SEPARATOR}${JSON.stringify(
-			this.position
+			this.lineNumber
 		)}`;
 	}
 	get PREFIX(): string {

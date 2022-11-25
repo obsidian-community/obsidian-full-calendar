@@ -48,7 +48,7 @@ export class DailyNoteSource extends EventSource {
 		let i = 0;
 		return getAllInlineEventsFromFile(text, listItems, {
 			date: fileDate,
-		}).map(({ event, pos }) => {
+		}).map(({ event, lineNumber }) => {
 			const evt = toEventInput(`dailynote::${f.path}::${i}`, event);
 			if (evt) {
 				// IDs of events must be continuous, so only increment the ID counter
@@ -56,7 +56,7 @@ export class DailyNoteSource extends EventSource {
 				++i;
 				evt.extendedProps = {
 					...(evt.extendedProps || {}),
-					inlinePosition: pos,
+					lineNumber,
 				};
 			}
 			return evt;

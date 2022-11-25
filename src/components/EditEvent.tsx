@@ -1,11 +1,9 @@
 import { DateTime } from "luxon";
-import { DropdownComponent } from "obsidian";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
 	CalendarSource,
 	OFCEvent,
-	LocalCalendarSource,
 	SingleEventData,
 	RangeTimeData,
 } from "../types";

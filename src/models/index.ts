@@ -25,8 +25,8 @@ export async function eventFromApi(
 		}
 		case DailyNoteEvent.ID_PREFIX: {
 			const [path, idx] = rest;
-			const { inlinePosition } = event.extendedProps;
-			return DailyNoteEvent.fromPath(cache, vault, path, inlinePosition);
+			const { lineNumber } = event.extendedProps;
+			return DailyNoteEvent.fromPath(cache, vault, path, lineNumber);
 		}
 	}
 }

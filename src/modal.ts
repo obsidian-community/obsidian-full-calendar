@@ -33,14 +33,12 @@ export class EventModal extends Modal {
 
 	async editInModal(input: EventApi | TFile) {
 		let frontmatter = null;
-		console.log({ input });
 		if (input instanceof EventApi) {
 			const event = await eventFromApi(
 				this.app.metadataCache,
 				this.app.vault,
 				input
 			);
-			console.log({ event });
 			if (event) {
 				this.data = event.data;
 				this.event = event;

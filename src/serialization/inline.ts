@@ -5,19 +5,8 @@ import { OFCEvent, SingleEventData, validateEvent } from "src/types";
 
 type Line = {
 	text: string;
-	pos: Pos;
+	lineNumber: number;
 };
-
-// TODO: This is O(n*m), but it can definitely be optimized to O(n).
-export function extractTextFromPositions(
-	content: string,
-	positions: Pos[]
-): Line[] {
-	return positions.map((pos) => ({
-		text: content.substring(pos.start.offset, pos.end.offset),
-		pos,
-	}));
-}
 
 const parseBool = (s: string): boolean | string =>
 	s === "true" ? true : s === "false" ? false : s;
@@ -108,21 +97,23 @@ export function getAllInlineEventsFromFile(
 	fileText: string,
 	listItems: ListItemCache[],
 	fileGlobalAttrs: Partial<OFCEvent>
-): { pos: Pos; event: OFCEvent }[] {
-	const listItemText: Line[] = extractTextFromPositions(
-		fileText,
-		listItems.map((i) => i.position)
-	);
+): { lineNumber: number; event: OFCEvent }[] {
+	const lines = fileText.split("\n");
+	const listItemText: Line[] = listItems
+		.map((i) => i.position.start.line)
+		.map((idx) => ({ lineNumber: idx, text: lines[idx] }));
 
 	return listItemText
 		.map((l) => ({
-			pos: l.pos,
+			lineNumber: l.lineNumber,
 			event: getInlineEventFromLine(l.text, {
 				...fileGlobalAttrs,
 				type: "single",
 			}),
 		}))
-		.flatMap(({ event, pos }) => (event ? [{ event, pos }] : []));
+		.flatMap(({ event, lineNumber }) =>
+			event ? [{ event, lineNumber }] : []
+		);
 }
 
 // SERIALIZATION
@@ -149,27 +140,20 @@ export const generateInlineAttributes = (
 		.join("  ");
 };
 
-const replaceAtPos = (
-	text: string,
-	position: Pos,
-	replacement: string
-): string =>
-	text.substring(0, position.start.offset) +
-	replacement +
-	text.substring(position.end.offset);
-
 export const modifyListItem = (
 	page: string,
-	position: Pos,
+	lineNumber: number,
 	newListItem: SingleEventData,
 	keysToIgnore: (keyof SingleEventData)[]
 ): string | null => {
-	let line = page.substring(position.start.offset, position.end.offset);
+	let lines = page.split("\n");
+	let line = lines[lineNumber];
+
 	const listMatch = line.match(listRegex);
 	if (!listMatch) {
 		console.warn(
 			"Tried modifying a list item with a position that wasn't a list item",
-			{ position, line }
+			{ lineNumber, line }
 		);
 		return null;
 	}
@@ -204,5 +188,6 @@ export const modifyListItem = (
 		newTitle || oldTitle
 	} ${generateInlineAttributes(newAttrs)}`;
 
-	return replaceAtPos(page, position, newLine);
+	lines[lineNumber] = newLine;
+	return lines.join("\n");
 };
