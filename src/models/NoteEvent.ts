@@ -106,7 +106,7 @@ export class NoteEvent extends LocalEvent {
 		await leaf.openFile(this.file);
 	}
 	async delete(): Promise<void> {
-		await this.vault.delete(this.file);
+		await this.vault.trash(this.file, true);
 	}
 
 	get file(): TFile {
