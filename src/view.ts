@@ -90,19 +90,26 @@ export class CalendarView extends ItemView {
 			);
 			let idx = 0;
 			let calendarEvent: EventApi | null = null;
+			const oldEvents: Record<string, EventApi> = {};
 			while (
 				(calendarEvent = this.calendar.getEventById(
 					`dailynote::${file.path}::${idx++}`
 				))
 			) {
-				calendarEvent.remove();
+				oldEvents[calendarEvent.id] = calendarEvent;
 			}
+			Object.values(oldEvents).forEach((e) => {
+				e.remove();
+			});
 			if (!newEvents) {
 				return;
 			}
-			newEvents.forEach((e) =>
-				this.calendar?.addEvent({ ...e, ...getColors(source.color) })
-			);
+			newEvents.forEach((newEvent) => {
+				this.calendar?.addEvent({
+					...newEvent,
+					...getColors(source.color),
+				});
+			});
 		}
 	}
 

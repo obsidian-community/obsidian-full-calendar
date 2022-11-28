@@ -32,7 +32,7 @@ export class DailyNoteSource extends EventSource {
 		this.info = info;
 	}
 
-	async getAllEventsFromFile(f: TFile) {
+	async getAllEventDataFromFile(f: TFile) {
 		const fileDate = getDateFromPath(f.path, "day")?.format(DATE_FORMAT);
 		if (!fileDate) {
 			return null;
@@ -45,22 +45,28 @@ export class DailyNoteSource extends EventSource {
 
 		const text = await this.vault.read(f);
 
-		let i = 0;
 		return getAllInlineEventsFromFile(text, listItems, {
 			date: fileDate,
-		}).map(({ event, lineNumber }) => {
-			const evt = toEventInput(`dailynote::${f.path}::${i}`, event);
-			if (evt) {
-				// IDs of events must be continuous, so only increment the ID counter
-				// if an event is properly parsed.
-				++i;
-				evt.extendedProps = {
-					...(evt.extendedProps || {}),
-					lineNumber,
-				};
-			}
-			return evt;
 		});
+	}
+
+	async getAllEventsFromFile(f: TFile) {
+		let i = 0;
+		return (await this.getAllEventDataFromFile(f))?.map(
+			({ event, lineNumber }) => {
+				const evt = toEventInput(`dailynote::${f.path}::${i}`, event);
+				if (evt) {
+					// IDs of events must be continuous, so only increment the ID counter
+					// if an event is properly parsed.
+					++i;
+					evt.extendedProps = {
+						...(evt.extendedProps || {}),
+						lineNumber,
+					};
+				}
+				return evt;
+			}
+		);
 	}
 
 	async toApi(): Promise<EventSourceInput | FCError> {
@@ -72,11 +78,10 @@ export class DailyNoteSource extends EventSource {
 				"Daily note calendar cannot be loaded without daily notes plugin."
 			);
 		}
+		const notes = getAllDailyNotes();
 		const events = (
 			await Promise.all(
-				Object.values(getAllDailyNotes()).map((f) =>
-					this.getAllEventsFromFile(f)
-				)
+				Object.values(notes).map((f) => this.getAllEventsFromFile(f))
 			)
 		)
 			.flat()

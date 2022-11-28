@@ -26,7 +26,13 @@ export async function eventFromApi(
 		case DailyNoteEvent.ID_PREFIX: {
 			const [path, idx] = rest;
 			const { lineNumber } = event.extendedProps;
-			return DailyNoteEvent.fromPath(cache, vault, path, lineNumber);
+			return DailyNoteEvent.fromPath(
+				cache,
+				vault,
+				path,
+				lineNumber,
+				"Events" // TODO: Fix this to work with settings
+			);
 		}
 	}
 }

@@ -1,3 +1,4 @@
+import moment from "moment";
 import {
 	MarkdownView,
 	MetadataCache,
@@ -5,8 +6,14 @@ import {
 	Vault,
 	WorkspaceLeaf,
 } from "obsidian";
-import { getDateFromPath } from "obsidian-daily-notes-interface";
 import {
+	createDailyNote,
+	getAllDailyNotes,
+	getDailyNote,
+	getDateFromPath,
+} from "obsidian-daily-notes-interface";
+import {
+	addToHeading,
 	getInlineEventFromLine,
 	modifyListItem,
 	withFile,
@@ -18,6 +25,7 @@ import { CalendarEvent, LocalEvent } from "./Event";
 export class DailyNoteEvent extends LocalEvent {
 	static ID_PREFIX = "dailynote";
 	lineNumber: number;
+	heading: string;
 
 	constructor(
 		cache: MetadataCache,
@@ -26,11 +34,18 @@ export class DailyNoteEvent extends LocalEvent {
 		{
 			directory,
 			filename,
+			heading,
 			lineNumber,
-		}: { directory: string; filename: string; lineNumber: number }
+		}: {
+			directory: string;
+			heading: string;
+			filename: string;
+			lineNumber: number;
+		}
 	) {
 		super(cache, vault, data, directory, filename);
 		this.lineNumber = lineNumber;
+		this.heading = heading;
 	}
 
 	async openIn(leaf: WorkspaceLeaf): Promise<void> {
@@ -47,7 +62,8 @@ export class DailyNoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		file: TFile,
-		lineNumber: number
+		lineNumber: number,
+		heading: string
 	): Promise<DailyNoteEvent | null> {
 		const contents = await vault.read(file);
 		const lines = contents.split("\n");
@@ -65,6 +81,7 @@ export class DailyNoteEvent extends LocalEvent {
 			directory: file.parent.path,
 			filename: file.name,
 			lineNumber,
+			heading,
 		});
 	}
 
@@ -72,48 +89,88 @@ export class DailyNoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		path: string,
-		lineNumber: number
+		lineNumber: number,
+		heading: string
 	) {
 		const file = vault.getAbstractFileByPath(path);
 		if (!(file instanceof TFile)) {
 			throw new FCError(`File not found at path: ${path}`);
 		}
-		return this.fromFile(cache, vault, file, lineNumber);
+		return this.fromFile(cache, vault, file, lineNumber, heading);
 	}
 
 	get path(): string {
 		return `${this.directory}/${this.filename}`;
 	}
 
-	async setData(data: OFCEvent): Promise<void> {
+	async setData(newData: OFCEvent): Promise<void> {
 		const oldData = this.data;
-		if (data.type === "recurring" || oldData.type === "recurring") {
+		if (newData.type === "recurring" || oldData.type === "recurring") {
 			throw new Error(
 				"Recurring events in daily notes are not supported."
 			);
 		}
-		if (data.endDate || oldData.endDate) {
+		if (newData.endDate || oldData.endDate) {
 			throw new Error(
 				"Multi-day events in daily notes are not supported."
 			);
 		}
-		if (data.date !== oldData.date) {
-			// TODO: Move events between daily notes.
-			throw new Error("Cannot move events between daily notes.");
+		this._data = newData;
+		if (newData.date !== oldData.date) {
+			const m = moment(newData.date);
+			// @ts-ignore
+			let note = getDailyNote(m, getAllDailyNotes());
+			if (!note) {
+				// @ts-ignore
+				note = await createDailyNote(m);
+			}
+			await this.removeFromFile();
+			this.addToFile(note);
+		} else {
+			await withFile(
+				this.vault,
+				this.file,
+				modifyListItem
+			)({ lineNumber: this.lineNumber, data: newData });
 		}
-		await withFile(this.vault, this.file, modifyListItem)(
-			this.lineNumber,
-			data,
-			["date", "type"]
-		);
 	}
+
+	async removeFromFile(): Promise<void> {
+		const file = this.file;
+		let lines = (await this.vault.read(file)).split("\n");
+		lines.splice(this.lineNumber, 1);
+		await this.vault.modify(file, lines.join("\n"));
+		this.lineNumber = -1;
+	}
+
+	async addToFile(file: TFile): Promise<void> {
+		const heading = this.cache
+			.getFileCache(file)
+			?.headings?.find((h) => h.heading == this.heading);
+		if (!heading) {
+			console.error("Could not find heading to add event to", {
+				file,
+				heading,
+			});
+			throw new FCError("Could not find heading to add event to");
+		}
+		if (this.data.type !== "single") {
+			throw new FCError(
+				"Daily note calendar does not support recurring events."
+			);
+		}
+		await withFile(
+			this.vault,
+			file,
+			addToHeading
+		)({ heading, item: this.data });
+	}
+
 	async delete(): Promise<void> {
-		throw new Error("Method not implemented.");
+		this.removeFromFile();
 	}
 	get identifier(): string {
-		return `${this.filename}${CalendarEvent.ID_SEPARATOR}${JSON.stringify(
-			this.lineNumber
-		)}`;
+		return `${this.path}${CalendarEvent.ID_SEPARATOR}${this.lineNumber}`;
 	}
 	get PREFIX(): string {
 		return DailyNoteEvent.ID_PREFIX;

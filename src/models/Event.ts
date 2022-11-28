@@ -119,7 +119,7 @@ export abstract class LocalEvent extends EditableEvent {
 			return file;
 		} else {
 			throw new FCError(
-				`Cannot find file for NoteEvent at path ${this.path}.`
+				`Cannot find file for event at path ${this.path}.`
 			);
 		}
 	}

@@ -1,4 +1,12 @@
-import { CachedMetadata, ListItemCache, Pos, TFile, Vault } from "obsidian";
+import {
+	CachedMetadata,
+	HeadingCache,
+	ListItemCache,
+	Loc,
+	Pos,
+	TFile,
+	Vault,
+} from "obsidian";
 import { OFCEvent, SingleEventData, validateEvent } from "src/types";
 
 // PARSING
@@ -20,7 +28,8 @@ function getInlineAttributes(s: string): Record<string, string | boolean> {
 
 export const getHeadingPosition = (
 	headingText: string,
-	metadata: CachedMetadata
+	metadata: CachedMetadata,
+	endOfDoc: Loc
 ): Pos | null => {
 	if (!metadata.headings) {
 		return null;
@@ -40,11 +49,11 @@ export const getHeadingPosition = (
 		}
 	}
 
-	if (!level || !startingPos || !endingPos) {
+	if (!level || !startingPos) {
 		return null;
 	}
 
-	return { start: startingPos.end, end: endingPos.start };
+	return { start: startingPos.end, end: endingPos?.start || endOfDoc };
 };
 
 export const getListsUnderHeading = (
@@ -54,7 +63,11 @@ export const getListsUnderHeading = (
 	if (!metadata.listItems) {
 		return [];
 	}
-	const headingPos = getHeadingPosition(headingText, metadata);
+	const endOfDoc = metadata.sections?.last()?.position.end;
+	if (!endOfDoc) {
+		return [];
+	}
+	const headingPos = getHeadingPosition(headingText, metadata, endOfDoc);
 	if (!headingPos) {
 		return [];
 	}
@@ -118,13 +131,13 @@ export function getAllInlineEventsFromFile(
 
 // SERIALIZATION
 
-export function withFile(
+export function withFile<T>(
 	vault: Vault,
 	file: TFile,
-	processText: (text: string, ...other: any[]) => string | null
+	processText: (text: string, params: T) => string | null
 ) {
-	return async (...other: any[]) => {
-		const modifiedFile = processText(await vault.read(file), ...other);
+	return async (params: T) => {
+		const modifiedFile = processText(await vault.read(file), params);
 		if (!modifiedFile) {
 			return;
 		}
@@ -140,11 +153,46 @@ export const generateInlineAttributes = (
 		.join("  ");
 };
 
+const makeListItem = (
+	data: SingleEventData,
+	whitespacePrefix: string = ""
+): string => {
+	const { completed, title } = data;
+	const checkbox = (() => {
+		if (completed !== null && completed !== undefined) {
+			return `[${completed ? "x" : " "}]`;
+		}
+		return null;
+	})();
+
+	const attrs: Partial<SingleEventData> = { ...data };
+	delete attrs["completed"];
+	delete attrs["title"];
+	delete attrs["type"];
+	delete attrs["date"];
+
+	for (const key of <(keyof SingleEventData)[]>Object.keys(attrs)) {
+		if (attrs[key] === undefined || attrs[key] === null) {
+			delete attrs[key];
+		}
+	}
+
+	if (!attrs["allDay"]) {
+		delete attrs["allDay"];
+	}
+
+	return `${whitespacePrefix}- ${
+		checkbox || ""
+	} ${title} ${generateInlineAttributes(attrs)}`;
+};
+
+type ModifyListItemProps = {
+	lineNumber: number;
+	data: SingleEventData;
+};
 export const modifyListItem = (
 	page: string,
-	lineNumber: number,
-	newListItem: SingleEventData,
-	keysToIgnore: (keyof SingleEventData)[]
+	{ lineNumber, data }: ModifyListItemProps
 ): string | null => {
 	let lines = page.split("\n");
 	let line = lines[lineNumber];
@@ -157,37 +205,23 @@ export const modifyListItem = (
 		);
 		return null;
 	}
-	const oldTitle = line.replace(listRegex, "").replace(fieldRegex, "").trim();
-	const { completed: newCompleted, title: newTitle } = newListItem;
-	const checkbox = (() => {
-		if (newCompleted !== null && newCompleted !== undefined) {
-			return `[${newCompleted ? "x" : " "}]`;
-		}
-		return null;
-	})();
 
-	delete newListItem["completed"];
-	delete newListItem["title"];
-	for (const key of keysToIgnore) {
-		delete newListItem[key];
-	}
+	lines[lineNumber] = makeListItem(data, listMatch[1]);
+	return lines.join("\n");
+};
 
-	const newAttrs: Partial<SingleEventData> = { ...newListItem };
+type AddToHeadingProps = {
+	heading: HeadingCache;
+	item: SingleEventData;
+};
+export const addToHeading = (
+	page: string,
+	{ heading, item }: AddToHeadingProps
+) => {
+	let lines = page.split("\n");
 
-	for (const key of <(keyof SingleEventData)[]>Object.keys(newAttrs)) {
-		if (newAttrs[key] === undefined || newAttrs[key] === null) {
-			delete newAttrs[key];
-		}
-	}
+	const headingLine = heading.position.start.line;
+	lines.splice(headingLine + 1, 0, makeListItem(item));
 
-	if (!newAttrs["allDay"]) {
-		delete newAttrs["allDay"];
-	}
-
-	const newLine = `${listMatch[1]}- ${checkbox || ""} ${
-		newTitle || oldTitle
-	} ${generateInlineAttributes(newAttrs)}`;
-
-	lines[lineNumber] = newLine;
 	return lines.join("\n");
 };
