@@ -217,7 +217,7 @@ type AddToHeadingProps = {
 export const addToHeading = (
 	page: string,
 	{ heading, item }: AddToHeadingProps
-) => {
+): string => {
 	let lines = page.split("\n");
 
 	const headingLine = heading.position.start.line;

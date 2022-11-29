@@ -10,6 +10,7 @@ import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromApi } from "./models";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import { DailyNoteEvent } from "./models/DailyNoteEvent";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
@@ -104,14 +105,14 @@ export class EventModal extends Modal {
 						if (!this.event) {
 							if (source.type === "local") {
 								const directory = source.directory;
-								if (this.file && !this.event) {
+								if (this.file) {
 									NoteEvent.upgrade(
 										this.app.metadataCache,
 										this.app.vault,
 										this.file,
 										data
 									);
-								} else if (!this.event) {
+								} else {
 									NoteEvent.create(
 										this.app.metadataCache,
 										this.app.vault,
@@ -120,8 +121,12 @@ export class EventModal extends Modal {
 									);
 								}
 							} else if (source.type === "dailynote") {
-								throw new FCError(
-									"Cannot create new event in daily note."
+								console.log("creating event");
+								DailyNoteEvent.create(
+									this.app.metadataCache,
+									this.app.vault,
+									source.heading,
+									data
 								);
 							}
 						} else {

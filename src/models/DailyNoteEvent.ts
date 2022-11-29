@@ -14,7 +14,9 @@ import {
 } from "obsidian-daily-notes-interface";
 import {
 	addToHeading,
+	getAllInlineEventsFromFile,
 	getInlineEventFromLine,
+	getListsUnderHeading,
 	modifyListItem,
 	withFile,
 } from "src/serialization/inline";
@@ -103,6 +105,46 @@ export class DailyNoteEvent extends LocalEvent {
 		return `${this.directory}/${this.filename}`;
 	}
 
+	static async create(
+		cache: MetadataCache,
+		vault: Vault,
+		heading: string,
+		data: OFCEvent
+	): Promise<void | null> {
+		console.log("event data", data);
+		if (data.type === "recurring") {
+			return null;
+		}
+		const m = moment(data.date);
+		// @ts-ignore
+		let file = getDailyNote(m, getAllDailyNotes());
+		if (!file) {
+			// @ts-ignore
+			file = await createDailyNote(m);
+		}
+		// HACK: Make sure the cache is populated before getting the heading info.
+		await vault.cachedRead(file);
+
+		const headingCache = cache
+			.getFileCache(file)
+			?.headings?.find((h) => h.heading == heading);
+		if (!headingCache) {
+			console.error("Could not find heading to create event under", {
+				file,
+				heading,
+				headingCache,
+			});
+			throw new FCError("Could not find heading to add event to");
+		}
+
+		let contents = await vault.read(file);
+		contents = addToHeading(contents, {
+			heading: headingCache,
+			item: data,
+		});
+		await vault.modify(file, contents);
+	}
+
 	async setData(newData: OFCEvent): Promise<void> {
 		const oldData = this.data;
 		if (newData.type === "recurring" || oldData.type === "recurring") {
@@ -159,11 +201,15 @@ export class DailyNoteEvent extends LocalEvent {
 				"Daily note calendar does not support recurring events."
 			);
 		}
+
 		await withFile(
 			this.vault,
 			file,
 			addToHeading
 		)({ heading, item: this.data });
+		this.directory = file.parent.path;
+		this.filename = file.name;
+		// TODO: Set the LineNumber.
 	}
 
 	async delete(): Promise<void> {
