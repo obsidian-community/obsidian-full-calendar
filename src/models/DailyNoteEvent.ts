@@ -125,7 +125,7 @@ export class DailyNoteEvent extends LocalEvent {
 				note = await createDailyNote(m);
 			}
 			await this.removeFromFile();
-			this.addToFile(note);
+			await this.addToFile(note);
 		} else {
 			await withFile(
 				this.vault,

@@ -43,7 +43,7 @@ export class DailyNoteSource extends EventSource {
 		}
 		const listItems = getListsUnderHeading(this.info.heading, cache);
 
-		const text = await this.vault.read(f);
+		const text = await this.vault.cachedRead(f);
 
 		return getAllInlineEventsFromFile(text, listItems, {
 			date: fileDate,
