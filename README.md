@@ -4,7 +4,7 @@
 
 Keep your calendar in your vault! This plugin integrates the [FullCalendar](https://github.com/fullcalendar/fullcalendar) library into your Obsidian Vault so that you can keep your ever-changing daily schedule and special events and plans alongside your tasks and notes, and link freely between all of them. Each event is stored as a separate note with special frontmatter so you can take notes, form connections and add context to any event on your calendar.
 
-Events and tasks can be stored locally as frontmatter for notes, or inline in daily notes. Full Calendar also supports read-only ICS and CalDAV remote calendars.
+Full Calendar can pull events from frontmatter on notes, or from event lists in daily notes. Full Calendar also supports read-only ICS and CalDAV remote calendars.
 
 You can find the full documentation [here](https://davish.github.io/obsidian-full-calendar/)!
 
