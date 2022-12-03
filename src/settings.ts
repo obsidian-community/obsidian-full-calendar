@@ -115,12 +115,13 @@ export function addCalendarButton(
 										.filter((s): s is string => !!s)
 					)();
 					let headings: string[] = [];
-					const dailyNoteSettings = getDailyNoteSettings();
-					const templatePath = dailyNoteSettings.template;
-					if (templatePath) {
-						const file = app.vault.getAbstractFileByPath(
-							templatePath + ".md"
-						);
+					let { template } = getDailyNoteSettings();
+
+					if (template) {
+						if (!template.endsWith(".md")) {
+							template += ".md";
+						}
+						const file = app.vault.getAbstractFileByPath(template);
 						if (file instanceof TFile) {
 							headings =
 								app.metadataCache
