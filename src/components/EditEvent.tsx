@@ -221,7 +221,17 @@ export const EditEvent = ({
 									: []
 							)
 							.map((cal, idx) => (
-								<option key={idx} value={idx}>
+								<option
+									key={idx}
+									value={idx}
+									disabled={
+										!(
+											initialEvent?.title === undefined ||
+											calendars[calendarIndex].type ===
+												cal.type
+										)
+									}
+								>
 									{cal.type === "local"
 										? cal.directory
 										: "Daily Note"}
