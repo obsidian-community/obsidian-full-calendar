@@ -1,12 +1,11 @@
 import { DateTime } from "luxon";
-import { DropdownComponent } from "obsidian";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
 	CalendarSource,
-	EventFrontmatter,
-	LocalCalendarSource,
-	SingleEventFrontmatter,
+	OFCEvent,
+	SingleEventData,
+	RangeTimeData,
 } from "../types";
 
 function makeChangeListener<T>(
@@ -82,13 +81,10 @@ const DaySelect = ({
 };
 
 interface EditEventProps {
-	submit: (
-		frontmatter: EventFrontmatter,
-		calendarIndex: number
-	) => Promise<void>;
+	submit: (frontmatter: OFCEvent, calendarIndex: number) => Promise<void>;
 	readonly calendars: CalendarSource[];
 	defaultCalendarIndex: number;
-	initialEvent?: Partial<EventFrontmatter>;
+	initialEvent?: Partial<OFCEvent>;
 	open?: () => Promise<void>;
 	deleteEvent?: () => Promise<void>;
 }
@@ -105,7 +101,7 @@ export const EditEvent = ({
 		initialEvent
 			? initialEvent.type !== "recurring"
 				? // Discriminated union on unset type not working well within Partial<>
-				  (initialEvent as SingleEventFrontmatter).date
+				  (initialEvent as SingleEventData).date
 				: initialEvent.startRecur || ""
 			: ""
 	);
@@ -117,9 +113,13 @@ export const EditEvent = ({
 
 	let initialStartTime = "";
 	let initialEndTime = "";
-	if (initialEvent && initialEvent.allDay === false) {
-		initialStartTime = initialEvent.startTime || "";
-		initialEndTime = initialEvent.endTime || "";
+	if (
+		initialEvent &&
+		(initialEvent.allDay === false || initialEvent.allDay === undefined)
+	) {
+		const { startTime, endTime } = initialEvent as RangeTimeData;
+		initialStartTime = startTime || "";
+		initialEndTime = endTime || "";
 	}
 
 	const [startTime, setStartTime] = useState(initialStartTime);
@@ -215,10 +215,26 @@ export const EditEvent = ({
 						)}
 					>
 						{calendars
-							.filter((cal) => cal.type === "local")
+							.flatMap((cal) =>
+								cal.type === "local" || cal.type === "dailynote"
+									? [cal]
+									: []
+							)
 							.map((cal, idx) => (
-								<option key={idx} value={idx}>
-									{(cal as LocalCalendarSource).directory}
+								<option
+									key={idx}
+									value={idx}
+									disabled={
+										!(
+											initialEvent?.title === undefined ||
+											calendars[calendarIndex].type ===
+												cal.type
+										)
+									}
+								>
+									{cal.type === "local"
+										? cal.directory
+										: "Daily Note"}
 								</option>
 							))}
 					</select>

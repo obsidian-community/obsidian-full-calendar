@@ -5,17 +5,18 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./components/EditEvent";
-import { AddCalendarSource } from "./components/AddCalendarSource";
-import { EventFrontmatter } from "./types";
+import { FCError, OFCEvent } from "./types";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
-import { eventFromCalendarId } from "./models";
+import { eventFromApi } from "./models";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import { DailyNoteEvent } from "./models/DailyNoteEvent";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
 	calendar: Calendar | null;
 
-	data: Partial<EventFrontmatter> | undefined;
+	data: Partial<OFCEvent> | undefined;
 	event: CalendarEvent | undefined;
 	file: TFile | undefined;
 
@@ -23,7 +24,7 @@ export class EventModal extends Modal {
 		app: App,
 		plugin: FullCalendarPlugin,
 		calendar: Calendar | null,
-		event?: Partial<EventFrontmatter>
+		event?: Partial<OFCEvent>
 	) {
 		super(app);
 		this.plugin = plugin;
@@ -34,21 +35,20 @@ export class EventModal extends Modal {
 	async editInModal(input: EventApi | TFile) {
 		let frontmatter = null;
 		if (input instanceof EventApi) {
-			const event = await eventFromCalendarId(
+			const event = await eventFromApi(
 				this.app.metadataCache,
 				this.app.vault,
-				input.id
+				this.plugin.settings,
+				input
 			);
 			if (event) {
 				this.data = event.data;
 				this.event = event;
 				this.open();
 			} else {
-				new Notice(
-					"Full Calendar: No frontmatter to edit for selected event."
-				);
+				new Notice("Full Calendar: Selected event cannot be edited.");
 				console.warn(
-					"Full Calendar: No frontmatter to edit for selected event.",
+					"Full Calendar: Selected event cannot be edited.",
 					input
 				);
 			}
@@ -75,49 +75,70 @@ export class EventModal extends Modal {
 			if (!event) {
 				return null;
 			}
-			if (!(event instanceof NoteEvent)) {
+			if (!(event instanceof LocalEvent)) {
 				return null;
 			}
 			return this.plugin.settings.calendarSources
-				.flatMap((c) => (c.type == "local" ? [c] : []))
-				.findIndex((c) => event.directory.startsWith(c.directory));
+				.flatMap((c) =>
+					c.type == "local" || c.type == "dailynote" ? [c] : []
+				)
+				.findIndex((c) =>
+					event.directory.startsWith(
+						c.type === "local"
+							? c.directory
+							: getDailyNoteSettings().folder || "::UNMATCHABLE::"
+					)
+				);
 		})();
 
 		ReactDOM.render(
 			React.createElement(EditEvent, {
 				initialEvent: this.data,
 				submit: async (data, calendarIndex) => {
-					const source = this.plugin.settings.calendarSources.filter(
-						(s) => s.type === "local"
+					const source = this.plugin.settings.calendarSources.flatMap(
+						(s) =>
+							s.type === "local" || s.type === "dailynote"
+								? [s]
+								: []
 					)[calendarIndex];
-					if (source.type !== "local") {
-						new Notice(
-							"Sorry, remote sync is currently read-only."
-						);
-						this.close();
-						return;
-					}
-					const directory = source.directory;
+
 					try {
-						if (this.file && !this.event) {
-							NoteEvent.upgrade(
-								this.app.metadataCache,
-								this.app.vault,
-								this.file,
-								data
-							);
-						} else if (!this.event) {
-							NoteEvent.create(
-								this.app.metadataCache,
-								this.app.vault,
-								directory,
-								data
-							);
+						if (!this.event) {
+							if (source.type === "local") {
+								const directory = source.directory;
+								if (this.file) {
+									NoteEvent.upgrade(
+										this.app.metadataCache,
+										this.app.vault,
+										this.file,
+										data
+									);
+								} else {
+									NoteEvent.create(
+										this.app.metadataCache,
+										this.app.vault,
+										directory,
+										data
+									);
+								}
+							} else if (source.type === "dailynote") {
+								DailyNoteEvent.create(
+									this.app.metadataCache,
+									this.app.vault,
+									source.heading,
+									data
+								);
+							}
 						} else {
 							if (this.event instanceof EditableEvent) {
 								await this.event.setData(data);
-								if (this.event instanceof NoteEvent) {
-									await this.event.setDirectory(directory);
+								if (
+									source.type === "local" &&
+									this.event instanceof NoteEvent
+								) {
+									await this.event.setDirectory(
+										source.directory
+									);
 								}
 							}
 						}

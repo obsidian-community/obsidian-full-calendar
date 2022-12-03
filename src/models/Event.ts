@@ -1,15 +1,17 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
-import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
-import { parseFrontmatter } from "src/frontmatter";
-import { CalendarSource, EventFrontmatter, FCError } from "src/types";
+import { dir } from "console";
+import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
+import { toEventInput } from "src/fullcalendar_interop";
+import { CalendarSource, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
 
-export function basenameFromEvent(event: EventFrontmatter): string {
+export function basenameFromEvent(event: OFCEvent): string {
 	switch (event.type) {
 		case "single":
 		case undefined:
 			return `${event.date} ${event.title}`;
 		case "recurring":
+			// TODO: Remove `)` from the end of recurring events.
 			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
 	}
 }
@@ -22,9 +24,9 @@ export abstract class CalendarEvent {
 	cache: MetadataCache;
 	vault: Vault;
 
-	protected _data: EventFrontmatter;
+	protected _data: OFCEvent;
 
-	constructor(cache: MetadataCache, vault: Vault, data: EventFrontmatter) {
+	constructor(cache: MetadataCache, vault: Vault, data: OFCEvent) {
 		this.cache = cache;
 		this.vault = vault;
 		this._data = data;
@@ -45,10 +47,10 @@ export abstract class CalendarEvent {
 	}
 
 	toCalendarEvent(): EventInput | null {
-		return parseFrontmatter(this.idForCalendar, this.data);
+		return toEventInput(this.idForCalendar, this.data);
 	}
 
-	get data(): EventFrontmatter {
+	get data(): OFCEvent {
 		return { ...this._data };
 	}
 
@@ -66,7 +68,7 @@ export abstract class CalendarEvent {
 }
 
 export abstract class EditableEvent extends CalendarEvent {
-	constructor(cache: MetadataCache, vault: Vault, data: EventFrontmatter) {
+	constructor(cache: MetadataCache, vault: Vault, data: OFCEvent) {
 		super(cache, vault, data);
 	}
 
@@ -89,11 +91,37 @@ export abstract class EditableEvent extends CalendarEvent {
 		}
 	}
 
-	abstract setData(data: EventFrontmatter): Promise<void>;
+	abstract setData(data: OFCEvent): Promise<void>;
 	abstract delete(): Promise<void>;
 }
 
 export abstract class LocalEvent extends EditableEvent {
+	filename: string;
+	directory: string;
+
+	constructor(
+		cache: MetadataCache,
+		vault: Vault,
+		data: OFCEvent,
+		directory: string,
+		filename: string
+	) {
+		super(cache, vault, data);
+		this.directory = directory;
+		this.filename = filename;
+	}
+
 	abstract openIn(leaf: WorkspaceLeaf): Promise<void>;
 	abstract get path(): string;
+
+	get file(): TFile {
+		const file = this.vault.getAbstractFileByPath(this.path);
+		if (file instanceof TFile) {
+			return file;
+		} else {
+			throw new FCError(
+				`Cannot find file for event at path ${this.path}.`
+			);
+		}
+	}
 }

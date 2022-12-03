@@ -1,4 +1,4 @@
-# Local calendar with notes as events
+# Local calendar with full notes as events
 
 Keep each event in a calendar as a separate note in your Obsidian vault. This is currently the only option for editable events in Full Calendar. Events are stored as frontmatter on notes that is set and updated by the Full Calendar plugin when [managing events](../events/manage.md) in the calendar.
 

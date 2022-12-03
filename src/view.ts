@@ -1,22 +1,25 @@
 import "./overrides.css";
 import { ItemView, Menu, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import { Calendar } from "@fullcalendar/core";
+import { Calendar, EventApi } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "./main";
 import { EventModal } from "./modal";
 import { FCError, PLUGIN_SLUG } from "./types";
 import {
 	dateEndpointsToFrontmatter,
-	eventApiToFrontmatter,
-} from "./frontmatter";
+	fromEventApi,
+} from "./fullcalendar_interop";
 import { IcsSource } from "./models/IcsSource";
 import { NoteSource } from "./models/NoteSource";
 import { RemoteSource } from "./models/RemoteSource";
 import { renderOnboarding } from "./onboard";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
-import { eventFromCalendarId } from "./models";
+import { eventFromApi } from "./models";
 import { DateTime } from "luxon";
+import { DailyNoteSource } from "./models/DailyNoteSource";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import { getColors } from "./models/util";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 
@@ -39,26 +42,74 @@ export class CalendarView extends ItemView {
 		return "Calendar";
 	}
 
-	onCacheUpdate(file: TFile) {
+	async onCacheUpdate(file: TFile) {
+		if (!this.calendar) {
+			return;
+		}
 		const source = this.plugin.settings.calendarSources.find(
 			(c) => c.type === "local" && file.path.startsWith(c.directory)
 		);
-		const event = NoteEvent.fromFile(
-			this.app.metadataCache,
-			this.app.vault,
-			file
-		);
-		if (!event) {
-			return;
-		}
-		// Serialize ID correctly from file.
-		let calendarEvent = this.calendar?.getEventById(event.idForCalendar);
-		if (this.calendar && source && event) {
-			if (calendarEvent) {
-				calendarEvent.remove();
+		const dailyNoteSettings = getDailyNoteSettings();
+		if (source) {
+			const event = NoteEvent.fromFile(
+				this.app.metadataCache,
+				this.app.vault,
+				file
+			);
+			if (!event) {
+				return;
 			}
-			// TODO: Respect recursion settings when adding event to the calendar.
-			event.addTo(this.calendar, source);
+			// Serialize ID correctly from file.
+			let calendarEvent = this.calendar.getEventById(event.idForCalendar);
+			if (source && event) {
+				if (calendarEvent) {
+					calendarEvent.remove();
+				}
+				// TODO: Respect recursion settings when adding event to the calendar.
+				event.addTo(this.calendar, source);
+			}
+		} else if (
+			dailyNoteSettings.folder &&
+			file.path.startsWith(dailyNoteSettings.folder)
+		) {
+			const source = this.plugin.settings.calendarSources.find(
+				(c) => c.type === "dailynote"
+			);
+			if (!source || source.type !== "dailynote") {
+				console.warn("Daily note calendar not loaded.");
+				return;
+			}
+
+			const s = new DailyNoteSource(
+				this.app.vault,
+				this.app.metadataCache,
+				source
+			);
+			const newEvents = (await s.getAllEventsFromFile(file))?.flatMap(
+				(e) => (e ? [e] : [])
+			);
+			let idx = 0;
+			let calendarEvent: EventApi | null = null;
+			const oldEvents: Record<string, EventApi> = {};
+			while (
+				(calendarEvent = this.calendar.getEventById(
+					`dailynote::${file.path}::${idx++}`
+				))
+			) {
+				oldEvents[calendarEvent.id] = calendarEvent;
+			}
+			Object.values(oldEvents).forEach((e) => {
+				e.remove();
+			});
+			if (!newEvents) {
+				return;
+			}
+			newEvents.forEach((newEvent) => {
+				this.calendar?.addEvent({
+					...newEvent,
+					...getColors(source.color),
+				});
+			});
 		}
 	}
 
@@ -84,7 +135,8 @@ export class CalendarView extends ItemView {
 				(s) =>
 					s.type === "ical" ||
 					s.type === "caldav" ||
-					s.type === "icloud"
+					s.type === "icloud" ||
+					s.type === "dailynote"
 			).length === 0
 		) {
 			renderOnboarding(this.app, this.plugin, calendarEl);
@@ -143,15 +195,16 @@ export class CalendarView extends ItemView {
 			},
 			modifyEvent: async (newEvent, oldEvent) => {
 				try {
-					const existingEvent = await eventFromCalendarId(
+					const existingEvent = await eventFromApi(
 						this.app.metadataCache,
 						this.app.vault,
-						oldEvent.id
+						this.plugin.settings,
+						oldEvent
 					);
 					if (!existingEvent) {
 						return false;
 					}
-					const frontmatter = eventApiToFrontmatter(newEvent);
+					const frontmatter = fromEventApi(newEvent);
 					await existingEvent.setData(frontmatter);
 				} catch (e: any) {
 					new Notice(e.message);
@@ -161,10 +214,11 @@ export class CalendarView extends ItemView {
 			},
 
 			eventMouseEnter: async (info) => {
-				const event = await eventFromCalendarId(
+				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
-					info.event.id
+					this.plugin.settings,
+					info.event
 				);
 				if (event instanceof LocalEvent) {
 					this.app.workspace.trigger("hover-link", {
@@ -182,10 +236,11 @@ export class CalendarView extends ItemView {
 			timeFormat24h: this.plugin.settings.timeFormat24h,
 			openContextMenuForEvent: async (e, mouseEvent) => {
 				const menu = new Menu(this.app);
-				const event = await eventFromCalendarId(
+				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
-					e.id
+					this.plugin.settings,
+					e
 				);
 				if (event instanceof EditableEvent) {
 					if (!event.isTask) {
@@ -232,17 +287,19 @@ export class CalendarView extends ItemView {
 				menu.showAtMouseEvent(mouseEvent);
 			},
 			toggleTask: async (e, isDone) => {
-				const event = await eventFromCalendarId(
+				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
-					e.id
+					this.plugin.settings,
+					e
 				);
 				if (!event) {
-					return;
+					return false;
 				}
+
 				const newData = event.data;
 				if (newData.type !== "single") {
-					return;
+					return false;
 				}
 				if (isDone) {
 					const completionDate = DateTime.now().toISO();
@@ -250,9 +307,19 @@ export class CalendarView extends ItemView {
 				} else {
 					newData.completed = false;
 				}
-				event.setData(newData);
+				try {
+					event.setData(newData);
+				} catch (e) {
+					if (e instanceof FCError) {
+						new Notice(e.message);
+					}
+					return false;
+				}
+				return true;
 			},
 		});
+		// @ts-ignore
+		window.calendar = this.calendar;
 
 		this.plugin.settings.calendarSources
 			.flatMap((s) => (s.type === "ical" ? [s] : []))
@@ -283,14 +350,33 @@ export class CalendarView extends ItemView {
 					}
 				})
 			);
-
+		this.plugin.settings.calendarSources
+			.flatMap((s) => (s.type === "dailynote" ? [s] : []))
+			.map(
+				(s) =>
+					new DailyNoteSource(
+						this.app.vault,
+						this.app.metadataCache,
+						s
+					)
+			)
+			.map((s) => s.toApi())
+			.forEach((resultPromise) =>
+				resultPromise.then((result) => {
+					if (result instanceof FCError) {
+						new Notice(result.message);
+					} else {
+						this.calendar?.addEventSource(result);
+					}
+				})
+			);
 		this.registerEvent(
 			this.app.metadataCache.on("changed", this.cacheCallback)
 		);
 		this.registerEvent(
 			this.app.vault.on("delete", (file) => {
 				if (file instanceof TFile) {
-					// TODO: This is a HACK. Think of a way to make this generic for all types of local events.
+					// HACK: Think of a way to make this generic for all types of local events.
 					let id =
 						NoteEvent.ID_PREFIX +
 						CalendarEvent.ID_SEPARATOR +
@@ -304,7 +390,7 @@ export class CalendarView extends ItemView {
 		);
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
-				// TODO: This is a HACK. Think of a way to make this generic for all types of local events.
+				// HACK: Think of a way to make this generic for all types of local events.
 				const oldEvent = this.calendar?.getEventById(
 					NoteEvent.ID_PREFIX + CalendarEvent.ID_SEPARATOR + oldPath
 				);
