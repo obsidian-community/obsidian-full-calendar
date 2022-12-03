@@ -11,7 +11,8 @@ export function basenameFromEvent(event: OFCEvent): string {
 		case undefined:
 			return `${event.date} ${event.title}`;
 		case "recurring":
-			return `(Every ${event.daysOfWeek.join(",")}) ${event.title}`;
+			// TODO: Remove `)` from the end of recurring events.
+			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
 	}
 }
 
