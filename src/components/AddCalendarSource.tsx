@@ -142,7 +142,8 @@ function UsernameInput<T extends Partial<CalendarSource>>({
 function HeadingInput<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
-}: BasicProps<T>) {
+	headings,
+}: BasicProps<T> & { headings: string[] }) {
 	let sourceWithHeading = source as SourceWith<T, { heading: undefined }>;
 	return (
 		<div className="setting-item">
@@ -153,15 +154,35 @@ function HeadingInput<T extends Partial<CalendarSource>>({
 				</div>
 			</div>
 			<div className="setting-item-control">
-				<input
-					required
-					type="text"
-					value={sourceWithHeading.heading || ""}
-					onChange={changeListener((x) => ({
-						...sourceWithHeading,
-						heading: x,
-					}))}
-				/>
+				{headings.length > 0 ? (
+					<select
+						required
+						value={sourceWithHeading.heading || ""}
+						onChange={changeListener((x) => ({
+							...sourceWithHeading,
+							heading: x,
+						}))}
+					>
+						<option value="" disabled hidden>
+							Choose a heading
+						</option>
+						{headings.map((o, idx) => (
+							<option key={idx} value={o}>
+								{o}
+							</option>
+						))}
+					</select>
+				) : (
+					<input
+						required
+						type="text"
+						value={sourceWithHeading.heading || ""}
+						onChange={changeListener((x) => ({
+							...sourceWithHeading,
+							heading: x,
+						}))}
+					/>
+				)}
 			</div>
 		</div>
 	);
@@ -198,12 +219,14 @@ function PasswordInput<T extends Partial<CalendarSource>>({
 interface AddCalendarProps {
 	source: Partial<CalendarSource>;
 	directories: string[];
+	headings: string[];
 	submit: (source: CalendarSource) => Promise<void>;
 }
 
 export const AddCalendarSource = ({
 	source,
 	directories,
+	headings,
 	submit,
 }: AddCalendarProps) => {
 	const isCalDAV = source.type === "caldav" || source.type === "icloud";
@@ -253,6 +276,7 @@ export const AddCalendarSource = ({
 					<HeadingInput
 						source={setting}
 						changeListener={makeChangeListener}
+						headings={headings}
 					/>
 				)}
 				{source.type === "gcal" ||

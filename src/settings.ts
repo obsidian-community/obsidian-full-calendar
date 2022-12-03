@@ -5,6 +5,7 @@ import {
 	Notice,
 	PluginSettingTab,
 	Setting,
+	TFile,
 	TFolder,
 	Vault,
 } from "obsidian";
@@ -19,6 +20,7 @@ import { RemoteSource } from "./models/RemoteSource";
 import * as ReactDOM from "react-dom";
 import { createElement } from "react";
 import { ReactModal } from "./modal";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 export interface FullCalendarSettings {
 	calendarSources: CalendarSource[];
@@ -112,6 +114,20 @@ export function addCalendarButton(
 										)
 										.filter((s): s is string => !!s)
 					)();
+					let headings: string[] = [];
+					const dailyNoteSettings = getDailyNoteSettings();
+					const templatePath = dailyNoteSettings.template;
+					if (templatePath) {
+						const file = app.vault.getAbstractFileByPath(
+							templatePath + ".md"
+						);
+						if (file instanceof TFile) {
+							headings =
+								app.metadataCache
+									.getFileCache(file)
+									?.headings?.map((h) => h.heading) || [];
+						}
+					}
 
 					return createElement(AddCalendarSource, {
 						source: makeDefaultPartialCalendarSource(
@@ -120,6 +136,7 @@ export function addCalendarButton(
 						directories: directories.filter(
 							(dir) => usedDirectories.indexOf(dir) === -1
 						),
+						headings,
 						submit: async (source: CalendarSource) => {
 							if (
 								source.type === "caldav" ||
