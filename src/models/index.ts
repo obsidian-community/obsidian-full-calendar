@@ -1,15 +1,17 @@
 import { MetadataCache, Vault } from "obsidian";
-import { FCError } from "src/types";
+import { DailyNoteCalendarSource, FCError } from "src/types";
 import { ICSEvent } from "./ICSEvent";
 import { NoteEvent } from "./NoteEvent";
 import { CalDAVEvent } from "./CalDAVEvent";
 import { DailyNoteEvent } from "./DailyNoteEvent";
 import { CalendarEvent } from "./Event";
 import { EventApi } from "@fullcalendar/core";
+import { FullCalendarSettings } from "src/settings";
 
 export async function eventFromApi(
 	cache: MetadataCache,
 	vault: Vault,
+	settings: FullCalendarSettings,
 	event: EventApi
 ) {
 	const [prefix, ...rest] = event.id.split(CalendarEvent.ID_SEPARATOR);
@@ -26,12 +28,19 @@ export async function eventFromApi(
 		case DailyNoteEvent.ID_PREFIX: {
 			const [path, idx] = rest;
 			const { lineNumber } = event.extendedProps;
+			const dailyNoteCal = settings.calendarSources.flatMap((c) =>
+				c.type === "dailynote" ? [c] : []
+			)[0];
+			if (!dailyNoteCal) {
+				throw new FCError("Daily note calendar not loaded.");
+			}
+
 			return DailyNoteEvent.fromPath(
 				cache,
 				vault,
 				path,
 				lineNumber,
-				"Events" // TODO: Fix this to work with settings
+				dailyNoteCal.heading
 			);
 		}
 	}

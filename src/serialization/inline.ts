@@ -74,7 +74,7 @@ export const getListsUnderHeading = (
 	return metadata.listItems?.filter(
 		(l) =>
 			headingPos.start.offset < l.position.start.offset &&
-			l.position.end.offset < headingPos.end.offset
+			l.position.end.offset <= headingPos.end.offset
 	);
 };
 
@@ -210,18 +210,29 @@ export const modifyListItem = (
 	return lines.join("\n");
 };
 
+/**
+ * Add a list item to a given heading.
+ * If the heading is undefined, then append the heading to the end of the file.
+ */
 type AddToHeadingProps = {
-	heading: HeadingCache;
+	heading: HeadingCache | undefined;
 	item: SingleEventData;
+	headingText: string;
 };
 export const addToHeading = (
 	page: string,
-	{ heading, item }: AddToHeadingProps
+	{ heading, item, headingText }: AddToHeadingProps
 ): string => {
 	let lines = page.split("\n");
 
-	const headingLine = heading.position.start.line;
-	lines.splice(headingLine + 1, 0, makeListItem(item));
+	const listItem = makeListItem(item);
+	if (heading) {
+		const headingLine = heading.position.start.line;
+		lines.splice(headingLine + 1, 0, listItem);
+	} else {
+		lines.push(`## ${headingText}`);
+		lines.push(listItem);
+	}
 
 	return lines.join("\n");
 };

@@ -197,6 +197,7 @@ export class CalendarView extends ItemView {
 					const existingEvent = await eventFromApi(
 						this.app.metadataCache,
 						this.app.vault,
+						this.plugin.settings,
 						oldEvent
 					);
 					if (!existingEvent) {
@@ -215,6 +216,7 @@ export class CalendarView extends ItemView {
 				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
+					this.plugin.settings,
 					info.event
 				);
 				if (event instanceof LocalEvent) {
@@ -236,6 +238,7 @@ export class CalendarView extends ItemView {
 				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
+					this.plugin.settings,
 					e
 				);
 				if (event instanceof EditableEvent) {
@@ -286,6 +289,7 @@ export class CalendarView extends ItemView {
 				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
+					this.plugin.settings,
 					e
 				);
 				if (!event) {
@@ -371,7 +375,7 @@ export class CalendarView extends ItemView {
 		this.registerEvent(
 			this.app.vault.on("delete", (file) => {
 				if (file instanceof TFile) {
-					// TODO: This is a HACK. Think of a way to make this generic for all types of local events.
+					// HACK: Think of a way to make this generic for all types of local events.
 					let id =
 						NoteEvent.ID_PREFIX +
 						CalendarEvent.ID_SEPARATOR +
@@ -385,7 +389,7 @@ export class CalendarView extends ItemView {
 		);
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
-				// TODO: This is a HACK. Think of a way to make this generic for all types of local events.
+				// HACK: Think of a way to make this generic for all types of local events.
 				const oldEvent = this.calendar?.getEventById(
 					NoteEvent.ID_PREFIX + CalendarEvent.ID_SEPARATOR + oldPath
 				);

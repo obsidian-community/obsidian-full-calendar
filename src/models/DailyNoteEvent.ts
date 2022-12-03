@@ -111,7 +111,6 @@ export class DailyNoteEvent extends LocalEvent {
 		heading: string,
 		data: OFCEvent
 	): Promise<void | null> {
-		console.log("event data", data);
 		if (data.type === "recurring") {
 			return null;
 		}
@@ -128,19 +127,12 @@ export class DailyNoteEvent extends LocalEvent {
 		const headingCache = cache
 			.getFileCache(file)
 			?.headings?.find((h) => h.heading == heading);
-		if (!headingCache) {
-			console.error("Could not find heading to create event under", {
-				file,
-				heading,
-				headingCache,
-			});
-			throw new FCError("Could not find heading to add event to");
-		}
 
 		let contents = await vault.read(file);
 		contents = addToHeading(contents, {
 			heading: headingCache,
 			item: data,
+			headingText: heading,
 		});
 		await vault.modify(file, contents);
 	}
@@ -189,13 +181,6 @@ export class DailyNoteEvent extends LocalEvent {
 		const heading = this.cache
 			.getFileCache(file)
 			?.headings?.find((h) => h.heading == this.heading);
-		if (!heading) {
-			console.error("Could not find heading to add event to", {
-				file,
-				heading,
-			});
-			throw new FCError("Could not find heading to add event to");
-		}
 		if (this.data.type !== "single") {
 			throw new FCError(
 				"Daily note calendar does not support recurring events."
@@ -206,7 +191,7 @@ export class DailyNoteEvent extends LocalEvent {
 			this.vault,
 			file,
 			addToHeading
-		)({ heading, item: this.data });
+		)({ heading, item: this.data, headingText: this.heading });
 		this.directory = file.parent.path;
 		this.filename = file.name;
 		// TODO: Set the LineNumber.

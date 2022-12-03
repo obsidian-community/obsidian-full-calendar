@@ -38,6 +38,7 @@ export class EventModal extends Modal {
 			const event = await eventFromApi(
 				this.app.metadataCache,
 				this.app.vault,
+				this.plugin.settings,
 				input
 			);
 			if (event) {
@@ -121,7 +122,6 @@ export class EventModal extends Modal {
 									);
 								}
 							} else if (source.type === "dailynote") {
-								console.log("creating event");
 								DailyNoteEvent.create(
 									this.app.metadataCache,
 									this.app.vault,
