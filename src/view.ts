@@ -135,7 +135,8 @@ export class CalendarView extends ItemView {
 				(s) =>
 					s.type === "ical" ||
 					s.type === "caldav" ||
-					s.type === "icloud"
+					s.type === "icloud" ||
+					s.type === "dailynote"
 			).length === 0
 		) {
 			renderOnboarding(this.app, this.plugin, calendarEl);

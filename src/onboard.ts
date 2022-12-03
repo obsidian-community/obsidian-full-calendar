@@ -28,6 +28,7 @@ export function renderOnboarding(
 		async (source: CalendarSource) => {
 			const { calendarSources } = plugin.settings;
 			calendarSources.push(source);
+			console.log(source);
 			await plugin.saveSettings();
 			await plugin.activateView();
 		}
