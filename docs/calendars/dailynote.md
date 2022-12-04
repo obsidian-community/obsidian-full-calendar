@@ -11,7 +11,7 @@ You must be using one of the supported daily notes plugins in order to create a 
 -   [Daily Notes core plugin](https://help.obsidian.md/Plugins/Daily+notes)
 -   [Periodic Notes community plugin](https://github.com/liamcain/obsidian-periodic-notes)
 
-## Adding the calendar
+## Configuring the Daily Notes calendar
 
 Add a new calendar with the "Daily note" type, and select which heading from your daily note template that events should be placed under.
 

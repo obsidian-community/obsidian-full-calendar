@@ -35,6 +35,7 @@ nav:
     - getting_started.md
     - Calendar Types:
           - calendars/local.md
+          - calendars/dailynote.md
           - calendars/ics.md
           - calendars/caldav.md
     - Events:
