@@ -32,6 +32,7 @@ export default class EventCache {
 	private calendars: CalendarInitializerMap;
 
 	private cache: Record<string, CacheEntry> = {};
+	private directories: Record<string, string> = {};
 
 	constructor(
 		app: App,
@@ -62,18 +63,20 @@ export default class EventCache {
 			.map((s) => this.calendars[s.type](this.app, this.plugin, s))
 			.flatMap(removeNulls);
 
-		const entries = calendars.map((calendar) => ({
-			calendar,
-			events: calendar.getEvents().map((event, idx) => ({
-				event,
-				id: `${calendar.id}${ID_SEPARATOR}${idx}`,
-			})),
-		}));
-
 		this.cache = {};
-		entries.forEach((e) => {
-			this.cache[e.calendar.id] = e;
-		});
+		for (const calendar of calendars) {
+			this.cache[calendar.id] = {
+				calendar,
+				events: calendar.getEvents().map((event, idx) => ({
+					event,
+					id: `${calendar.id}${ID_SEPARATOR}${idx}`,
+				})),
+			};
+
+			if (calendar instanceof EditableCalendar) {
+				this.directories[calendar.directory] = calendar.id;
+			}
+		}
 	}
 
 	flush() {
@@ -82,6 +85,6 @@ export default class EventCache {
 
 	getEventFromId(s: string): OFCEvent | null {
 		const [id, idx] = s.split(ID_SEPARATOR);
-		return this.cache[id]?.events[Number(idx)]?.event;
+		return this.cache[id]?.events[parseInt(idx)]?.event;
 	}
 }

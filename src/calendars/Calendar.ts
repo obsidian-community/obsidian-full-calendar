@@ -10,6 +10,7 @@ export abstract class Calendar {
 	}
 
 	abstract get type(): string;
-	abstract getEvents(): OFCEvent[];
 	abstract get id(): string;
+
+	abstract getEvents(): OFCEvent[];
 }
