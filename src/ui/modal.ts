@@ -1,16 +1,16 @@
 import { Calendar, EventApi } from "@fullcalendar/core";
-import FullCalendarPlugin from "./main";
+import FullCalendarPlugin from "../main";
 import { App, Modal, Notice, TFile } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./components/EditEvent";
-import { FCError, OFCEvent } from "./types";
-import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
-import { NoteEvent } from "./models/NoteEvent";
-import { eventFromApi } from "./models";
+import { FCError, OFCEvent } from "../types";
+import { CalendarEvent, EditableEvent, LocalEvent } from "../models/Event";
+import { NoteEvent } from "../models/NoteEvent";
+import { eventFromApi } from "../models";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
-import { DailyNoteEvent } from "./models/DailyNoteEvent";
+import { DailyNoteEvent } from "../models/DailyNoteEvent";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;

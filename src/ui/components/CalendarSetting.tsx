@@ -2,7 +2,7 @@ import { Notice } from "obsidian";
 import * as React from "react";
 import { SetStateAction, useState } from "react";
 
-import { CalendarSource } from "../types";
+import { CalendarSource } from "../../types";
 
 type SourceWith<T extends Partial<CalendarSource>, K> = T extends K ? T : never;
 

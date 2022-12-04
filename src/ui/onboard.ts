@@ -1,7 +1,7 @@
 import { App } from "obsidian";
-import FullCalendarPlugin from "./main";
+import FullCalendarPlugin from "../main";
 import { addCalendarButton } from "./settings";
-import { CalendarSource } from "./types";
+import { CalendarSource } from "../types";
 
 export function renderOnboarding(
 	app: App,

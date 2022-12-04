@@ -6,7 +6,7 @@ import {
 	OFCEvent,
 	SingleEventData,
 	RangeTimeData,
-} from "../types";
+} from "../../types";
 
 function makeChangeListener<T>(
 	setState: React.Dispatch<React.SetStateAction<T>>,

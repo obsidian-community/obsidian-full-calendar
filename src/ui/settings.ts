@@ -1,4 +1,4 @@
-import FullCalendarPlugin from "./main";
+import FullCalendarPlugin from "../main";
 import {
 	App,
 	DropdownComponent,
@@ -13,10 +13,10 @@ import {
 	makeDefaultPartialCalendarSource,
 	CalendarSource,
 	FCError,
-} from "./types";
+} from "../types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
-import { RemoteSource } from "./models/RemoteSource";
+import { RemoteSource } from "../models/RemoteSource";
 import * as ReactDOM from "react-dom";
 import { createElement } from "react";
 import { ReactModal } from "./modal";
