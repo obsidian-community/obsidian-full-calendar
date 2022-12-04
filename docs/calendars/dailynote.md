@@ -2,7 +2,7 @@
 
 Store events in-line in Daily Notes. Each event is a list item and event metadata is stored as [Dataview inline fields](https://blacksmithgu.github.io/obsidian-dataview/data-annotation/).
 
-[Tasks](../events/tasks) are supported with [checkboxes](https://help.obsidian.md/How+to/Format+your+notes) so you can easily track your to-dos for the day.
+[Tasks](../../events/tasks) are supported with [checkboxes](https://help.obsidian.md/How+to/Format+your+notes) so you can easily track your to-dos for the day.
 
 ## Prerequisites
 
