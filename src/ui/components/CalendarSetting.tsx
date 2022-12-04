@@ -2,15 +2,15 @@ import { Notice } from "obsidian";
 import * as React from "react";
 import { SetStateAction, useState } from "react";
 
-import { CalendarSource } from "../../types";
+import { CalendarInfo } from "../../types";
 
-type SourceWith<T extends Partial<CalendarSource>, K> = T extends K ? T : never;
+type SourceWith<T extends Partial<CalendarInfo>, K> = T extends K ? T : never;
 
-interface BasicProps<T extends Partial<CalendarSource>> {
+interface BasicProps<T extends Partial<CalendarInfo>> {
 	source: T;
 }
 
-function DirectorySetting<T extends Partial<CalendarSource>>({
+function DirectorySetting<T extends Partial<CalendarInfo>>({
 	source,
 }: BasicProps<T>) {
 	let sourceWithDirectory = source as SourceWith<T, { directory: undefined }>;
@@ -30,7 +30,7 @@ function DirectorySetting<T extends Partial<CalendarSource>>({
 	);
 }
 
-function HeadingSetting<T extends Partial<CalendarSource>>({
+function HeadingSetting<T extends Partial<CalendarInfo>>({
 	source,
 }: BasicProps<T>) {
 	let sourceWithHeading = source as SourceWith<T, { heading: undefined }>;
@@ -54,7 +54,7 @@ function HeadingSetting<T extends Partial<CalendarSource>>({
 	);
 }
 
-function UrlSetting<T extends Partial<CalendarSource>>({
+function UrlSetting<T extends Partial<CalendarInfo>>({
 	source,
 }: BasicProps<T>) {
 	let sourceWithUrl = source as SourceWith<T, { url: undefined }>;
@@ -74,7 +74,7 @@ function UrlSetting<T extends Partial<CalendarSource>>({
 	);
 }
 
-function NameSetting<T extends Partial<CalendarSource>>({
+function NameSetting<T extends Partial<CalendarInfo>>({
 	source,
 }: BasicProps<T>) {
 	let sourceWithName = source as SourceWith<T, { name: undefined }>;
@@ -94,9 +94,7 @@ function NameSetting<T extends Partial<CalendarSource>>({
 	);
 }
 
-function Username<T extends Partial<CalendarSource>>({
-	source,
-}: BasicProps<T>) {
+function Username<T extends Partial<CalendarInfo>>({ source }: BasicProps<T>) {
 	let sourceWithUsername = source as SourceWith<T, { username: undefined }>;
 	return (
 		<div className="setting-item-control">
@@ -115,7 +113,7 @@ function Username<T extends Partial<CalendarSource>>({
 }
 
 interface CalendarSettingsProps {
-	setting: Partial<CalendarSource>;
+	setting: Partial<CalendarInfo>;
 	onColorChange: (s: string) => void;
 	deleteCalendar: () => void;
 }
@@ -155,11 +153,11 @@ export const CalendarSettingRow = ({
 };
 
 interface CalendarSettingProps {
-	sources: CalendarSource[];
-	submit: (payload: CalendarSource[]) => void;
+	sources: CalendarInfo[];
+	submit: (payload: CalendarInfo[]) => void;
 }
 type CalendarSettingState = {
-	sources: CalendarSource[];
+	sources: CalendarInfo[];
 	dirty: boolean;
 };
 export class CalendarSettings extends React.Component<
@@ -171,7 +169,7 @@ export class CalendarSettings extends React.Component<
 		this.state = { sources: props.sources, dirty: false };
 	}
 
-	addSource(source: CalendarSource) {
+	addSource(source: CalendarInfo) {
 		this.setState((state, props) => ({
 			sources: [...state.sources, source],
 			dirty: true,
@@ -222,7 +220,7 @@ export class CalendarSettings extends React.Component<
 								}
 								this.props.submit(
 									this.state.sources.map(
-										(elt) => elt as CalendarSource
+										(elt) => elt as CalendarInfo
 									)
 								);
 								this.setState({ dirty: false });

@@ -2,7 +2,7 @@ import { Calendar, EventInput } from "@fullcalendar/core";
 import { dir } from "console";
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { toEventInput } from "src/fullcalendar_interop";
-import { CalendarSource, OFCEvent, FCError } from "src/types";
+import { CalendarInfo, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
 
 export function basenameFromEvent(event: OFCEvent): string {
@@ -54,7 +54,7 @@ export abstract class CalendarEvent {
 		return { ...this._data };
 	}
 
-	addTo(calendar: Calendar, source: CalendarSource) {
+	addTo(calendar: Calendar, source: CalendarInfo) {
 		let event = this.toCalendarEvent();
 		if (!event) {
 			console.error("Malformed event, will not add to calendar.", this);

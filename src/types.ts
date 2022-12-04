@@ -153,7 +153,7 @@ export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
 	url: "https://caldav.icloud.com";
 };
 
-export type CalendarSource =
+export type CalendarInfo =
 	| LocalCalendarSource
 	| DailyNoteCalendarSource
 	| GoogleCalendarSource
@@ -165,8 +165,8 @@ export type CalendarSource =
  * Construct a partial calendar source of the specified type
  */
 export function makeDefaultPartialCalendarSource(
-	type: CalendarSource["type"]
-): Partial<CalendarSource> {
+	type: CalendarInfo["type"]
+): Partial<CalendarInfo> {
 	if (type === "icloud") {
 		return {
 			type: type,

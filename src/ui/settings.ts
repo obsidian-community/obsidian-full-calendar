@@ -11,7 +11,7 @@ import {
 } from "obsidian";
 import {
 	makeDefaultPartialCalendarSource,
-	CalendarSource,
+	CalendarInfo,
 	FCError,
 } from "../types";
 import { CalendarSettings } from "./components/CalendarSetting";
@@ -23,7 +23,7 @@ import { ReactModal } from "./modal";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 export interface FullCalendarSettings {
-	calendarSources: CalendarSource[];
+	calendarSources: CalendarInfo[];
 	defaultCalendar: number;
 	recursiveLocal: boolean;
 	firstDay: number;
@@ -74,7 +74,7 @@ export function addCalendarButton(
 	app: App,
 	plugin: FullCalendarPlugin,
 	containerEl: HTMLElement,
-	submitCallback: (setting: CalendarSource) => void,
+	submitCallback: (setting: CalendarInfo) => void,
 	listUsedDirectories?: () => string[]
 ) {
 	let dropdown: DropdownComponent;
@@ -132,13 +132,13 @@ export function addCalendarButton(
 
 					return createElement(AddCalendarSource, {
 						source: makeDefaultPartialCalendarSource(
-							dropdown.getValue() as CalendarSource["type"]
+							dropdown.getValue() as CalendarInfo["type"]
 						),
 						directories: directories.filter(
 							(dir) => usedDirectories.indexOf(dir) === -1
 						),
 						headings,
-						submit: async (source: CalendarSource) => {
+						submit: async (source: CalendarInfo) => {
 							if (
 								source.type === "caldav" ||
 								source.type === "icloud"
@@ -250,7 +250,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 			this.app,
 			this.plugin,
 			containerEl,
-			async (source: CalendarSource) => {
+			async (source: CalendarInfo) => {
 				sourceList.addSource(source);
 			},
 			() =>
@@ -264,7 +264,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 		let sourceList = ReactDOM.render(
 			createElement(CalendarSettings, {
 				sources: this.plugin.settings.calendarSources,
-				submit: async (settings: CalendarSource[]) => {
+				submit: async (settings: CalendarInfo[]) => {
 					this.plugin.settings.calendarSources = settings;
 					await this.plugin.saveSettings();
 				},

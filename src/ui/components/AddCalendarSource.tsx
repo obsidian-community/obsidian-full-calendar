@@ -1,19 +1,19 @@
 import * as React from "react";
 import { useState } from "react";
-import { CalendarSource } from "../../types";
+import { CalendarInfo } from "../../types";
 
-type ChangeListener = <T extends Partial<CalendarSource>>(
+type ChangeListener = <T extends Partial<CalendarInfo>>(
 	fromString: (val: string) => T
 ) => React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement>;
-type SourceWith<T extends Partial<CalendarSource>, K> = T extends K ? T : never;
+type SourceWith<T extends Partial<CalendarInfo>, K> = T extends K ? T : never;
 
-interface DirectorySelectProps<T extends Partial<CalendarSource>> {
+interface DirectorySelectProps<T extends Partial<CalendarInfo>> {
 	source: T;
 	changeListener: ChangeListener;
 	directories: string[];
 }
 
-function DirectorySelect<T extends Partial<CalendarSource>>({
+function DirectorySelect<T extends Partial<CalendarInfo>>({
 	source,
 	changeListener,
 	directories,
@@ -53,12 +53,12 @@ function DirectorySelect<T extends Partial<CalendarSource>>({
 	);
 }
 
-interface BasicProps<T extends Partial<CalendarSource>> {
+interface BasicProps<T extends Partial<CalendarInfo>> {
 	source: T;
 	changeListener: ChangeListener;
 }
 
-function ColorPicker<T extends Partial<CalendarSource>>({
+function ColorPicker<T extends Partial<CalendarInfo>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
@@ -83,7 +83,7 @@ function ColorPicker<T extends Partial<CalendarSource>>({
 	);
 }
 
-function UrlInput<T extends Partial<CalendarSource>>({
+function UrlInput<T extends Partial<CalendarInfo>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
@@ -111,7 +111,7 @@ function UrlInput<T extends Partial<CalendarSource>>({
 	);
 }
 
-function UsernameInput<T extends Partial<CalendarSource>>({
+function UsernameInput<T extends Partial<CalendarInfo>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
@@ -139,7 +139,7 @@ function UsernameInput<T extends Partial<CalendarSource>>({
 	);
 }
 
-function HeadingInput<T extends Partial<CalendarSource>>({
+function HeadingInput<T extends Partial<CalendarInfo>>({
 	source,
 	changeListener,
 	headings,
@@ -188,7 +188,7 @@ function HeadingInput<T extends Partial<CalendarSource>>({
 	);
 }
 
-function PasswordInput<T extends Partial<CalendarSource>>({
+function PasswordInput<T extends Partial<CalendarInfo>>({
 	source,
 	changeListener,
 }: BasicProps<T>) {
@@ -217,10 +217,10 @@ function PasswordInput<T extends Partial<CalendarSource>>({
 }
 
 interface AddCalendarProps {
-	source: Partial<CalendarSource>;
+	source: Partial<CalendarInfo>;
 	directories: string[];
 	headings: string[];
-	submit: (source: CalendarSource) => Promise<void>;
+	submit: (source: CalendarInfo) => Promise<void>;
 }
 
 export const AddCalendarSource = ({
@@ -237,7 +237,7 @@ export const AddCalendarSource = ({
 		isCalDAV ? "Import Calendars" : "Add Calendar"
 	);
 
-	function makeChangeListener<T extends Partial<CalendarSource>>(
+	function makeChangeListener<T extends Partial<CalendarInfo>>(
 		fromString: (val: string) => T
 	): React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement> {
 		return (e) => setSettingState(fromString(e.target.value));
@@ -248,7 +248,7 @@ export const AddCalendarSource = ({
 		if (!submitting) {
 			setSubmitingState(true);
 			setSubmitText(isCalDAV ? "Importing Calendars" : "Adding Calendar");
-			await submit(setting as CalendarSource);
+			await submit(setting as CalendarInfo);
 		}
 	};
 
