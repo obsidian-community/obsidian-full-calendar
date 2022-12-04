@@ -2,24 +2,24 @@ import "./overrides.css";
 import { ItemView, Menu, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventApi } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
-import FullCalendarPlugin from "./main";
+import FullCalendarPlugin from "../main";
 import { EventModal } from "./modal";
-import { FCError, PLUGIN_SLUG } from "./types";
+import { FCError, PLUGIN_SLUG } from "../types";
 import {
 	dateEndpointsToFrontmatter,
 	fromEventApi,
-} from "./fullcalendar_interop";
-import { IcsSource } from "./models/IcsSource";
-import { NoteSource } from "./models/NoteSource";
-import { RemoteSource } from "./models/RemoteSource";
+} from "../fullcalendar_interop";
+import { IcsSource } from "../models/IcsSource";
+import { NoteSource } from "../models/NoteSource";
+import { RemoteSource } from "../models/RemoteSource";
 import { renderOnboarding } from "./onboard";
-import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
-import { NoteEvent } from "./models/NoteEvent";
-import { eventFromApi } from "./models";
+import { CalendarEvent, EditableEvent, LocalEvent } from "../models/Event";
+import { NoteEvent } from "../models/NoteEvent";
+import { eventFromApi } from "../models";
 import { DateTime } from "luxon";
-import { DailyNoteSource } from "./models/DailyNoteSource";
+import { DailyNoteSource } from "../models/DailyNoteSource";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
-import { getColors } from "./models/util";
+import { getColors } from "../models/util";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 

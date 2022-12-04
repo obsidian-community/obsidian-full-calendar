@@ -7,7 +7,7 @@ import {
 } from "vendor/fullcalendar-ical/icalendar";
 import Color from "color";
 import * as dav from "dav";
-import * as transport from "src/transport";
+import * as transport from "src/caldav/transport";
 import { EventSource } from "./EventSource";
 import { getColors } from "./util";
 

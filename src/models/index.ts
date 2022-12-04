@@ -6,7 +6,7 @@ import { CalDAVEvent } from "./CalDAVEvent";
 import { DailyNoteEvent } from "./DailyNoteEvent";
 import { CalendarEvent } from "./Event";
 import { EventApi } from "@fullcalendar/core";
-import { FullCalendarSettings } from "src/settings";
+import { FullCalendarSettings } from "src/ui/settings";
 
 export async function eventFromApi(
 	cache: MetadataCache,

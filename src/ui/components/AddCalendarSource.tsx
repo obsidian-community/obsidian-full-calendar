@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { CalendarSource } from "../types";
+import { CalendarSource } from "../../types";
 
 type ChangeListener = <T extends Partial<CalendarSource>>(
 	fromString: (val: string) => T
