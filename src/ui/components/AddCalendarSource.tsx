@@ -280,13 +280,13 @@ export const AddCalendarSource = ({
 					/>
 				)}
 				{source.type === "gcal" ||
-					source.type === "ical" ||
-					(source.type === "caldav" && (
-						<UrlInput
-							source={setting}
-							changeListener={makeChangeListener}
-						/>
-					))}
+				source.type === "ical" ||
+				source.type === "caldav" ? (
+					<UrlInput
+						source={setting}
+						changeListener={makeChangeListener}
+					/>
+				) : null}
 				{isCalDAV && (
 					<UsernameInput
 						source={setting}
