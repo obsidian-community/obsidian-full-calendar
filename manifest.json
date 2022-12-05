@@ -6,5 +6,6 @@
 	"description": "Obsidian integration with Full Calendar (fullcalendar.io)",
 	"author": "Davis Haupt",
 	"authorUrl": "https://davi.sh",
-	"isDesktopOnly": false
+	"isDesktopOnly": false,
+	"fundingUrl": "https://ko-fi.com/davish"
 }
