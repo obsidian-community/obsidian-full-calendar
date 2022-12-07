@@ -1,10 +1,11 @@
-import FullCalendarPlugin from "./main";
+import FullCalendarPlugin from "../main";
 import {
 	App,
 	DropdownComponent,
 	Notice,
 	PluginSettingTab,
 	Setting,
+	TFile,
 	TFolder,
 	Vault,
 } from "obsidian";
@@ -12,13 +13,14 @@ import {
 	makeDefaultPartialCalendarSource,
 	CalendarSource,
 	FCError,
-} from "./types";
+} from "../types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
-import { RemoteSource } from "./models/RemoteSource";
+import { RemoteSource } from "../models/RemoteSource";
 import * as ReactDOM from "react-dom";
-import { createElement, useState } from "react";
+import { createElement } from "react";
 import { ReactModal } from "./modal";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 export interface FullCalendarSettings {
 	calendarSources: CalendarSource[];
@@ -87,7 +89,8 @@ export function addCalendarButton(
 		.addDropdown(
 			(d) =>
 				(dropdown = d.addOptions({
-					local: "Local",
+					local: "Full note",
+					dailynote: "Daily Note",
 					icloud: "iCloud",
 					caldav: "CalDAV",
 					ical: "Remote (.ics format)",
@@ -111,6 +114,21 @@ export function addCalendarButton(
 										)
 										.filter((s): s is string => !!s)
 					)();
+					let headings: string[] = [];
+					let { template } = getDailyNoteSettings();
+
+					if (template) {
+						if (!template.endsWith(".md")) {
+							template += ".md";
+						}
+						const file = app.vault.getAbstractFileByPath(template);
+						if (file instanceof TFile) {
+							headings =
+								app.metadataCache
+									.getFileCache(file)
+									?.headings?.map((h) => h.heading) || [];
+						}
+					}
 
 					return createElement(AddCalendarSource, {
 						source: makeDefaultPartialCalendarSource(
@@ -119,6 +137,7 @@ export function addCalendarButton(
 						directories: directories.filter(
 							(dir) => usedDirectories.indexOf(dir) === -1
 						),
+						headings,
 						submit: async (source: CalendarSource) => {
 							if (
 								source.type === "caldav" ||

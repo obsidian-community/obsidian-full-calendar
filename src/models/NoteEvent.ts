@@ -2,7 +2,9 @@ import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { modifyFrontmatter } from "src/frontmatter";
 import { EventFrontmatter, FCError, validateFrontmatter } from "src/types";
 import { LocalEvent } from "./Event";
-import { RemoteReplaceEvent } from "./RemoteReplaceEvent";
+import { modifyFrontmatter } from "src/serialization/frontmatter";
+import { OFCEvent, FCError, validateEvent } from "src/types";
+import { basenameFromEvent, LocalEvent } from "./Event";
 
 function basenameFromEvent(event: EventFrontmatter): string {
 	switch (event.type) {
@@ -14,10 +16,8 @@ function basenameFromEvent(event: EventFrontmatter): string {
 	}
 }
 
-export class NoteEvent extends LocalEvent {
-	directory: string;
-	filename: string;
 
+export class NoteEvent extends LocalEvent {
 	get path(): string {
 		return `${this.directory}/${this.filename}`;
 	}
@@ -33,19 +33,17 @@ export class NoteEvent extends LocalEvent {
 	constructor(
 		cache: MetadataCache,
 		vault: Vault,
-		data: EventFrontmatter,
+		data: OFCEvent,
 		{ directory, filename }: { directory: string; filename: string }
 	) {
-		super(cache, vault, data);
-		this.directory = directory;
-		this.filename = filename;
+		super(cache, vault, data, directory, filename);
 	}
 
 	static async create(
 		cache: MetadataCache,
 		vault: Vault,
 		directory: string,
-		data: EventFrontmatter
+		data: OFCEvent
 	): Promise<NoteEvent> {
 		const filename = `${directory}/${basenameFromEvent(data)}.md`;
 		if (vault.getAbstractFileByPath(filename)) {
@@ -67,7 +65,7 @@ export class NoteEvent extends LocalEvent {
 		cache: MetadataCache,
 		vault: Vault,
 		file: TFile,
-		data: EventFrontmatter
+		data: OFCEvent
 	) {
 		await modifyFrontmatter(vault, file, data);
 
@@ -82,7 +80,7 @@ export class NoteEvent extends LocalEvent {
 		vault: Vault,
 		file: TFile
 	): NoteEvent | null {
-		let data = validateFrontmatter(cache.getFileCache(file)?.frontmatter);
+		let data = validateEvent(cache.getFileCache(file)?.frontmatter);
 
 		if (!data) return null;
 		if (!data.title) {
@@ -117,18 +115,7 @@ export class NoteEvent extends LocalEvent {
 		await leaf.openFile(this.file);
 	}
 	async delete(): Promise<void> {
-		await this.vault.delete(this.file);
-	}
-
-	get file(): TFile {
-		const file = this.vault.getAbstractFileByPath(this.path);
-		if (file instanceof TFile) {
-			return file;
-		} else {
-			throw new FCError(
-				`Cannot find file for NoteEvent at path ${this.path}.`
-			);
-		}
+		await this.vault.trash(this.file, true);
 	}
 
 	async setDirectory(newDirectory: string): Promise<void> {
@@ -154,7 +141,7 @@ export class NoteEvent extends LocalEvent {
 		this.directory = newDirectory;
 	}
 
-	async setData(data: EventFrontmatter): Promise<void> {
+	async setData(data: OFCEvent): Promise<void> {
 		let file = this.file;
 		let newFilename = `${basenameFromEvent(data)}.md`;
 		if (

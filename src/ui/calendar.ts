@@ -32,7 +32,7 @@ interface ExtraRenderProps {
 		event: EventApi,
 		mouseEvent: MouseEvent
 	) => Promise<void>;
-	toggleTask?: (event: EventApi, isComplete: boolean) => Promise<void>;
+	toggleTask?: (event: EventApi, isComplete: boolean) => Promise<boolean>;
 }
 
 export function renderCalendar(
@@ -153,13 +153,18 @@ export function renderCalendar(
 					checkbox.type = "checkbox";
 					checkbox.checked =
 						event.extendedProps.taskCompleted !== false;
-					checkbox.onclick = (e) => {
+					checkbox.onclick = async (e) => {
 						e.stopPropagation();
 						if (e.target) {
-							toggleTask(
+							let ret = await toggleTask(
 								event,
 								(e.target as HTMLInputElement).checked
 							);
+							if (!ret) {
+								(e.target as HTMLInputElement).checked = !(
+									e.target as HTMLInputElement
+								).checked;
+							}
 						}
 					};
 					// Make the checkbox more visible against different color events.

@@ -1,5 +1,5 @@
 import { MetadataCache, Vault } from "obsidian";
-import { EventFrontmatter } from "src/types";
+import { OFCEvent } from "src/types";
 import { CalendarEvent } from "./Event";
 
 export class ICSEvent extends CalendarEvent {
@@ -10,7 +10,7 @@ export class ICSEvent extends CalendarEvent {
 	constructor(
 		cache: MetadataCache,
 		vault: Vault,
-		data: EventFrontmatter,
+		data: OFCEvent,
 		id: string
 	) {
 		super(cache, vault, data);

@@ -1,7 +1,8 @@
+import { Notice } from "obsidian";
 import * as React from "react";
 import { SetStateAction, useState } from "react";
 
-import { CalendarSource } from "../types";
+import { CalendarSource } from "../../types";
 
 type SourceWith<T extends Partial<CalendarSource>, K> = T extends K ? T : never;
 
@@ -25,6 +26,30 @@ function DirectorySetting<T extends Partial<CalendarSource>>({
 					marginRight: 4,
 				}}
 			/>
+		</div>
+	);
+}
+
+function HeadingSetting<T extends Partial<CalendarSource>>({
+	source,
+}: BasicProps<T>) {
+	let sourceWithHeading = source as SourceWith<T, { heading: undefined }>;
+	return (
+		<div
+			className="setting-item-control"
+			style={{ display: "block", textAlign: "center" }}
+		>
+			<span>Under heading</span>{" "}
+			<input
+				disabled
+				type="text"
+				value={sourceWithHeading.heading}
+				style={{
+					marginLeft: 4,
+					marginRight: 4,
+				}}
+			/>{" "}
+			<span style={{ paddingRight: ".5rem" }}>in daily notes</span>
 		</div>
 	);
 }
@@ -113,6 +138,8 @@ export const CalendarSettingRow = ({
 			{setting.type !== "local" && <NameSetting source={setting} />}
 			{setting.type === "local" ? (
 				<DirectorySetting source={setting} />
+			) : setting.type === "dailynote" ? (
+				<HeadingSetting source={setting} />
 			) : (
 				<UrlSetting source={setting} />
 			)}
@@ -183,6 +210,16 @@ export class CalendarSettings extends React.Component<
 					{this.state.dirty && (
 						<button
 							onClick={() => {
+								if (
+									this.state.sources.filter(
+										(s) => s.type === "dailynote"
+									).length > 1
+								) {
+									new Notice(
+										"Only one daily note calendar is allowed."
+									);
+									return;
+								}
 								this.props.submit(
 									this.state.sources.map(
 										(elt) => elt as CalendarSource

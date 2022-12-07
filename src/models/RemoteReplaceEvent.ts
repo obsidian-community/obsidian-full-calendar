@@ -1,8 +1,8 @@
 import { EventInput } from "@fullcalendar/core";
 import { MetadataCache, TFile, Vault } from "obsidian";
-import { modifyFrontmatter, parseFrontmatter } from "src/frontmatter";
+import { modifyFrontmatter } from "../serialization/frontmatter";
 import FullCalendarPlugin from "src/main";
-import { EventFrontmatter, FCError, LocalCalendarSource, validateFrontmatter } from "src/types";
+import { EventFrontmatter, FCError, LocalCalendarSource, OFCEvent, validateEvent } from "src/types";
 import { NoteEvent } from "./NoteEvent";
 
 function basenameFromEvent(event: EventFrontmatter): string {
@@ -20,21 +20,10 @@ export class RemoteReplaceEvent extends NoteEvent {
 	constructor(
 		cache: MetadataCache,
 		vault: Vault,
-		data: EventFrontmatter,
+		data: OFCEvent,
 		{ directory, filename }: { directory: string; filename: string }
 	) {
 		super(cache, vault, data, {directory, filename});
-	}
-
-	toCalendarEvent(): EventInput | null {
-		let x = parseFrontmatter("None", this.data);
-		if (x) {
-			x.extendedProps = {
-				...x.extendedProps,
-				remoteReplace: true
-			}
-		}
-		return x;
 	}
 
 	static fromFile(
@@ -42,7 +31,7 @@ export class RemoteReplaceEvent extends NoteEvent {
 		vault: Vault,
 		file: TFile
 	): NoteEvent | null {
-		let data = validateFrontmatter(cache.getFileCache(file)?.frontmatter);
+		let data = validateEvent(cache.getFileCache(file)?.frontmatter);
 
 		if (!data) return null;
 		if (!data.replaceRemote) return null;

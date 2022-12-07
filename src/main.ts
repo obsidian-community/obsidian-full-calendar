@@ -1,13 +1,13 @@
 import { MarkdownView, Plugin } from "obsidian";
-import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./view";
-import { renderCalendar } from "./calendar";
+import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./ui/view";
+import { renderCalendar } from "./ui/calendar";
 
-import { EventModal } from "./modal";
+import { EventModal } from "./ui/modal";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,
 	FullCalendarSettingTab,
-} from "./settings";
+} from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
 
 export default class FullCalendarPlugin extends Plugin {

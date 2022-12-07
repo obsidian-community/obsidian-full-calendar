@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { CalendarSource } from "../types";
+import { CalendarSource } from "../../types";
 
 type ChangeListener = <T extends Partial<CalendarSource>>(
 	fromString: (val: string) => T
@@ -139,6 +139,55 @@ function UsernameInput<T extends Partial<CalendarSource>>({
 	);
 }
 
+function HeadingInput<T extends Partial<CalendarSource>>({
+	source,
+	changeListener,
+	headings,
+}: BasicProps<T> & { headings: string[] }) {
+	let sourceWithHeading = source as SourceWith<T, { heading: undefined }>;
+	return (
+		<div className="setting-item">
+			<div className="setting-item-info">
+				<div className="setting-item-name">Heading</div>
+				<div className="setting-item-description">
+					Heading to store events under in the daily note.
+				</div>
+			</div>
+			<div className="setting-item-control">
+				{headings.length > 0 ? (
+					<select
+						required
+						value={sourceWithHeading.heading || ""}
+						onChange={changeListener((x) => ({
+							...sourceWithHeading,
+							heading: x,
+						}))}
+					>
+						<option value="" disabled hidden>
+							Choose a heading
+						</option>
+						{headings.map((o, idx) => (
+							<option key={idx} value={o}>
+								{o}
+							</option>
+						))}
+					</select>
+				) : (
+					<input
+						required
+						type="text"
+						value={sourceWithHeading.heading || ""}
+						onChange={changeListener((x) => ({
+							...sourceWithHeading,
+							heading: x,
+						}))}
+					/>
+				)}
+			</div>
+		</div>
+	);
+}
+
 function PasswordInput<T extends Partial<CalendarSource>>({
 	source,
 	changeListener,
@@ -170,12 +219,14 @@ function PasswordInput<T extends Partial<CalendarSource>>({
 interface AddCalendarProps {
 	source: Partial<CalendarSource>;
 	directories: string[];
+	headings: string[];
 	submit: (source: CalendarSource) => Promise<void>;
 }
 
 export const AddCalendarSource = ({
 	source,
 	directories,
+	headings,
 	submit,
 }: AddCalendarProps) => {
 	const isCalDAV = source.type === "caldav" || source.type === "icloud";
@@ -221,12 +272,21 @@ export const AddCalendarSource = ({
 						directories={directories}
 					/>
 				)}
-				{source.type !== "local" && source.type !== "icloud" && (
+				{source.type === "dailynote" && (
+					<HeadingInput
+						source={setting}
+						changeListener={makeChangeListener}
+						headings={headings}
+					/>
+				)}
+				{source.type === "gcal" ||
+				source.type === "ical" ||
+				source.type === "caldav" ? (
 					<UrlInput
 						source={setting}
 						changeListener={makeChangeListener}
 					/>
-				)}
+				) : null}
 				{isCalDAV && (
 					<UsernameInput
 						source={setting}
