@@ -26,14 +26,14 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 
 	add(one: T, many: FK) {
 		this.foreign[many.id] = one.id;
-		if (!(one in this.related)) {
+		if (!this.related[one.id]) {
 			this.related[one.id] = new Set();
 		}
 		this.related[one.id].add(many.id);
 	}
 
 	delete(many: FK) {
-		if (!(many.id in this.foreign)) {
+		if (!this.foreign[many.id]) {
 			return;
 		}
 		const oneId = this.foreign[many.id];
@@ -72,6 +72,12 @@ export default class EventStore {
 		id: string;
 		event: OFCEvent;
 	}) {
+		if (id in this.store) {
+			throw new Error(
+				"Event with given ID already exists in the EventStore."
+			);
+		}
+
 		this.store[id] = event;
 
 		this.calendarIndex.add(calendar, new EventID(id));

@@ -17,9 +17,7 @@ const mockFile = withCounter((path) => ({ path } as TFile));
 
 const mockCalendar = withCounter((id): Calendar => ({ id } as Calendar));
 
-const mockEvent = withCounter(
-	(id): OFCEvent => ({ id } as unknown as OFCEvent)
-);
+const mockEvent = withCounter((title): OFCEvent => ({ title } as OFCEvent));
 
 const mockId = withCounter((x) => x);
 
@@ -40,6 +38,30 @@ describe("EventStore tests", () => {
 		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [event]);
 		assert.deepStrictEqual(store.getEventsInFile(file), [event]);
 		assert.equal(store.eventCount, 1);
+	});
+
+	it("stores two events", () => {
+		const calendar = mockCalendar();
+		const file = mockFile();
+
+		const event1 = mockEvent();
+		const id1 = mockId();
+
+		const event2 = mockEvent();
+		const id2 = mockId();
+
+		store.add({ calendar, file: file, id: id1, event: event1 });
+		store.add({ calendar, file: file, id: id2, event: event2 });
+
+		assert.equal(store.eventCount, 2);
+		assert.equal(store.fileCount, 1);
+		assert.equal(store.calendarCount, 1);
+
+		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+			event1,
+			event2,
+		]);
+		assert.deepStrictEqual(store.getEventsInFile(file), [event1, event2]);
 	});
 
 	it("stores one event without a file", () => {
