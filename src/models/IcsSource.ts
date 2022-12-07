@@ -1,5 +1,6 @@
 import { EventSourceInput } from "@fullcalendar/core";
-import { request } from "obsidian";
+import { request, Vault } from "obsidian";
+import FullCalendarPlugin from "src/main";
 import { FCError, ICalSource } from "src/types";
 import { IcalExpander } from "vendor/fullcalendar-ical/ical-expander/IcalExpander";
 import {
@@ -7,16 +8,22 @@ import {
 	makeICalExpander,
 } from "vendor/fullcalendar-ical/icalendar";
 import { EventSource } from "./EventSource";
+import { RemoteReplaceEvent } from "./RemoteReplaceEvent";
 import { getColors } from "./util";
 
 export class IcsSource extends EventSource {
 	info: ICalSource;
-	constructor(info: ICalSource) {
+	plugin: FullCalendarPlugin;
+	vault: Vault;
+	constructor(info: ICalSource, plugin: FullCalendarPlugin, vault: Vault) {
 		super();
 		this.info = info;
+		this.plugin = plugin;
+		this.vault = vault;
 	}
 
 	async toApi(): Promise<EventSourceInput | FCError> {
+		let $ = this;
 		let url = this.info.url;
 		if (url.startsWith("webcal")) {
 			url = "https" + url.slice("webcal".length);
@@ -51,7 +58,9 @@ export class IcsSource extends EventSource {
 					start,
 					end,
 				});
-				return events;
+				return events.filter((ev)=> {
+					return !RemoteReplaceEvent.checkNoteCreateP(ev, $.plugin, $.vault);
+				});
 			},
 			editable: false,
 			...getColors(this.info.color),

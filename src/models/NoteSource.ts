@@ -4,6 +4,7 @@ import { FCError, LocalCalendarSource } from "src/types";
 import { NoteEvent } from "./NoteEvent";
 import { EventSource } from "./EventSource";
 import { getColors } from "./util";
+import { RemoteReplaceEvent } from "./RemoteReplaceEvent";
 
 export class NoteSource extends EventSource {
 	info: LocalCalendarSource;
@@ -31,7 +32,10 @@ export class NoteSource extends EventSource {
 		let events: EventInput[] = [];
 		for (let file of eventFolder.children) {
 			if (file instanceof TFile) {
-				let event = NoteEvent.fromFile(this.cache, this.vault, file);
+				let event = RemoteReplaceEvent.fromFile(this.cache, this.vault, file);
+				if (!event){
+					event = NoteEvent.fromFile(this.cache, this.vault, file);
+				}
 				if (event) {
 					let calEvent = event.toCalendarEvent();
 					if (calEvent) {

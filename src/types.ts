@@ -31,9 +31,14 @@ export type RecurringEventFrontmatter = {
 	endRecur?: string;
 } & CommonEventFrontmatter;
 
+export type ReplaceRemoteEventFrontmatter = {
+	replaceRemote?: boolean;
+} & CommonEventFrontmatter;
+
 export type EventFrontmatter =
 	| SingleEventFrontmatter
-	| RecurringEventFrontmatter;
+	| RecurringEventFrontmatter
+	| ReplaceRemoteEventFrontmatter;
 
 /*
  * Validates that an incoming object from a JS object (presumably parsed from a note's frontmatter)
@@ -45,11 +50,14 @@ export function validateFrontmatter(
 	if (obj === undefined) {
 		return null;
 	}
-
+	
 	if (!obj.title) {
 		return null;
 	}
-
+	if (obj.title.startsWith("Master - wsd nlp")){
+		let x = 0;
+	}
+	
 	if (!obj.allDay && !obj.startTime) {
 		return null;
 	}
@@ -72,6 +80,7 @@ export function validateFrontmatter(
 			date: obj.date,
 			endDate: obj.endDate,
 			completed: obj.completed,
+			replaceRemote: obj.replaceRemote,
 			...timeInfo,
 		};
 	} else if (obj.type === "recurring") {
@@ -79,11 +88,13 @@ export function validateFrontmatter(
 			return null;
 		}
 		return {
+			...obj,
 			title: obj.title,
 			type: "recurring",
 			daysOfWeek: obj.daysOfWeek,
 			startRecur: obj.startRecur,
 			endRecur: obj.endRecur,
+			replaceRemote: obj.replaceRemote,
 			...timeInfo,
 		};
 	}
@@ -95,6 +106,7 @@ export function validateFrontmatter(
 
 type CalendarSourceCommon = {
 	color: string;
+	name: string;
 };
 
 /**
@@ -136,7 +148,6 @@ type AuthType = BasicAuth;
  */
 export type CalDAVSource = {
 	type: "caldav";
-	name: string;
 	url: string;
 	homeUrl: string;
 } & CalendarSourceCommon &

@@ -5,11 +5,11 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { EditEvent } from "./components/EditEvent";
-import { AddCalendarSource } from "./components/AddCalendarSource";
-import { EventFrontmatter } from "./types";
+import { EventFrontmatter, LocalCalendarSource } from "./types";
 import { CalendarEvent, EditableEvent, LocalEvent } from "./models/Event";
 import { NoteEvent } from "./models/NoteEvent";
 import { eventFromCalendarId } from "./models";
+import { RemoteReplaceEvent } from "./models/RemoteReplaceEvent";
 
 export class EventModal extends Modal {
 	plugin: FullCalendarPlugin;
@@ -40,17 +40,63 @@ export class EventModal extends Modal {
 				input.id
 			);
 			if (event) {
-				this.data = event.data;
-				this.event = event;
-				this.open();
+				if (event.data.replaceRemote){
+					const leaf = this.app.workspace.getMostRecentLeaf();
+					await event.openIn(leaf);
+					this.close();
+				}
+				else{
+					this.data = event.data;
+					this.event = event;
+					this.open();
+				}
 			} else {
-				new Notice(
-					"Full Calendar: No frontmatter to edit for selected event."
+				// if we arrived here, the event is a remote event
+				let d = new Date(Date.parse(input._instance.range.start));
+				d = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+				let de = new Date(Date.parse(input._instance.range.end));
+				de = new Date(de.getTime() + d.getTimezoneOffset() * 60000);
+				let data: EventFrontmatter = {
+					allDay: false,
+					completed: null,
+					date: `${d.getFullYear()}-${("0" + (d.getMonth() + 1)).slice(-2)}-${("0" + d.getDate()).slice(-2)}`,
+					endDate: undefined,
+					endTime: ("0" + de.getHours()).slice(-2) + ":" + ("0" + de.getMinutes()).slice(-2),
+					startTime: ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2),
+					title: input._def.title,
+					type: 'single',
+					replaceRemote: true
+				};
+				if (data.endTime == "00:00"){
+					data.endTime = "23:59";
+				}
+
+				const sourceDirs = this.plugin.settings.calendarSources.filter(
+					(s) => s.type === "local"
+				).map(s => (s as LocalCalendarSource).directory);
+
+				if (!sourceDirs.length){
+					new Notice(
+						"No local source directories provided"
+					);
+					this.close();
+					return;
+				}
+				
+				// check if event note exists
+				const path = RemoteReplaceEvent.checkNoteCreate(data, sourceDirs, this.app.vault)
+				const ev = path 
+				? RemoteReplaceEvent.fromPath(this.app.metadataCache, this.app.vault, path)
+				: await RemoteReplaceEvent.create(
+					this.app.metadataCache,
+					this.app.vault,
+					sourceDirs[0],
+					data
 				);
-				console.warn(
-					"Full Calendar: No frontmatter to edit for selected event.",
-					input
-				);
+				
+				const leaf = this.app.workspace.getMostRecentLeaf();
+				await ev.openIn(leaf);
+				this.close();
 			}
 		} else if (input instanceof TFile) {
 			const e = NoteEvent.fromFile(

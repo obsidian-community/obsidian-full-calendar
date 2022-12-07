@@ -183,6 +183,19 @@ export function renderCalendar(
 					container?.prepend(checkbox);
 				}
 			}
+			if (event.extendedProps.remoteReplace){
+				const strong = document.createElement("strong");
+				strong.type = "strong";
+				strong.innerText = "[N]";
+				strong.style = "margin-right: 2px;"
+
+				const container =
+					el.querySelector(".fc-event-time") ||
+					el.querySelector(".fc-event-title") ||
+					el.querySelector(".fc-list-event-title");
+					
+				container?.prepend(strong);
+			}
 		},
 
 		longPressDelay: 250,

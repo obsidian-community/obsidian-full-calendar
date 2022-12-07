@@ -49,7 +49,7 @@ export function parseFrontmatter(
 			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
 			startRecur: frontmatter.startRecur,
 			endRecur: frontmatter.endRecur,
-			extendedProps: { isTask: false },
+			extendedProps: { isTask: false, remoteReplace: frontmatter.replaceRemote },
 		};
 		if (!frontmatter.allDay) {
 			event = {
@@ -89,6 +89,7 @@ export function parseFrontmatter(
 						frontmatter.completed !== undefined &&
 						frontmatter.completed !== null,
 					taskCompleted: frontmatter.completed,
+					remoteReplace: frontmatter.replaceRemote
 				},
 			};
 		} else {
@@ -101,6 +102,7 @@ export function parseFrontmatter(
 						frontmatter.completed !== undefined &&
 						frontmatter.completed !== null,
 					taskCompleted: frontmatter.completed,
+					remoteReplace: frontmatter.replaceRemote
 				},
 			};
 		}

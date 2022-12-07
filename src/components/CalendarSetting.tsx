@@ -110,12 +110,12 @@ export const CalendarSettingRow = ({
 			>
 				✕
 			</button>
+			{setting.type !== "local" && <NameSetting source={setting} />}
 			{setting.type === "local" ? (
 				<DirectorySetting source={setting} />
 			) : (
 				<UrlSetting source={setting} />
 			)}
-			{isCalDAV && <NameSetting source={setting} />}
 			{isCalDAV && <Username source={setting} />}
 			<input
 				style={{ maxWidth: "25%", minWidth: "3rem" }}

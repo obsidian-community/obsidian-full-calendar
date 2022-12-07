@@ -3,7 +3,6 @@ import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./view";
 import { renderCalendar } from "./calendar";
 
 import { EventModal } from "./modal";
-import { parseFrontmatter } from "./frontmatter";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,
@@ -15,7 +14,6 @@ export default class FullCalendarPlugin extends Plugin {
 	settings: FullCalendarSettings = DEFAULT_SETTINGS;
 
 	renderCalendar = renderCalendar;
-	processFrontmatter = parseFrontmatter;
 
 	async activateView() {
 		this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);

@@ -1,7 +1,18 @@
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { modifyFrontmatter } from "src/frontmatter";
 import { EventFrontmatter, FCError, validateFrontmatter } from "src/types";
-import { basenameFromEvent, LocalEvent } from "./Event";
+import { LocalEvent } from "./Event";
+import { RemoteReplaceEvent } from "./RemoteReplaceEvent";
+
+function basenameFromEvent(event: EventFrontmatter): string {
+	switch (event.type) {
+		case "single":
+		case undefined:
+			return `${event.date} ${event.title}` + (event.startTime && event.endTime ? ` ${event.startTime}-${event.endTime}` : '');
+		case "recurring":
+			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
+	}
+}
 
 export class NoteEvent extends LocalEvent {
 	directory: string;

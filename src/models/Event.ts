@@ -1,18 +1,8 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
 import { MetadataCache, Vault, WorkspaceLeaf } from "obsidian";
 import { parseFrontmatter } from "src/frontmatter";
-import { CalendarSource, EventFrontmatter, FCError } from "src/types";
+import { CalendarSource, EventFrontmatter } from "src/types";
 import { getColors } from "./util";
-
-export function basenameFromEvent(event: EventFrontmatter): string {
-	switch (event.type) {
-		case "single":
-		case undefined:
-			return `${event.date} ${event.title}`;
-		case "recurring":
-			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
-	}
-}
 
 export const getPathPrefix = (path: string): string =>
 	path.split("/").slice(0, -1).join("/");

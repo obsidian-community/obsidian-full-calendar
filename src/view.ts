@@ -256,7 +256,7 @@ export class CalendarView extends ItemView {
 
 		this.plugin.settings.calendarSources
 			.flatMap((s) => (s.type === "ical" ? [s] : []))
-			.map((s) => new IcsSource(s))
+			.map((s) => new IcsSource(s, this.plugin, this.app.vault))
 			.map((s) => s.toApi())
 			.forEach((resultPromise) =>
 				resultPromise.then((result) => {
