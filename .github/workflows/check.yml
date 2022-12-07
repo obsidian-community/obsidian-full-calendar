@@ -1,7 +1,6 @@
 name: Check
 on:
     - push
-    - pull_request
 jobs:
     format:
         runs-on: ubuntu-latest
