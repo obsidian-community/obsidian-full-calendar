@@ -21,41 +21,53 @@ class EventID implements Identifier {
 }
 
 class OneToMany<T extends Identifier, FK extends Identifier> {
-	private foreign: Record<string, string> = {};
-	private related: Record<string, Set<string>> = {};
+	private foreign: Map<string, string> = new Map();
+	private related: Map<string, Set<string>> = new Map();
 
 	add(one: T, many: FK) {
-		this.foreign[many.id] = one.id;
-		if (!this.related[one.id]) {
-			this.related[one.id] = new Set();
+		this.foreign.set(many.id, one.id);
+		let related = this.related.get(one.id);
+		if (!related) {
+			related = new Set();
+			this.related.set(one.id, related);
 		}
-		this.related[one.id].add(many.id);
+		related.add(many.id);
 	}
 
 	delete(many: FK) {
-		if (!this.foreign[many.id]) {
+		const oneId = this.foreign.get(many.id);
+		if (!oneId) {
 			return;
 		}
-		const oneId = this.foreign[many.id];
-		delete this.foreign[many.id];
-		this.related[oneId].delete(many.id);
+		this.foreign.delete(many.id);
+		const related = this.related.get(oneId);
+		if (!related) {
+			throw new Error(
+				`Unreachable: state: relation <${oneId}> exists in the foreign map but not the related map.`
+			);
+		}
+		related.delete(many.id);
 	}
 
 	getBy(key: T): string[] {
-		return [...this.related[key.id].values()];
+		const related = this.related.get(key.id);
+		if (!related) {
+			return [];
+		}
+		return [...related.values()];
 	}
 
 	get numEntries(): number {
-		return Object.keys(this.foreign).length;
+		return this.foreign.size;
 	}
 
 	get relatedCount(): number {
-		return Object.keys(this.related).length;
+		return this.related.size;
 	}
 }
 
 export default class EventStore {
-	private store: Record<string, OFCEvent> = {};
+	private store: Map<string, OFCEvent> = new Map();
 
 	private calendarIndex = new OneToMany<Calendar, EventID>();
 	private pathIndex = new OneToMany<Path, EventID>();
@@ -72,13 +84,13 @@ export default class EventStore {
 		id: string;
 		event: OFCEvent;
 	}) {
-		if (id in this.store) {
+		if (this.store.has(id)) {
 			throw new Error(
 				"Event with given ID already exists in the EventStore."
 			);
 		}
 
-		this.store[id] = event;
+		this.store.set(id, event);
 
 		this.calendarIndex.add(calendar, new EventID(id));
 
@@ -88,27 +100,31 @@ export default class EventStore {
 	}
 
 	delete(id: string): OFCEvent | null {
-		if (!(id in this.store)) {
+		const event = this.store.get(id);
+		if (!event) {
 			return null;
 		}
 
 		this.calendarIndex.delete(new EventID(id));
 		this.pathIndex.delete(new EventID(id));
-		const event = this.store[id];
-		delete this.store[id];
+		this.store.delete(id);
 		return event;
 	}
 
 	getEventById(id: string): OFCEvent | null {
-		return this.store[id] || null;
+		return this.store.get(id) || null;
 	}
 
 	getEventsInFile(file: TFile): OFCEvent[] {
-		return this.pathIndex.getBy(new Path(file)).map((id) => this.store[id]);
+		return this.pathIndex
+			.getBy(new Path(file))
+			.flatMap((id) => this.store.get(id) || []);
 	}
 
 	getEventsInCalendar(calendar: Calendar): OFCEvent[] {
-		return this.calendarIndex.getBy(calendar).map((id) => this.store[id]);
+		return this.calendarIndex
+			.getBy(calendar)
+			.flatMap((id) => this.store.get(id) || []);
 	}
 
 	get fileCount() {
@@ -120,6 +136,6 @@ export default class EventStore {
 	}
 
 	get eventCount() {
-		return Object.keys(this.store).length;
+		return this.store.size;
 	}
 }
