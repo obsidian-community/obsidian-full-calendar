@@ -36,6 +36,7 @@ export default class EventCache {
 
 	private calendars: CalendarInitializerMap;
 
+	// TODO: replace cache with eventStore.
 	private cache: Record<string, CacheEntry> = {};
 	// Map directory paths to cache entry IDs.
 	private directories: Record<string, string> = {};
