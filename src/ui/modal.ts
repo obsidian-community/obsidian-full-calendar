@@ -157,8 +157,9 @@ export class EventModal extends Modal {
 					this.event instanceof LocalEvent
 						? async () => {
 								if (this.event instanceof LocalEvent) {
-									let leaf =
-										this.app.workspace.getMostRecentLeaf();
+									let leaf = this.app.workspace.getMostRecentLeaf();
+									if (this.plugin.settings.openNoteInNewTab) 
+										leaf = this.app.workspace.getLeaf(true);
 									await this.event.openIn(leaf);
 									this.close();
 								}

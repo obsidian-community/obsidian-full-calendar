@@ -32,6 +32,7 @@ export interface FullCalendarSettings {
 		mobile: string;
 	};
 	timeFormat24h: boolean;
+	openNoteInNewTab: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -44,6 +45,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 		mobile: "timeGrid3Days",
 	},
 	timeFormat24h: false,
+	openNoteInNewTab: false,
 };
 
 const WEEKDAYS = [
@@ -230,6 +232,16 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.timeFormat24h);
 				toggle.onChange(async (val) => {
 					this.plugin.settings.timeFormat24h = val;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Open Note in New Tab")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.openNoteInNewTab);
+				toggle.onChange(async (val) => {
+					this.plugin.settings.openNoteInNewTab = val;
 					await this.plugin.saveSettings();
 				});
 			});
