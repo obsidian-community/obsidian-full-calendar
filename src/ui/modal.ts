@@ -153,18 +153,16 @@ export class EventModal extends Modal {
 					calIdx || this.plugin.settings.defaultCalendar,
 
 				calendars: this.plugin.settings.calendarSources,
-				open:
-					this.event instanceof LocalEvent
-						? async () => {
-								if (this.event instanceof LocalEvent) {
-									let leaf = this.app.workspace.getMostRecentLeaf();
-									if (this.plugin.settings.openNoteInNewTab) 
-										leaf = this.app.workspace.getLeaf(true);
-									await this.event.openIn(leaf);
-									this.close();
-								}
-						  }
-						: undefined,
+				open: this.event instanceof LocalEvent
+					? async () => {
+						let leaf = this.app.workspace.getMostRecentLeaf();
+						if (this.plugin.settings.openNoteInNewTab) {
+							leaf = this.app.workspace.getLeaf(true);
+						}
+
+						await (this.event as LocalEvent).openIn(leaf);
+						this.close();
+					} : undefined,
 				deleteEvent:
 					this.event instanceof LocalEvent
 						? async () => {
