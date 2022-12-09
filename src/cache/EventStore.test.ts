@@ -1,7 +1,7 @@
 import { TFile } from "obsidian";
-import { Calendar } from "./calendars/Calendar";
+import { Calendar } from "../calendars/Calendar";
 import EventStore from "./EventStore";
-import { OFCEvent } from "./types";
+import { OFCEvent } from "../types";
 import { assert } from "chai";
 
 const withCounter = <T>(f: (x: string) => T, label?: string) => {

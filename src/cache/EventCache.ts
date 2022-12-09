@@ -2,13 +2,13 @@ import { EventInput, EventSourceInput } from "@fullcalendar/core";
 import { App, TFile, TFolder } from "obsidian";
 import equal from "deep-equal";
 
-import { Calendar, ID_SEPARATOR } from "./calendars/Calendar";
-import { EditableCalendar } from "./calendars/EditableCalendar";
+import { Calendar, ID_SEPARATOR } from "../calendars/Calendar";
+import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore from "./EventStore";
-import { toEventInput } from "./fullcalendar_interop";
-import { getColors } from "./models/util";
-import { CalendarInfo, OFCEvent } from "./types";
-import { FullCalendarSettings } from "./ui/settings";
+import { toEventInput } from "./interop";
+import { getColors } from "../models/util";
+import { CalendarInfo, OFCEvent } from "../types";
+import { FullCalendarSettings } from "../ui/settings";
 
 type CalendarInitializerMap = Record<
 	CalendarInfo["type"],
@@ -21,11 +21,6 @@ type CacheEventEntry = { event: OFCEvent; id: string };
 type CacheEntry = {
 	calendar: Calendar;
 	events: CacheEventEntry[];
-};
-
-type ViewEventEntry = {
-	event: EventInput;
-	id: string;
 };
 
 type UpdateViewCallback = (info: {
@@ -52,6 +47,21 @@ const eventsAreDifferent = (
 	return unmatchedEvents.length > 0;
 };
 
+/**
+ * Persistent event cache that also can write events back to disk.
+ *
+ * The EventCache acts as the bridge between the source-of-truth for
+ * calendars (either the network or filesystem) and the FullCalendar view plugin.
+ *
+ * It maintains its own copy of all events which should be displayed on calendars
+ * in the internal event format.
+ *
+ * Pluggable Calendar classes are responsible for parsing and serializing events
+ * from their source, but the EventCache performs all I/O itself.
+ *
+ * Subscribers can register callbacks on the EventCache to be updated when events
+ * change on disk.
+ */
 export default class EventCache {
 	private app: App;
 	private settings: FullCalendarSettings;

@@ -1,6 +1,6 @@
 import { TFile } from "obsidian";
-import { Calendar } from "./calendars/Calendar";
-import { OFCEvent } from "./types";
+import { Calendar } from "../calendars/Calendar";
+import { OFCEvent } from "../types";
 
 interface Identifier {
 	id: string;

@@ -1,5 +1,3 @@
-import { MetadataCache, Vault } from "obsidian";
-
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter

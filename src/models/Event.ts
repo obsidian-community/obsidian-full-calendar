@@ -1,7 +1,6 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
-import { dir } from "console";
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
-import { toEventInput } from "src/fullcalendar_interop";
+import { toEventInput } from "src/cache/interop";
 import { CalendarInfo, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
 
