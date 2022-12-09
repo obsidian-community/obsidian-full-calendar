@@ -1,5 +1,7 @@
 import { EventInput, EventSourceInput } from "@fullcalendar/core";
 import { App, TFile, TFolder } from "obsidian";
+import equal from "deep-equal";
+
 import { Calendar, ID_SEPARATOR } from "./calendars/Calendar";
 import { EditableCalendar } from "./calendars/EditableCalendar";
 import EventStore from "./EventStore";
@@ -27,9 +29,27 @@ type ViewEventEntry = {
 };
 
 type UpdateViewCallback = (info: {
-	toRemove: EventInput[];
+	toRemove: string[];
 	toAdd: EventInput[];
 }) => void;
+
+const eventsAreDifferent = (
+	oldEvents: OFCEvent[],
+	newEvents: OFCEvent[]
+): boolean => {
+	oldEvents.sort((a, b) => a.title.localeCompare(b.title));
+	newEvents.sort((a, b) => a.title.localeCompare(b.title));
+
+	if (oldEvents.length !== newEvents.length) {
+		return true;
+	}
+
+	const unmatchedEvents = oldEvents
+		.map((e, i) => ({ oldEvent: e, newEvent: newEvents[i] }))
+		.filter(({ oldEvent, newEvent }) => !equal(oldEvent, newEvent));
+
+	return unmatchedEvents.length > 0;
+};
 
 export default class EventCache {
 	private app: App;
@@ -123,7 +143,7 @@ export default class EventCache {
 								this.store.add({
 									calendar,
 									file,
-									id: this.generateId(),
+									id: event.id || this.generateId(),
 									event,
 								})
 							);
@@ -134,7 +154,7 @@ export default class EventCache {
 					this.store.add({
 						calendar,
 						file: null,
-						id: this.generateId(),
+						id: event.id || this.generateId(),
 						event,
 					})
 				);
@@ -146,14 +166,12 @@ export default class EventCache {
 		this.store.clear();
 	}
 
-	updateViews(toRemove: CacheEventEntry[], toAdd: CacheEventEntry[]) {
+	updateViews(toRemove: string[], toAdd: CacheEventEntry[]) {
 		const payload = {
-			toRemove: toRemove
-				.map(({ event, id }) => toEventInput(id, event))
-				.flatMap(removeNulls),
-			toAdd: toAdd
-				.map(({ event, id }) => toEventInput(id, event))
-				.flatMap(removeNulls),
+			toRemove,
+			toAdd: toAdd.flatMap(
+				({ event, id }) => toEventInput(id, event) || []
+			),
 		};
 
 		for (const callback of this.updateViewCallbacks) {
@@ -167,20 +185,51 @@ export default class EventCache {
 			return;
 		}
 
-		const oldEvents = this.store.getEventsInFile(file);
-		// Get all calendars for events by ID.
+		const calendars = [...this.calendars.values()].flatMap((c) =>
+			c instanceof EditableCalendar && c.containsPath(file.path) ? c : []
+		);
 
-		// Then, get new events by calling calendar.getEventsInFile().
+		const contents = await this.app.vault.cachedRead(file);
+		const idsToRemove: string[] = [];
+		const eventsToAdd: CacheEventEntry[] = [];
 
-		// Compare new events to old events.
+		for (const calendar of calendars) {
+			const oldEventsWithIds = this.store.getEventsInFileAndCalendar(
+				file,
+				calendar
+			);
 
-		// TODO: Figure out how to re-use primary keys for events rather than creating new ones every time.
-		// const newEvents = entry.calendar
-		// 	.getEventsInFile(fileCache, contents)
-		// 	.map((event) => ({
-		// 		event,
-		// 		id: this.generateId(entry.calendar),
-		// 	}));
+			const oldEvents = oldEventsWithIds.map((r) => r.event);
+			const oldIds = oldEventsWithIds.map((r) => r.id);
+			const newEvents = calendar.getEventsInFile(fileCache, contents);
+
+			// If no events have changed from what's in the cache, then no need to update subscribers.
+			if (!eventsAreDifferent(oldEvents, newEvents)) {
+				return;
+			}
+
+			// If events have changed in the calendar, then remove all the old events from the store and add in new ones.
+			oldIds.forEach((id) => {
+				this.store.delete(id);
+			});
+			const newEventsWithIds = newEvents.map((event) => ({
+				event,
+				id: event.id || this.generateId(),
+			}));
+			newEventsWithIds.forEach(({ event, id }) => {
+				this.store.add({
+					calendar,
+					file,
+					id,
+					event,
+				});
+			});
+
+			idsToRemove.push(...oldIds);
+			eventsToAdd.push(...newEventsWithIds);
+		}
+
+		this.updateViews(idsToRemove, eventsToAdd);
 	}
 
 	getEventFromId(s: string): OFCEvent | null {

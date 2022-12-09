@@ -14,7 +14,8 @@ export type RangeTimeData = {
 };
 
 export type CommonEventData = {
-	title?: string;
+	title: string;
+	id?: string; // Only set for remote calendars.
 } & (RangeTimeData | AllDayData);
 
 export type SingleEventData = {

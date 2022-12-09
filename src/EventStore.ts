@@ -54,12 +54,12 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 		related.delete(many.id);
 	}
 
-	getBy(key: T): string[] {
+	getBy(key: T): Set<string> {
 		const related = this.related.get(key.id);
 		if (!related) {
-			return [];
+			return new Set();
 		}
-		return [...related.values()];
+		return new Set(related);
 	}
 
 	getRelated(key: FK): string | null {
@@ -105,14 +105,28 @@ export default class EventStore {
 		this.pathIndex.clear();
 	}
 
-	fetch(ids: string[]): EventResult[] {
-		return ids.flatMap((id): EventResult | [] => {
+	get fileCount() {
+		return this.pathIndex.relatedCount;
+	}
+
+	get calendarCount() {
+		return this.calendarIndex.relatedCount;
+	}
+
+	get eventCount() {
+		return this.store.size;
+	}
+
+	fetch(ids: string[] | Set<string>): EventResult[] {
+		const result: EventResult[] = [];
+		ids.forEach((id) => {
 			const event = this.store.get(id);
 			if (!event) {
-				return [];
+				return;
 			}
-			return { id, event };
+			result.push({ id, event });
 		});
+		return result;
 	}
 
 	add({
@@ -165,6 +179,12 @@ export default class EventStore {
 		return this.fetch(this.calendarIndex.getBy(calendar));
 	}
 
+	getEventsInFileAndCalendar(file: TFile, calendar: Calendar): EventResult[] {
+		const inFile = this.pathIndex.getBy(new Path(file));
+		const inCalendar = this.calendarIndex.getBy(calendar);
+		return this.fetch([...inFile].filter((id) => inCalendar.has(id)));
+	}
+
 	getCalendarIdForEventId(id: string): string | null {
 		return this.calendarIndex.getRelated(new EventID(id));
 	}
@@ -175,17 +195,5 @@ export default class EventStore {
 			result.set(k, this.fetch(vs));
 		}
 		return result;
-	}
-
-	get fileCount() {
-		return this.pathIndex.relatedCount;
-	}
-
-	get calendarCount() {
-		return this.calendarIndex.relatedCount;
-	}
-
-	get eventCount() {
-		return this.store.size;
 	}
 }
