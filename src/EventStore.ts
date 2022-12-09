@@ -62,17 +62,18 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 	}
 
 	get relatedCount(): number {
-		return this.related.size;
+		return [...this.related.values()].filter((s) => s.size > 0).length;
 	}
 }
 
+// Class that stores events by their ID as the primary key, with secondary "indexes" by calendar and file.
+// You can look up events by what calendar they belong to, as well as what file their source lives in.
 export default class EventStore {
 	private store: Map<string, OFCEvent> = new Map();
 
 	private calendarIndex = new OneToMany<Calendar, EventID>();
 	private pathIndex = new OneToMany<Path, EventID>();
 
-	// TODO: Add test for over-writing an event with the same ID.
 	add({
 		calendar,
 		file,
@@ -132,7 +133,7 @@ export default class EventStore {
 	}
 
 	get calendarCount() {
-		return this.pathIndex.relatedCount;
+		return this.calendarIndex.relatedCount;
 	}
 
 	get eventCount() {
