@@ -1,12 +1,8 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import {
-	CalendarSource,
-	OFCEvent,
-	SingleEventData,
-	RangeTimeData,
-} from "../../types";
+import { CalendarSource, OFCEvent, RangeTimeData } from "../../types";
+import { RRule } from "rrule";
 
 function makeChangeListener<T>(
 	setState: React.Dispatch<React.SetStateAction<T>>,
@@ -15,12 +11,17 @@ function makeChangeListener<T>(
 	return (e) => setState(fromString(e.target.value));
 }
 
+function formatDate(date: Date | null | undefined): string {
+	return date?.toISOString().substring(0, 10) ?? "";
+}
+
 interface DayChoiceProps {
 	code: string;
 	label: string;
 	isSelected: boolean;
 	onClick: (code: string) => void;
 }
+
 const DayChoice = ({ code, label, isSelected, onClick }: DayChoiceProps) => (
 	<button
 		type="button"
@@ -44,42 +45,6 @@ const DayChoice = ({ code, label, isSelected, onClick }: DayChoiceProps) => (
 	</button>
 );
 
-const DAY_MAP = {
-	U: "Sunday",
-	M: "Monday",
-	T: "Tuesday",
-	W: "Wednesday",
-	R: "Thursday",
-	F: "Friday",
-	S: "Saturday",
-};
-
-const DaySelect = ({
-	value: days,
-	onChange,
-}: {
-	value: string[];
-	onChange: (days: string[]) => void;
-}) => {
-	return (
-		<div>
-			{Object.entries(DAY_MAP).map(([code, label]) => (
-				<DayChoice
-					key={code}
-					code={code}
-					label={label}
-					isSelected={days.includes(code)}
-					onClick={() =>
-						days.includes(code)
-							? onChange(days.filter((c) => c !== code))
-							: onChange([code, ...days])
-					}
-				/>
-			))}
-		</div>
-	);
-};
-
 interface EditEventProps {
 	submit: (frontmatter: OFCEvent, calendarIndex: number) => Promise<void>;
 	readonly calendars: CalendarSource[];
@@ -97,22 +62,21 @@ export const EditEvent = ({
 	calendars,
 	defaultCalendarIndex,
 }: EditEventProps) => {
-	const [date, setDate] = useState(
-		initialEvent
-			? initialEvent.type !== "recurring"
-				? // Discriminated union on unset type not working well within Partial<>
-				  (initialEvent as SingleEventData).date
-				: initialEvent.startRecur || ""
-			: ""
-	);
-	const [endDate, setEndDate] = useState(
-		initialEvent && initialEvent.type === "single"
-			? initialEvent.endDate
+	const [rule, setRule] = useState(
+		initialEvent?.type === "recurring"
+			? RRule.fromString(initialEvent.rule!!)
 			: undefined
 	);
+	const [date, setDate] = useState(
+		(initialEvent?.type === "single"
+			? initialEvent.date
+			: formatDate(rule?.options.dtstart)) ?? ""
+	);
 
+	const isRecurring = rule !== undefined;
 	let initialStartTime = "";
 	let initialEndTime = "";
+
 	if (
 		initialEvent &&
 		(initialEvent.allDay === false || initialEvent.allDay === undefined)
@@ -125,18 +89,7 @@ export const EditEvent = ({
 	const [startTime, setStartTime] = useState(initialStartTime);
 	const [endTime, setEndTime] = useState(initialEndTime);
 	const [title, setTitle] = useState(initialEvent?.title || "");
-	const [isRecurring, setIsRecurring] = useState(
-		initialEvent?.type === "recurring" || false
-	);
-	const [endRecur, setEndRecur] = useState("");
-
-	const [daysOfWeek, setDaysOfWeek] = useState<string[]>(
-		(initialEvent?.type === "recurring" ? initialEvent.daysOfWeek : []) ||
-			[]
-	);
-
 	const [allDay, setAllDay] = useState(initialEvent?.allDay || false);
-
 	const [calendarIndex, setCalendarIndex] = useState(defaultCalendarIndex);
 
 	const [complete, setComplete] = useState(
@@ -160,6 +113,11 @@ export const EditEvent = ({
 		}
 	}, [titleRef]);
 
+	const updateRule = (action: () => void) => {
+		action();
+		setRule(rule);
+	};
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		await submit(
@@ -168,16 +126,14 @@ export const EditEvent = ({
 				...(allDay
 					? { allDay: true }
 					: { allDay: false, startTime, endTime }),
-				...(isRecurring
+				...(rule
 					? {
 							type: "recurring",
-							daysOfWeek,
-							startRecur: date || undefined,
-							endRecur: endRecur || undefined,
+							rule: rule.toString(),
 					  }
 					: {
+							type: "single",
 							date,
-							endDate,
 							completed: isTask ? complete : null,
 					  }),
 			},
@@ -292,36 +248,61 @@ export const EditEvent = ({
 					<input
 						id="recurring"
 						checked={isRecurring}
-						onChange={(e) => setIsRecurring(e.target.checked)}
+						onChange={(e) =>
+							setRule(e.target.checked ? new RRule() : undefined)
+						}
 						type="checkbox"
 					/>
 				</p>
 
-				{isRecurring && (
+				{rule && (
 					<>
-						<DaySelect
-							value={daysOfWeek}
-							onChange={setDaysOfWeek}
-						/>
+						<p>Every</p>
+
 						<p>
 							Starts recurring
 							<input
 								type="date"
 								id="startDate"
-								value={date}
-								onChange={makeChangeListener(setDate, (x) => x)}
+								value={formatDate(rule.options.dtstart)}
+								onChange={(e) =>
+									updateRule(
+										() =>
+											(rule.options.dtstart = new Date(
+												e.target.value
+											))
+									)
+								}
 							/>
 							and stops recurring
 							<input
 								type="date"
 								id="endDate"
-								value={endRecur}
-								onChange={makeChangeListener(
-									setEndRecur,
-									(x) => x
-								)}
+								value={formatDate(rule.options.until)}
+								onChange={(e) =>
+									updateRule(
+										() =>
+											(rule.options.until = new Date(
+												e.target.value
+											))
+									)
+								}
 							/>
 						</p>
+
+						{rule.isFullyConvertibleToText() && (
+							<p>
+								This event will be repeated {rule.toText()}
+								<br />
+							</p>
+						)}
+
+						{rule.after(new Date(), true) && (
+							<p>
+								The next occurrence is the{" "}
+								{rule.after(new Date(), true).toString()}.
+							</p>
+						)}
 					</>
 				)}
 				<p>
@@ -363,7 +344,7 @@ export const EditEvent = ({
 						width: "100%",
 					}}
 				>
-					<button type="submit"> Save Event </button>
+					<button type="submit"> Save Event</button>
 					<span>
 						{deleteEvent && (
 							<button

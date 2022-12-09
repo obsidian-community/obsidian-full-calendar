@@ -68,8 +68,6 @@ const combineDateTimeStrings = (date: string, time: string): string | null => {
 	return add(parsedDate, parsedTime).toISO();
 };
 
-const DAYS = "UMTWRFS";
-
 export function dateEndpointsToFrontmatter(
 	start: Date,
 	end: Date,
@@ -103,9 +101,7 @@ export function toEventInput(
 	if (frontmatter.type === "recurring") {
 		event = {
 			...event,
-			daysOfWeek: frontmatter.daysOfWeek.map((c) => DAYS.indexOf(c)),
-			startRecur: frontmatter.startRecur,
-			endRecur: frontmatter.endRecur,
+			rrule: frontmatter.rule,
 			extendedProps: { isTask: false },
 		};
 		if (!frontmatter.allDay) {
@@ -167,9 +163,10 @@ export function toEventInput(
 }
 
 export function fromEventApi(event: EventApi): OFCEvent {
-	const isRecurring: boolean = event.extendedProps.daysOfWeek !== undefined;
+	const isRecurring = event.extendedProps.rule !== undefined;
 	const startDate = getDate(event.start as Date);
 	const endDate = getDate(event.end as Date);
+
 	return {
 		title: event.title,
 		...(event.allDay
@@ -183,15 +180,7 @@ export function fromEventApi(event: EventApi): OFCEvent {
 		...(isRecurring
 			? {
 					type: "recurring",
-					daysOfWeek: event.extendedProps.daysOfWeek.map(
-						(i: number) => DAYS[i]
-					),
-					startRecur:
-						event.extendedProps.startRecur &&
-						getDate(event.extendedProps.startRecur),
-					endRecur:
-						event.extendedProps.endRecur &&
-						getDate(event.extendedProps.endRecur),
+					rule: event.extendedProps.rule,
 			  }
 			: {
 					type: "single",

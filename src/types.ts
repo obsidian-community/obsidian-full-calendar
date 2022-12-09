@@ -1,6 +1,20 @@
-import { MetadataCache, Vault } from "obsidian";
+import { Frequency, RRule, Weekday } from "rrule";
+import { DateTime } from "luxon";
 
 export const PLUGIN_SLUG = "full-calendar-plugin";
+
+/**
+ * Allows migrating from the old week days format to the RRule days.
+ */
+const OLD_DAYS: Record<string, Weekday> = {
+	U: RRule.SU,
+	M: RRule.MO,
+	T: RRule.TU,
+	W: RRule.WE,
+	R: RRule.TH,
+	F: RRule.FR,
+	S: RRule.SA,
+};
 
 // Frontmatter
 export type AllDayData = {
@@ -26,9 +40,11 @@ export type SingleEventData = {
 
 export type RecurringEventData = {
 	type: "recurring";
-	daysOfWeek: string[];
-	startRecur?: string;
-	endRecur?: string;
+
+	/**
+	 * RRule string that defines the event's recurrence.
+	 */
+	rule: string;
 } & CommonEventData;
 
 export type OFCEvent = SingleEventData | RecurringEventData;
@@ -41,6 +57,8 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 	if (obj === undefined) {
 		return null;
 	}
+
+	migrateOldEventData(obj);
 
 	if (!obj.title) {
 		return null;
@@ -70,20 +88,52 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 			...timeInfo,
 		};
 	} else if (obj.type === "recurring") {
-		if (obj.daysOfWeek === undefined) {
+		if (obj.rule === undefined) {
 			return null;
 		}
+
+		try {
+			RRule.fromString(obj.rule);
+		} catch (e) {
+			return null;
+		}
+
 		return {
 			title: obj.title,
 			type: "recurring",
-			daysOfWeek: obj.daysOfWeek,
-			startRecur: obj.startRecur,
-			endRecur: obj.endRecur,
+			rule: obj.rule,
 			...timeInfo,
 		};
 	}
 
 	return null;
+}
+
+/**
+ * Ensures the backward-compatibility of old frontmatters.
+ *
+ * @param obj The raw data to be modified in-place.
+ */
+function migrateOldEventData(obj: Record<string, unknown>): void {
+	if (!(obj.daysOfWeek instanceof Array)) {
+		return;
+	}
+
+	const rrule = new RRule({
+		freq: Frequency.WEEKLY,
+		byweekday: obj.daysOfWeek.map((v) => OLD_DAYS[v]),
+		dtstart:
+			typeof obj.startRecur === "string"
+				? DateTime.fromFormat(obj.startRecur, "yyyy-MM-dd").toJSDate()
+				: undefined,
+		until:
+			typeof obj.endRecur === "string"
+				? DateTime.fromFormat(obj.endRecur, "yyyy-MM-dd").toJSDate()
+				: undefined,
+	});
+
+	obj.rule = rrule.toString();
+	delete obj.daysOfWeek;
 }
 
 // Settings
@@ -187,6 +237,7 @@ export function makeDefaultPartialCalendarSource(
 
 export class FCError {
 	message: string;
+
 	constructor(message: string) {
 		this.message = message;
 	}

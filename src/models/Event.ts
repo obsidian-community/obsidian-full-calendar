@@ -1,8 +1,7 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
-import { dir } from "console";
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
 import { toEventInput } from "src/fullcalendar_interop";
-import { CalendarSource, OFCEvent, FCError } from "src/types";
+import { CalendarSource, FCError, OFCEvent } from "src/types";
 import { getColors } from "./util";
 
 export function basenameFromEvent(event: OFCEvent): string {
@@ -11,8 +10,8 @@ export function basenameFromEvent(event: OFCEvent): string {
 		case undefined:
 			return `${event.date} ${event.title}`;
 		case "recurring":
-			// TODO: Remove `)` from the end of recurring events.
-			return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
+			// TODO Needs validation
+			return `(Recurring) ${event.title}`;
 	}
 }
 

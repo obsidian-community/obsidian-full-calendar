@@ -14,6 +14,7 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import googleCalendarPlugin from "@fullcalendar/google-calendar";
 import iCalendarPlugin from "@fullcalendar/icalendar";
+import rrulePlugin from "@fullcalendar/rrule";
 
 interface ExtraRenderProps {
 	eventClick?: (info: EventClickArg) => void;
@@ -77,6 +78,8 @@ export function renderCalendar(
 			// Remote sources
 			googleCalendarPlugin,
 			iCalendarPlugin,
+			// Recurring events
+			rrulePlugin,
 		],
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
 		initialView:
