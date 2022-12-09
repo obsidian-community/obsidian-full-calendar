@@ -2,6 +2,9 @@ import { OFCEvent } from "src/types";
 
 export const ID_SEPARATOR = "::";
 
+/**
+ * Abstract class representing the interface for a Calendar.
+ */
 export abstract class Calendar {
 	color: string;
 

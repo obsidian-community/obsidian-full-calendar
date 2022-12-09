@@ -24,6 +24,11 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 	private foreign: Map<string, string> = new Map();
 	private related: Map<string, Set<string>> = new Map();
 
+	clear() {
+		this.foreign.clear();
+		this.related.clear();
+	}
+
 	add(one: T, many: FK) {
 		this.foreign.set(many.id, one.id);
 		let related = this.related.get(one.id);
@@ -57,6 +62,10 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 		return [...related.values()];
 	}
 
+	getRelated(key: FK): string | null {
+		return this.foreign.get(key.id) || null;
+	}
+
 	get numEntries(): number {
 		return this.foreign.size;
 	}
@@ -64,7 +73,23 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 	get relatedCount(): number {
 		return [...this.related.values()].filter((s) => s.size > 0).length;
 	}
+
+	get groupByRelated(): Map<string, string[]> {
+		const result: Map<string, string[]> = new Map();
+		for (const [key, values] of this.related.entries()) {
+			result.set(key, [...values.values()]);
+		}
+		return result;
+	}
 }
+
+const mapRecord = <X, Y>(
+	r: Record<string, X>,
+	f: (x: X) => Y
+): Record<string, Y> =>
+	Object.fromEntries(Object.entries<X>(r).map(([k, v]) => [k, f(v)]));
+
+type EventResult = { id: string; event: OFCEvent };
 
 // Class that stores events by their ID as the primary key, with secondary "indexes" by calendar and file.
 // You can look up events by what calendar they belong to, as well as what file their source lives in.
@@ -73,6 +98,22 @@ export default class EventStore {
 
 	private calendarIndex = new OneToMany<Calendar, EventID>();
 	private pathIndex = new OneToMany<Path, EventID>();
+
+	clear() {
+		this.store.clear();
+		this.calendarIndex.clear();
+		this.pathIndex.clear();
+	}
+
+	fetch(ids: string[]): EventResult[] {
+		return ids.flatMap((id): EventResult | [] => {
+			const event = this.store.get(id);
+			if (!event) {
+				return [];
+			}
+			return { id, event };
+		});
+	}
 
 	add({
 		calendar,
@@ -116,16 +157,24 @@ export default class EventStore {
 		return this.store.get(id) || null;
 	}
 
-	getEventsInFile(file: TFile): OFCEvent[] {
-		return this.pathIndex
-			.getBy(new Path(file))
-			.flatMap((id) => this.store.get(id) || []);
+	getEventsInFile(file: TFile): EventResult[] {
+		return this.fetch(this.pathIndex.getBy(new Path(file)));
 	}
 
-	getEventsInCalendar(calendar: Calendar): OFCEvent[] {
-		return this.calendarIndex
-			.getBy(calendar)
-			.flatMap((id) => this.store.get(id) || []);
+	getEventsInCalendar(calendar: Calendar): EventResult[] {
+		return this.fetch(this.calendarIndex.getBy(calendar));
+	}
+
+	getCalendarIdForEventId(id: string): string | null {
+		return this.calendarIndex.getRelated(new EventID(id));
+	}
+
+	get eventsByCalendar(): Map<string, EventResult[]> {
+		const result = new Map();
+		for (const [k, vs] of this.calendarIndex.groupByRelated) {
+			result.set(k, this.fetch(vs));
+		}
+		return result;
 	}
 
 	get fileCount() {

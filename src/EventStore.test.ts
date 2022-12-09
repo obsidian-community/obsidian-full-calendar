@@ -27,6 +27,14 @@ const mockEvent = withCounter(
 
 const mockId = withCounter((x) => x, "id");
 
+const toObject = <V>(m: Map<string, V>) => {
+	const result: { [k: string]: V } = {};
+	for (const [k, v] of m.entries()) {
+		result[k] = v;
+	}
+	return result;
+};
+
 describe("EventStore tests", () => {
 	let store = new EventStore();
 	beforeEach(() => {
@@ -41,8 +49,14 @@ describe("EventStore tests", () => {
 
 		store.add({ calendar, file, id, event });
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [event]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [event]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar).map(({ event }) => event),
+			[event]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file).map(({ event }) => event),
+			[event]
+		);
 		assert.equal(store.eventCount, 1);
 	});
 
@@ -88,7 +102,10 @@ describe("EventStore tests", () => {
 
 		store.add({ calendar, file: null, id: "event id", event });
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [event]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar).map(({ event }) => event),
+			[event]
+		);
 		assert.equal(0, store.fileCount);
 	});
 
@@ -119,11 +136,14 @@ describe("EventStore tests", () => {
 		assert.equal(store.fileCount, 1);
 		assert.equal(store.calendarCount, 1);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			event1,
-			event2,
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [event1, event2]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar).map(({ event }) => event),
+			[event1, event2]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file).map(({ event }) => event),
+			[event1, event2]
+		);
 	});
 
 	it("stores two events, only one with a file", () => {
@@ -143,11 +163,14 @@ describe("EventStore tests", () => {
 		assert.equal(store.fileCount, 1);
 		assert.equal(store.calendarCount, 1);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			event1,
-			event2,
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [event1]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar).map(({ event }) => event),
+			[event1, event2]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file).map(({ event }) => event),
+			[event1]
+		);
 	});
 
 	it("stores two events in different calendars and files", () => {
@@ -169,11 +192,23 @@ describe("EventStore tests", () => {
 		assert.equal(store.fileCount, 2);
 		assert.equal(store.calendarCount, 2);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [event1]);
-		assert.deepStrictEqual(store.getEventsInFile(file1), [event1]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar1).map(({ event }) => event),
+			[event1]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file1).map(({ event }) => event),
+			[event1]
+		);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [event2]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), [event2]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar2).map(({ event }) => event),
+			[event2]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file2).map(({ event }) => event),
+			[event2]
+		);
 	});
 
 	it("stores and deletes one event", () => {
@@ -184,8 +219,14 @@ describe("EventStore tests", () => {
 
 		store.add({ calendar, file, id, event });
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [event]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [event]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar).map(({ event }) => event),
+			[event]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file).map(({ event }) => event),
+			[event]
+		);
 		assert.equal(store.eventCount, 1);
 
 		const result = store.delete(id);
@@ -220,16 +261,34 @@ describe("EventStore tests", () => {
 		assert.equal(store.fileCount, 3);
 		assert.equal(store.calendarCount, 2);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [event1]);
-		assert.deepStrictEqual(store.getEventsInFile(file1), [event1]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar1).map(({ event }) => event),
+			[event1]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file1).map(({ event }) => event),
+			[event1]
+		);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			event2,
-			event3,
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), [event2]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar2).map(({ event }) => event),
+			[event2, event3]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file2).map(({ event }) => event),
+			[event2]
+		);
 
-		assert.deepStrictEqual(store.getEventsInFile(file3), [event3]);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file3).map(({ event }) => event),
+			[event3]
+		);
+
+		// TODO: Map out IDs.
+		// assert.deepStrictEqual(toObject(store.eventsByCalendar), {
+		// 	[calendar1.id]: [event1],
+		// 	[calendar2.id]: [event2, event3],
+		// });
 	});
 
 	it("stores then deletes many events", () => {
@@ -256,15 +315,27 @@ describe("EventStore tests", () => {
 		assert.equal(store.fileCount, 3);
 		assert.equal(store.calendarCount, 2);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [event1]);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			event2,
-			event3,
-		]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar1).map(({ event }) => event),
+			[event1]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar2).map(({ event }) => event),
+			[event2, event3]
+		);
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), [event1]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), [event2]);
-		assert.deepStrictEqual(store.getEventsInFile(file3), [event3]);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file1).map(({ event }) => event),
+			[event1]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file2).map(({ event }) => event),
+			[event2]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file3).map(({ event }) => event),
+			[event3]
+		);
 
 		store.delete(id2);
 
@@ -277,11 +348,17 @@ describe("EventStore tests", () => {
 		assert.equal(store.calendarCount, 1);
 
 		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), []);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [event3]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar2).map(({ event }) => event),
+			[event3]
+		);
 
 		assert.deepStrictEqual(store.getEventsInFile(file1), []);
 		assert.deepStrictEqual(store.getEventsInFile(file2), []);
-		assert.deepStrictEqual(store.getEventsInFile(file3), [event3]);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file3).map(({ event }) => event),
+			[event3]
+		);
 
 		const id4 = mockId();
 		const event4 = mockEvent();
@@ -290,22 +367,43 @@ describe("EventStore tests", () => {
 		assert.equal(store.fileCount, 2);
 		assert.equal(store.calendarCount, 2);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [event4]);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [event3]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar1).map(({ event }) => event),
+			[event4]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar2).map(({ event }) => event),
+			[event3]
+		);
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), [event4]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), []);
-		assert.deepStrictEqual(store.getEventsInFile(file3), [event3]);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file1).map(({ event }) => event),
+			[event4]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file2).map(({ event }) => event),
+			[]
+		);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file3).map(({ event }) => event),
+			[event3]
+		);
 
 		store.delete(id3);
 		assert.equal(store.eventCount, 1);
 		assert.equal(store.fileCount, 1);
 		assert.equal(store.calendarCount, 1);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [event4]);
+		assert.deepStrictEqual(
+			store.getEventsInCalendar(calendar1).map(({ event }) => event),
+			[event4]
+		);
 		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), []);
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), [event4]);
+		assert.deepStrictEqual(
+			store.getEventsInFile(file1).map(({ event }) => event),
+			[event4]
+		);
 		assert.deepStrictEqual(store.getEventsInFile(file2), []);
 		assert.deepStrictEqual(store.getEventsInFile(file3), []);
 

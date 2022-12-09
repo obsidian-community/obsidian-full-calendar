@@ -2,6 +2,9 @@ import { CachedMetadata } from "obsidian";
 import { OFCEvent } from "src/types";
 import { Calendar } from "./Calendar";
 
+/**
+ * Abstract class representing the interface for a Calendar.
+ */
 export abstract class EditableCalendar extends Calendar {
 	abstract get directory(): string;
 

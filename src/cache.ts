@@ -1,7 +1,8 @@
 import { EventInput, EventSourceInput } from "@fullcalendar/core";
-import { App, TFile } from "obsidian";
+import { App, TFile, TFolder } from "obsidian";
 import { Calendar, ID_SEPARATOR } from "./calendars/Calendar";
 import { EditableCalendar } from "./calendars/EditableCalendar";
+import EventStore from "./EventStore";
 import { toEventInput } from "./fullcalendar_interop";
 import { getColors } from "./models/util";
 import { CalendarInfo, OFCEvent } from "./types";
@@ -34,12 +35,10 @@ export default class EventCache {
 	private app: App;
 	private settings: FullCalendarSettings;
 
-	private calendars: CalendarInitializerMap;
+	private calendarInitializers: CalendarInitializerMap;
 
-	// TODO: replace cache with eventStore.
-	private cache: Record<string, CacheEntry> = {};
-	// Map directory paths to cache entry IDs.
-	private directories: Record<string, string> = {};
+	private store = new EventStore();
+	private calendars = new Map<string, Calendar>();
 
 	private pkCounter = 0;
 
@@ -48,54 +47,103 @@ export default class EventCache {
 	constructor(
 		app: App,
 		settings: FullCalendarSettings,
-		calendars: CalendarInitializerMap
+		calendarInitializers: CalendarInitializerMap
 	) {
 		this.app = app;
 		this.settings = settings;
-		this.calendars = calendars;
+		this.calendarInitializers = calendarInitializers;
 	}
 
 	getAllEvents(): EventSourceInput[] {
-		return Object.values(this.cache).map(({ calendar, events }) => {
-			const eventInputs = events
-				.map(({ id, event }) => toEventInput(id, event))
-				.flatMap(removeNulls);
-
-			return {
+		const result: EventSourceInput[] = [];
+		for (const [calId, events] of this.store.eventsByCalendar.entries()) {
+			const calendar = this.calendars.get(calId);
+			if (!calendar) {
+				continue;
+			}
+			result.push({
 				editable: calendar instanceof EditableCalendar,
-				events: eventInputs,
+				events: events.flatMap(
+					({ id, event }) => toEventInput(id, event) || []
+				),
 				...getColors(calendar.color),
-			};
-		});
+			});
+		}
+		return result;
 	}
 
-	generateId(calendar: Calendar): string {
-		return `${calendar.id}${ID_SEPARATOR}${this.pkCounter++}`;
+	generateId(): string {
+		return `${this.pkCounter++}`;
 	}
 
-	initialize(): void {
-		const calendars = this.settings.calendarSources
-			.map((s) => this.calendars[s.type](this.app, s))
-			.flatMap(removeNulls);
+	async initialize(): Promise<void> {
+		this.calendars.clear();
+		this.settings.calendarSources
+			.map((s) => this.calendarInitializers[s.type](this.app, s))
+			.flatMap(removeNulls)
+			.forEach((cal) => this.calendars.set(cal.id, cal));
 
-		this.cache = {};
-		for (const calendar of calendars) {
-			this.cache[calendar.id] = {
-				calendar,
-				events: calendar.getEvents().map((event) => ({
-					event,
-					id: this.generateId(calendar),
-				})),
-			};
+		this.store.clear();
 
+		for (const calendar of this.calendars.values()) {
 			if (calendar instanceof EditableCalendar) {
-				this.directories[calendar.directory] = calendar.id;
+				const directory = this.app.vault.getAbstractFileByPath(
+					calendar.directory
+				);
+				if (!directory) {
+					console.warn(
+						"Directory does not exist in vault:",
+						calendar.directory
+					);
+					continue;
+				}
+				if (!(directory instanceof TFolder)) {
+					directory;
+					console.warn(
+						"Directory is file, not directory:",
+						calendar.directory
+					);
+					continue;
+				}
+				for (const file of directory.children) {
+					if (file instanceof TFolder) {
+						// TODO: Recursion?
+					} else if (file instanceof TFile) {
+						const metadata =
+							this.app.metadataCache.getFileCache(file);
+						if (!metadata) {
+							continue;
+						}
+						calendar
+							.getEventsInFile(
+								metadata,
+								await this.app.vault.cachedRead(file)
+							)
+							.forEach((event) =>
+								this.store.add({
+									calendar,
+									file,
+									id: this.generateId(),
+									event,
+								})
+							);
+					}
+				}
+			} else {
+				calendar.getEvents().forEach((event) =>
+					this.store.add({
+						calendar,
+						file: null,
+						id: this.generateId(),
+						event,
+					})
+				);
 			}
 		}
 	}
 
-	flush() {
-		this.cache = {};
+	clear() {
+		this.store.clear();
 	}
 
 	updateViews(toRemove: CacheEventEntry[], toAdd: CacheEventEntry[]) {
@@ -118,38 +166,24 @@ export default class EventCache {
 		if (!fileCache) {
 			return;
 		}
-		const directory = file.parent;
 
-		const calendarDirectory = Object.keys(this.directories)
-			.filter((calDir) => directory.path.startsWith(calDir))
-			.sort((a, b) => b.length - a.length)[0];
+		const oldEvents = this.store.getEventsInFile(file);
+		// Get all calendars for events by ID.
 
-		const entry = this.cache[this.directories[calendarDirectory]];
-		if (!(entry.calendar instanceof EditableCalendar)) {
-			console.warn(
-				"File is associated with a non-editable calendar",
-				entry.calendar.id,
-				file.path
-			);
-			return;
-		}
-		const contents = await this.app.vault.cachedRead(file);
+		// Then, get new events by calling calendar.getEventsInFile().
+
+		// Compare new events to old events.
 
 		// TODO: Figure out how to re-use primary keys for events rather than creating new ones every time.
-		const newEvents = entry.calendar
-			.getEventsInFile(fileCache, contents)
-			.map((event) => ({
-				event,
-				id: this.generateId(entry.calendar),
-			}));
-
-		const oldEvents = entry.events;
-		entry.events = newEvents;
-		this.updateViews(oldEvents, newEvents);
+		// const newEvents = entry.calendar
+		// 	.getEventsInFile(fileCache, contents)
+		// 	.map((event) => ({
+		// 		event,
+		// 		id: this.generateId(entry.calendar),
+		// 	}));
 	}
 
 	getEventFromId(s: string): OFCEvent | null {
-		const [id, idx] = s.split(ID_SEPARATOR);
-		return this.cache[id]?.events[parseInt(idx)]?.event;
+		return this.store.getEventById(s);
 	}
 }
