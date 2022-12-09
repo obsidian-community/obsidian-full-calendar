@@ -12,7 +12,7 @@ import { FullCalendarSettings } from "./ui/settings";
 
 type CalendarInitializerMap = Record<
 	CalendarInfo["type"],
-	(app: App, info: CalendarInfo) => Calendar | null
+	(info: CalendarInfo) => Calendar | null
 >;
 
 const removeNulls = <T>(e: T | null): T[] => (e ? [e] : []);
@@ -33,6 +33,7 @@ type UpdateViewCallback = (info: {
 	toAdd: EventInput[];
 }) => void;
 
+// TODO: Write tests for this function.
 const eventsAreDifferent = (
 	oldEvents: OFCEvent[],
 	newEvents: OFCEvent[]
@@ -98,12 +99,12 @@ export default class EventCache {
 
 	async initialize(): Promise<void> {
 		this.calendars.clear();
+		this.store.clear();
+
 		this.settings.calendarSources
-			.map((s) => this.calendarInitializers[s.type](this.app, s))
+			.map((s) => this.calendarInitializers[s.type](s))
 			.flatMap(removeNulls)
 			.forEach((cal) => this.calendars.set(cal.id, cal));
-
-		this.store.clear();
 
 		for (const calendar of this.calendars.values()) {
 			if (calendar instanceof EditableCalendar) {
@@ -112,7 +113,7 @@ export default class EventCache {
 				);
 				if (!directory) {
 					console.warn(
-						"Directory does not exist in vault:",
+						"Directory does not exist in vault.",
 						calendar.directory
 					);
 					continue;
@@ -120,7 +121,7 @@ export default class EventCache {
 				if (!(directory instanceof TFolder)) {
 					directory;
 					console.warn(
-						"Directory is file, not directory:",
+						"Directory is file, not directory.",
 						calendar.directory
 					);
 					continue;
