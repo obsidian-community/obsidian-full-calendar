@@ -41,6 +41,10 @@ export class CalendarView extends ItemView {
 	getDisplayText() {
 		return "Calendar";
 	}
+	
+	getIcon() {
+		return "calendar-glyph";
+	}
 
 	async onCacheUpdate(file: TFile) {
 		if (!this.calendar) {
