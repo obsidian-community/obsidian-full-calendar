@@ -32,7 +32,7 @@ export interface FullCalendarSettings {
 		mobile: string;
 	};
 	timeFormat24h: boolean;
-	openNoteInNewTab: boolean;
+	// openNoteInNewTab: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -45,7 +45,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 		mobile: "timeGrid3Days",
 	},
 	timeFormat24h: false,
-	openNoteInNewTab: false,
+	// openNoteInNewTab: false,
 };
 
 const WEEKDAYS = [
@@ -236,15 +236,15 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				});
 			});
 
-		new Setting(containerEl)
-			.setName("Open Note in New Tab")
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.openNoteInNewTab);
-				toggle.onChange(async (val) => {
-					this.plugin.settings.openNoteInNewTab = val;
-					await this.plugin.saveSettings();
-				});
-			});
+		// new Setting(containerEl)
+		// 	.setName("Open Note in New Tab")
+		// 	.addToggle((toggle) => {
+		// 		toggle.setValue(this.plugin.settings.openNoteInNewTab);
+		// 		toggle.onChange(async (val) => {
+		// 			this.plugin.settings.openNoteInNewTab = val;
+		// 			await this.plugin.saveSettings();
+		// 		});
+		// 	});
 
 		containerEl.createEl("h2", { text: "Events settings" });
 		new Setting(containerEl)

@@ -85,7 +85,7 @@ interface EditEventProps {
 	readonly calendars: CalendarSource[];
 	defaultCalendarIndex: number;
 	initialEvent?: Partial<OFCEvent>;
-	open?: () => Promise<void>;
+	open?: (event: React.MouseEvent) => Promise<void>;
 	deleteEvent?: () => Promise<void>;
 }
 
@@ -189,7 +189,10 @@ export const EditEvent = ({
 		<>
 			<div>
 				<p style={{ float: "right" }}>
-					{open && <button onClick={open}>Open Note</button>}
+					{ open && <button 
+						onClick={open}
+						onAuxClick={open}
+					> Open Note</button>}
 				</p>
 			</div>
 

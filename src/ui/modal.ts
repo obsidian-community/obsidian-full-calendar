@@ -1,6 +1,6 @@
 import { Calendar, EventApi } from "@fullcalendar/core";
 import FullCalendarPlugin from "../main";
-import { App, Modal, Notice, TFile } from "obsidian";
+import { App, Modal, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -154,11 +154,17 @@ export class EventModal extends Modal {
 
 				calendars: this.plugin.settings.calendarSources,
 				open: this.event instanceof LocalEvent
-					? async () => {
+					? async (event: React.MouseEvent) => {
 						let leaf = this.app.workspace.getMostRecentLeaf();
-						if (this.plugin.settings.openNoteInNewTab) {
-							leaf = this.app.workspace.getLeaf(true);
-						}
+
+						if (leaf.getViewState().pinned == true)
+							switch(event.button) {
+								case 0: 
+									leaf = this.app.workspace.createLeafBySplit(
+										leaf, "vertical");
+								case 1:
+									leaf = this.app.workspace.getLeaf();
+							}
 
 						await (this.event as LocalEvent).openIn(leaf);
 						this.close();
