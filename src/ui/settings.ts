@@ -32,7 +32,6 @@ export interface FullCalendarSettings {
 		mobile: string;
 	};
 	timeFormat24h: boolean;
-	// openNoteInNewTab: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -45,7 +44,6 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
 		mobile: "timeGrid3Days",
 	},
 	timeFormat24h: false,
-	// openNoteInNewTab: false,
 };
 
 const WEEKDAYS = [
@@ -236,16 +234,6 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 				});
 			});
 
-		// new Setting(containerEl)
-		// 	.setName("Open Note in New Tab")
-		// 	.addToggle((toggle) => {
-		// 		toggle.setValue(this.plugin.settings.openNoteInNewTab);
-		// 		toggle.onChange(async (val) => {
-		// 			this.plugin.settings.openNoteInNewTab = val;
-		// 			await this.plugin.saveSettings();
-		// 		});
-		// 	});
-
 		containerEl.createEl("h2", { text: "Events settings" });
 		new Setting(containerEl)
 			.setName("Recursive event folders")
@@ -283,5 +271,15 @@ export class FullCalendarSettingTab extends PluginSettingTab {
 			}),
 			sourcesDiv
 		);
+
+		containerEl.createEl('hr');
+
+		containerEl.createEl("h2", { text: "Tips" });
+		containerEl.createEl('p', { text: `
+			• If the Calendar is Pinned (via Command for now), the Note (Event)
+			will be openned in New Pane (split right) with Left Click,
+			and in New Tab with Middle Click
+		`});
+		
 	}
 }
