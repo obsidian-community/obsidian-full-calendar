@@ -5,7 +5,7 @@ import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
 import { EventModal } from "./modal";
 import { FCError, PLUGIN_SLUG } from "../types";
-import { dateEndpointsToFrontmatter, fromEventApi } from "../cache/interop";
+import { dateEndpointsToFrontmatter, fromEventApi } from "./interop";
 import { IcsSource } from "../models/IcsSource";
 import { NoteSource } from "../models/NoteSource";
 import { RemoteSource } from "../models/RemoteSource";

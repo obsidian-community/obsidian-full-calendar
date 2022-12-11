@@ -2,10 +2,10 @@ import { EventInput, EventSourceInput } from "@fullcalendar/core";
 import { App, TFile, TFolder } from "obsidian";
 import equal from "deep-equal";
 
-import { Calendar, ID_SEPARATOR } from "../calendars/Calendar";
+import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore from "./EventStore";
-import { toEventInput } from "./interop";
+import { toEventInput } from "../ui/interop";
 import { getColors } from "../models/util";
 import { CalendarInfo, OFCEvent } from "../types";
 import { FullCalendarSettings } from "../ui/settings";
@@ -85,6 +85,14 @@ export default class EventCache {
 		this.calendarInitializers = calendarInitializers;
 	}
 
+	getEventById(s: string): OFCEvent | null {
+		return this.store.getEventById(s);
+	}
+
+	clear() {
+		this.store.clear();
+	}
+
 	getAllEvents(): EventSourceInput[] {
 		const result: EventSourceInput[] = [];
 		for (const [calId, events] of this.store.eventsByCalendar.entries()) {
@@ -129,16 +137,18 @@ export default class EventCache {
 					continue;
 				}
 				if (!(directory instanceof TFolder)) {
-					directory;
 					console.warn(
-						"Directory is file, not directory.",
+						"Specified path is a file, not directory.",
 						calendar.directory
 					);
 					continue;
 				}
 				for (const file of directory.children) {
-					if (file instanceof TFolder) {
-						// TODO: Recursion?
+					if (
+						file instanceof TFolder &&
+						this.settings.recursiveLocal
+					) {
+						// TODO: Parse events recursively
 					} else if (file instanceof TFile) {
 						const metadata =
 							this.app.metadataCache.getFileCache(file);
@@ -161,7 +171,8 @@ export default class EventCache {
 					}
 				}
 			} else {
-				calendar.getEvents().forEach((event) =>
+				const events = await calendar.getEvents();
+				events.forEach((event) =>
 					this.store.add({
 						calendar,
 						file: null,
@@ -171,10 +182,6 @@ export default class EventCache {
 				);
 			}
 		}
-	}
-
-	clear() {
-		this.store.clear();
 	}
 
 	updateViews(toRemove: string[], toAdd: CacheEventEntry[]) {
@@ -241,9 +248,5 @@ export default class EventCache {
 		}
 
 		this.updateViews(idsToRemove, eventsToAdd);
-	}
-
-	getEventFromId(s: string): OFCEvent | null {
-		return this.store.getEventById(s);
 	}
 }

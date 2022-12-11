@@ -15,5 +15,5 @@ export abstract class Calendar {
 	abstract get type(): string;
 	abstract get id(): string;
 
-	abstract getEvents(): OFCEvent[];
+	abstract getEvents(): Promise<OFCEvent[]>;
 }

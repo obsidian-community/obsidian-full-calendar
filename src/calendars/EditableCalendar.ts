@@ -21,7 +21,7 @@ export abstract class EditableCalendar extends Calendar {
 	 * Editable calendars should get events using `getEventsInFile`.
 	 * @returns An empty list.
 	 */
-	getEvents(): OFCEvent[] {
+	async getEvents(): Promise<OFCEvent[]> {
 		console.warn(
 			"Attempted to get async events for an editable calendar",
 			this.id
