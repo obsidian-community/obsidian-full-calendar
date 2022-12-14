@@ -38,7 +38,7 @@ const toObject = <V>(m: Map<string, V>) => {
 describe("EventStore tests", () => {
 	let store = new EventStore();
 	beforeEach(() => {
-		store = new EventStore();
+		store.clear();
 	});
 
 	it("stores one event", () => {
@@ -274,6 +274,14 @@ describe("EventStore tests", () => {
 				{ event: event3, id: id3 },
 			],
 		});
+
+		assert.equal(store.getCalendarIdForEventId(id1), calendar1.id);
+		assert.equal(store.getCalendarIdForEventId(id2), calendar2.id);
+		assert.equal(store.getCalendarIdForEventId(id3), calendar2.id);
+		assert.deepStrictEqual(
+			store.getEventsInFileAndCalendar(file2, calendar2),
+			[{ event: event2, id: id2 }]
+		);
 	});
 
 	it("stores then deletes many events", () => {

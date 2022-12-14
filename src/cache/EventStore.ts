@@ -83,12 +83,6 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 	}
 }
 
-const mapRecord = <X, Y>(
-	r: Record<string, X>,
-	f: (x: X) => Y
-): Record<string, Y> =>
-	Object.fromEntries(Object.entries<X>(r).map(([k, v]) => [k, f(v)]));
-
 type EventResult = { id: string; event: OFCEvent };
 
 // Class that stores events by their ID as the primary key, with secondary "indexes" by calendar and file.

@@ -12,7 +12,8 @@
 		"compile": "tsc -noEmit --skipLibCheck",
 		"prepare": "husky install",
 		"test": "jest --ci",
-		"test-dev": "jest --watch"
+		"test-dev": "jest --watch",
+		"coverage": "jest --coverage"
 	},
 	"keywords": [],
 	"author": {
