@@ -1,7 +1,7 @@
 import { MarkdownView, Plugin } from "obsidian";
 import { renderCalendar } from "./ui/calendar";
 
-import { toEventInput } from "./ui/interop";
+import { toEventInput } from "./cache/interop";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,

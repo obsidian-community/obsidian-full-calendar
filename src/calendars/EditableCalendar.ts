@@ -8,6 +8,9 @@ import { Calendar } from "./Calendar";
 export abstract class EditableCalendar extends Calendar {
 	abstract get directory(): string;
 
+	/**
+	 * Returns true if this calendar sources events from the given path.
+	 */
 	containsPath(path: string): boolean {
 		return path.startsWith(this.directory);
 	}

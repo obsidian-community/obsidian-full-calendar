@@ -5,7 +5,7 @@ import equal from "deep-equal";
 import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore from "./EventStore";
-import { toEventInput } from "../ui/interop";
+import { toEventInput } from "./interop";
 import { getColors } from "../models/util";
 import { CalendarInfo, OFCEvent } from "../types";
 import { FullCalendarSettings } from "../ui/settings";
@@ -15,13 +15,7 @@ type CalendarInitializerMap = Record<
 	(info: CalendarInfo) => Calendar | null
 >;
 
-const removeNulls = <T>(e: T | null): T[] => (e ? [e] : []);
-
-type CacheEventEntry = { event: OFCEvent; id: string };
-type CacheEntry = {
-	calendar: Calendar;
-	events: CacheEventEntry[];
-};
+type CacheEntry = { event: OFCEvent; id: string };
 
 type UpdateViewCallback = (info: {
 	toRemove: string[];
@@ -93,6 +87,10 @@ export default class EventCache {
 		this.store.clear();
 	}
 
+	/**
+	 * Get all events from the cache in a FullCalendar-frienly format.
+	 * @returns
+	 */
 	getAllEvents(): EventSourceInput[] {
 		const result: EventSourceInput[] = [];
 		for (const [calId, events] of this.store.eventsByCalendar.entries()) {
@@ -115,15 +113,22 @@ export default class EventCache {
 		return `${this.pkCounter++}`;
 	}
 
-	async initialize(): Promise<void> {
+	/**
+	 * Flush the cache and initialize calendars from the initializer map.
+	 */
+	initialize(): void {
 		this.calendars.clear();
 		this.store.clear();
 
 		this.settings.calendarSources
-			.map((s) => this.calendarInitializers[s.type](s))
-			.flatMap(removeNulls)
+			.flatMap((s) => this.calendarInitializers[s.type](s) || [])
 			.forEach((cal) => this.calendars.set(cal.id, cal));
+	}
 
+	/**
+	 * Populate the cache with events.
+	 */
+	async populate(): Promise<void> {
 		for (const calendar of this.calendars.values()) {
 			if (calendar instanceof EditableCalendar) {
 				const directory = this.app.vault.getAbstractFileByPath(
@@ -184,7 +189,7 @@ export default class EventCache {
 		}
 	}
 
-	updateViews(toRemove: string[], toAdd: CacheEventEntry[]) {
+	updateViews(toRemove: string[], toAdd: CacheEntry[]) {
 		const payload = {
 			toRemove,
 			toAdd: toAdd.flatMap(
@@ -206,27 +211,34 @@ export default class EventCache {
 		const calendars = [...this.calendars.values()].flatMap((c) =>
 			c instanceof EditableCalendar && c.containsPath(file.path) ? c : []
 		);
+		if (calendars.length === 0) {
+			return;
+		}
 
 		const contents = await this.app.vault.cachedRead(file);
 		const idsToRemove: string[] = [];
-		const eventsToAdd: CacheEventEntry[] = [];
+		const eventsToAdd: CacheEntry[] = [];
 
 		for (const calendar of calendars) {
-			const oldEventsWithIds = this.store.getEventsInFileAndCalendar(
+			const oldEvents = this.store.getEventsInFileAndCalendar(
 				file,
 				calendar
 			);
 
-			const oldEvents = oldEventsWithIds.map((r) => r.event);
-			const oldIds = oldEventsWithIds.map((r) => r.id);
 			const newEvents = calendar.getEventsInFile(fileCache, contents);
 
+			const eventsHaveChanged = eventsAreDifferent(
+				oldEvents.map((r) => r.event),
+				newEvents
+			);
+
 			// If no events have changed from what's in the cache, then no need to update subscribers.
-			if (!eventsAreDifferent(oldEvents, newEvents)) {
+			if (!eventsHaveChanged) {
 				return;
 			}
 
 			// If events have changed in the calendar, then remove all the old events from the store and add in new ones.
+			const oldIds = oldEvents.map((r) => r.id);
 			oldIds.forEach((id) => {
 				this.store.delete(id);
 			});
