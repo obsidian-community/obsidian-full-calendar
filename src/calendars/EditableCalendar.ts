@@ -1,10 +1,5 @@
-import {
-	CachedMetadata,
-	MetadataCache,
-	Pos,
-	TAbstractFile,
-	Vault,
-} from "obsidian";
+import { TFile } from "obsidian";
+import { ObsidianInterface } from "src/ObsidianAdapter";
 import { OFCEvent } from "src/types";
 import { Calendar } from "./Calendar";
 
@@ -12,13 +7,11 @@ import { Calendar } from "./Calendar";
  * Abstract class representing the interface for a Calendar.
  */
 export abstract class EditableCalendar extends Calendar {
-	metadataCache: MetadataCache;
-	vault: Vault;
+	app: ObsidianInterface;
 
-	constructor(metadataCache: MetadataCache, vault: Vault, color: string) {
+	constructor(app: ObsidianInterface, color: string) {
 		super(color);
-		this.metadataCache = metadataCache;
-		this.vault = vault;
+		this.app = app;
 	}
 
 	abstract get directory(): string;
@@ -30,15 +23,11 @@ export abstract class EditableCalendar extends Calendar {
 		return path.startsWith(this.directory);
 	}
 
-	abstract getEventsInFile(
-		fileCache: CachedMetadata,
-		contents: string
-	): OFCEvent[];
+	abstract getEventsInFile(file: TFile): Promise<OFCEvent[]>;
 
-	/**
-	 * Editable calendars should get events using `getEventsInFile`.
-	 * @returns An empty list.
-	 */
-
-	abstract updateEvent(): Promise<void>;
+	abstract updateEvent(
+		oldEvent: OFCEvent,
+		oldFile: OFCEvent,
+		newEvent: OFCEvent
+	): Promise<{ newFile: TFile | null }>;
 }

@@ -131,61 +131,15 @@ export default class EventCache {
 	 */
 	async populate(): Promise<void> {
 		for (const calendar of this.calendars.values()) {
-			if (calendar instanceof EditableCalendar) {
-				const directory = this.app.getAbstractFileByPath(
-					calendar.directory
-				);
-				if (!directory) {
-					console.warn(
-						"Directory does not exist in vault.",
-						calendar.directory
-					);
-					continue;
-				}
-				if (!(directory instanceof TFolder)) {
-					console.warn(
-						"Specified path is a file, not directory.",
-						calendar.directory
-					);
-					continue;
-				}
-				for (const file of directory.children) {
-					if (
-						file instanceof TFolder &&
-						this.settings.recursiveLocal
-					) {
-						// TODO: Parse events recursively
-					} else if (file instanceof TFile) {
-						const metadata = this.app.getFileMetadata(file);
-						if (!metadata) {
-							continue;
-						}
-						calendar
-							.getEventsInFile(
-								metadata,
-								await this.app.readFile(file)
-							)
-							.forEach((event) =>
-								this.store.add({
-									calendar,
-									file,
-									id: event.id || this.generateId(),
-									event,
-								})
-							);
-					}
-				}
-			} else {
-				const events = await calendar.getEvents();
-				events.forEach((event) =>
-					this.store.add({
-						calendar,
-						file: null,
-						id: event.id || this.generateId(),
-						event,
-					})
-				);
-			}
+			const events = await calendar.getEvents();
+			events.forEach((event) =>
+				this.store.add({
+					calendar,
+					file: null, // TODO: figure out how to populate file from getEvents().
+					id: event.id || this.generateId(),
+					event,
+				})
+			);
 		}
 	}
 
@@ -215,7 +169,6 @@ export default class EventCache {
 			return;
 		}
 
-		const contents = await this.app.readFile(file);
 		const idsToRemove: string[] = [];
 		const eventsToAdd: CacheEntry[] = [];
 
@@ -225,7 +178,7 @@ export default class EventCache {
 				calendar
 			);
 
-			const newEvents = calendar.getEventsInFile(fileCache, contents);
+			const newEvents = await calendar.getEventsInFile(file);
 
 			const eventsHaveChanged = eventsAreDifferent(
 				oldEvents.map((r) => r.event),
