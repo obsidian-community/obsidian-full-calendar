@@ -1,4 +1,5 @@
-import { OFCEvent } from "src/types";
+import { TFile } from "obsidian";
+import { EventLocation, OFCEvent } from "src/types";
 
 export const ID_SEPARATOR = "::";
 
@@ -15,5 +16,8 @@ export abstract class Calendar {
 	abstract get type(): string;
 	abstract get id(): string;
 
-	abstract getEvents(): Promise<OFCEvent[]>;
+	/**
+	 * Return events along with their associated source files, if they exist.
+	 */
+	abstract getEvents(): Promise<[OFCEvent, EventLocation][]>;
 }

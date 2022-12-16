@@ -1,7 +1,7 @@
 import { TFile } from "obsidian";
 import { Calendar } from "../calendars/Calendar";
 import EventStore from "./EventStore";
-import { OFCEvent } from "../types";
+import { EventLocation, OFCEvent } from "../types";
 import { assert } from "chai";
 
 const withCounter = <T>(f: (x: string) => T, label?: string) => {
@@ -25,6 +25,11 @@ const mockEvent = withCounter(
 	"event"
 );
 
+const mockLocation = (withLine = false) => ({
+	file: mockFile(),
+	lineNumber: withLine ? Math.floor(Math.random() * 100) : undefined,
+});
+
 const mockId = withCounter((x) => x, "id");
 
 const toObject = <V>(m: Map<string, V>) => {
@@ -35,359 +40,431 @@ const toObject = <V>(m: Map<string, V>) => {
 	return result;
 };
 
+const pathLoc = ({ file, lineNumber }: EventLocation) => ({
+	path: file.path,
+	lineNumber,
+});
+
 describe("EventStore tests", () => {
 	let store = new EventStore();
 	beforeEach(() => {
 		store.clear();
 	});
 
-	it("stores one event", () => {
-		const calendar = mockCalendar();
-		const event = mockEvent();
-		const file = mockFile();
-		const id = mockId();
+	for (const withLineNumbers of [true, false]) {
+		it(`stores one event [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const event = mockEvent();
+			const id = mockId();
+			const location = mockLocation(withLineNumbers);
 
-		store.add({ calendar, file, id, event });
+			store.add({ calendar, location, id, event });
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			{ event, id },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [{ event, id }]);
-		assert.equal(store.eventCount, 1);
-	});
-
-	it("throws when trying to overwrite an ID entry", () => {
-		const calendar = mockCalendar();
-		const file = mockFile();
-		const id = mockId();
-		const event = mockEvent();
-
-		store.add({ calendar, file, id, event });
-
-		assert.throws(() => store.add({ calendar, file, id, event }));
-		const calendar2 = mockCalendar();
-		const file2 = mockFile();
-		const event2 = mockEvent();
-		assert.throws(() =>
-			store.add({ calendar: calendar2, file, id, event })
-		);
-		assert.throws(() => store.add({ calendar, file: file2, id, event }));
-		assert.throws(() => store.add({ calendar, file, id, event: event2 }));
-	});
-
-	it("throws when trying to overwrite an ID entry", () => {
-		const calendar = mockCalendar();
-		const file = mockFile();
-		const id = mockId();
-		const event = mockEvent();
-		const event2 = mockEvent();
-
-		store.add({ calendar, file, id, event });
-		assert.equal(store.eventCount, 1);
-		assert.deepStrictEqual(store.getEventById(id), event);
-		store.delete(id);
-		assert.equal(store.eventCount, 0);
-		store.add({ calendar, file, id, event: event2 });
-		assert.equal(store.eventCount, 1);
-		assert.deepStrictEqual(store.getEventById(id), event2);
-	});
-
-	it("stores one event without a file", () => {
-		const calendar = mockCalendar();
-		const event = mockEvent();
-		const id = mockId();
-
-		store.add({ calendar, file: null, id, event });
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			{ event, id },
-		]);
-		assert.equal(0, store.fileCount);
-	});
-
-	it("gets events in new calendar", () => {
-		const calendar = mockCalendar();
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
-	});
-
-	it("gets events in new file", () => {
-		const calendar = mockFile();
-		assert.deepStrictEqual(store.getEventsInFile(calendar), []);
-	});
-
-	it("stores two events in the same file", () => {
-		const calendar = mockCalendar();
-		const file = mockFile();
-
-		const event1 = mockEvent();
-		const id1 = mockId();
-
-		const event2 = mockEvent();
-		const id2 = mockId();
-
-		store.add({ calendar, file: file, id: id1, event: event1 });
-		store.add({ calendar, file: file, id: id2, event: event2 });
-
-		assert.equal(store.eventCount, 2);
-		assert.equal(store.fileCount, 1);
-		assert.equal(store.calendarCount, 1);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			{ event: event1, id: id1 },
-			{ event: event2, id: id2 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [
-			{ event: event1, id: id1 },
-			{ event: event2, id: id2 },
-		]);
-	});
-
-	it("stores two events, only one with a file", () => {
-		const calendar = mockCalendar();
-		const file = mockFile();
-
-		const event1 = mockEvent();
-		const id1 = mockId();
-
-		const event2 = mockEvent();
-		const id2 = mockId();
-
-		store.add({ calendar, file: file, id: id1, event: event1 });
-		store.add({ calendar, file: null, id: id2, event: event2 });
-
-		assert.equal(store.eventCount, 2);
-		assert.equal(store.fileCount, 1);
-		assert.equal(store.calendarCount, 1);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			{ event: event1, id: id1 },
-			{ event: event2, id: id2 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [
-			{ event: event1, id: id1 },
-		]);
-	});
-
-	it("stores two events in different calendars and files", () => {
-		const calendar1 = mockCalendar();
-		const calendar2 = mockCalendar();
-		const file1 = mockFile();
-		const file2 = mockFile();
-
-		const event1 = mockEvent();
-		const id1 = mockId();
-
-		const event2 = mockEvent();
-		const id2 = mockId();
-
-		store.add({ calendar: calendar1, file: file1, id: id1, event: event1 });
-		store.add({ calendar: calendar2, file: file2, id: id2, event: event2 });
-
-		assert.equal(store.eventCount, 2);
-		assert.equal(store.fileCount, 2);
-		assert.equal(store.calendarCount, 2);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
-			{ event: event1, id: id1 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file1), [
-			{ event: event1, id: id1 },
-		]);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			{ event: event2, id: id2 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), [
-			{ event: event2, id: id2 },
-		]);
-	});
-
-	it("stores and deletes one event", () => {
-		const calendar = mockCalendar();
-		const event = mockEvent();
-		const file = mockFile();
-		const id = mockId();
-
-		store.add({ calendar, file, id, event });
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
-			{ event, id },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file), [{ event, id }]);
-		assert.equal(store.eventCount, 1);
-
-		const result = store.delete(id);
-		assert.deepStrictEqual(result, event);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
-		assert.deepStrictEqual(store.getEventsInFile(file), []);
-		assert.equal(store.eventCount, 0);
-	});
-
-	it("stores many events in different calendars and files", () => {
-		const calendar1 = mockCalendar();
-		const calendar2 = mockCalendar();
-		const file1 = mockFile();
-		const file2 = mockFile();
-		const file3 = mockFile();
-
-		const event1 = mockEvent();
-		const id1 = mockId();
-
-		const event2 = mockEvent();
-		const id2 = mockId();
-
-		const event3 = mockEvent();
-		const id3 = mockId();
-
-		store.add({ calendar: calendar1, file: file1, id: id1, event: event1 });
-		store.add({ calendar: calendar2, file: file2, id: id2, event: event2 });
-		store.add({ calendar: calendar2, file: file3, id: id3, event: event3 });
-
-		assert.equal(store.eventCount, 3);
-		assert.equal(store.fileCount, 3);
-		assert.equal(store.calendarCount, 2);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
-			{ event: event1, id: id1 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file1), [
-			{ event: event1, id: id1 },
-		]);
-
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			{ event: event2, id: id2 },
-			{ event: event3, id: id3 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), [
-			{ event: event2, id: id2 },
-		]);
-
-		assert.deepStrictEqual(store.getEventsInFile(file3), [
-			{ event: event3, id: id3 },
-		]);
-
-		assert.deepStrictEqual(toObject(store.eventsByCalendar), {
-			[calendar1.id]: [{ event: event1, id: id1 }],
-			[calendar2.id]: [
-				{ event: event2, id: id2 },
-				{ event: event3, id: id3 },
-			],
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+				{ event, id, location: pathLoc(location) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+				{ event, id, location: pathLoc(location) },
+			]);
+			assert.equal(store.eventCount, 1);
 		});
 
-		assert.equal(store.getCalendarIdForEventId(id1), calendar1.id);
-		assert.equal(store.getCalendarIdForEventId(id2), calendar2.id);
-		assert.equal(store.getCalendarIdForEventId(id3), calendar2.id);
-		assert.deepStrictEqual(
-			store.getEventsInFileAndCalendar(file2, calendar2),
-			[{ event: event2, id: id2 }]
-		);
-	});
+		it(`throws when trying to overwrite an ID entry [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const location = mockLocation(withLineNumbers);
+			const id = mockId();
+			const event = mockEvent();
 
-	it("stores then deletes many events", () => {
-		const calendar1 = mockCalendar();
-		const calendar2 = mockCalendar();
-		const file1 = mockFile();
-		const file2 = mockFile();
-		const file3 = mockFile();
+			store.add({ calendar, location, id, event });
 
-		const event1 = mockEvent();
-		const id1 = mockId();
+			assert.throws(() => store.add({ calendar, location, id, event }));
+			const calendar2 = mockCalendar();
+			const event2 = mockEvent();
+			const location2 = mockLocation(withLineNumbers);
+			assert.throws(() =>
+				store.add({ calendar: calendar2, location, id, event })
+			);
+			assert.throws(() =>
+				store.add({ calendar, location: location2, id, event })
+			);
+			assert.throws(() =>
+				store.add({ calendar, location, id, event: event2 })
+			);
+		});
 
-		const event2 = mockEvent();
-		const id2 = mockId();
+		it(`throws when trying to overwrite an ID entry [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const location = mockLocation(withLineNumbers);
+			const id = mockId();
+			const event = mockEvent();
+			const event2 = mockEvent();
 
-		const event3 = mockEvent();
-		const id3 = mockId();
+			store.add({ calendar, location, id, event });
+			assert.equal(store.eventCount, 1);
+			assert.deepStrictEqual(store.getEventById(id), event);
+			store.delete(id);
+			assert.equal(store.eventCount, 0);
+			store.add({ calendar, location, id, event: event2 });
+			assert.equal(store.eventCount, 1);
+			assert.deepStrictEqual(store.getEventById(id), event2);
+		});
 
-		store.add({ calendar: calendar1, file: file1, id: id1, event: event1 });
-		store.add({ calendar: calendar2, file: file2, id: id2, event: event2 });
-		store.add({ calendar: calendar2, file: file3, id: id3, event: event3 });
+		it(`stores one event without a file [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const event = mockEvent();
+			const id = mockId();
 
-		assert.equal(store.eventCount, 3);
-		assert.equal(store.fileCount, 3);
-		assert.equal(store.calendarCount, 2);
+			store.add({ calendar, location: null, id, event });
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
-			{ event: event1, id: id1 },
-		]);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			{ event: event2, id: id2 },
-			{ event: event3, id: id3 },
-		]);
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+				{ event, id, location: null },
+			]);
+			assert.equal(0, store.fileCount);
+		});
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), [
-			{ event: event1, id: id1 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), [
-			{ event: event2, id: id2 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file3), [
-			{ event: event3, id: id3 },
-		]);
+		it(`gets events in new calendar [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
+		});
 
-		store.delete(id2);
+		it(`gets events in new file [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockFile();
+			assert.deepStrictEqual(store.getEventsInFile(calendar), []);
+		});
 
-		assert.equal(store.eventCount, 2);
-		assert.equal(store.fileCount, 2);
-		assert.equal(store.calendarCount, 2);
-		store.delete(id1);
-		assert.equal(store.eventCount, 1);
-		assert.equal(store.fileCount, 1);
-		assert.equal(store.calendarCount, 1);
+		it(`stores two events in the same file [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const location = mockLocation(withLineNumbers);
+			const location2 = { file: location.file, lineNumber: 102 };
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), []);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			{ event: event3, id: id3 },
-		]);
+			const event1 = mockEvent();
+			const id1 = mockId();
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), []);
-		assert.deepStrictEqual(store.getEventsInFile(file2), []);
-		assert.deepStrictEqual(store.getEventsInFile(file3), [
-			{ event: event3, id: id3 },
-		]);
+			const event2 = mockEvent();
+			const id2 = mockId();
 
-		const id4 = mockId();
-		const event4 = mockEvent();
-		store.add({ calendar: calendar1, file: file1, id: id4, event: event4 });
-		assert.equal(store.eventCount, 2);
-		assert.equal(store.fileCount, 2);
-		assert.equal(store.calendarCount, 2);
+			store.add({ calendar, location, id: id1, event: event1 });
+			store.add({
+				calendar,
+				location: location2,
+				id: id2,
+				event: event2,
+			});
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
-			{ event: event4, id: id4 },
-		]);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
-			{ event: event3, id: id3 },
-		]);
+			assert.equal(store.eventCount, 2);
+			assert.equal(store.fileCount, 1);
+			assert.equal(store.calendarCount, 1);
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), [
-			{ event: event4, id: id4 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), []);
-		assert.deepStrictEqual(store.getEventsInFile(file3), [
-			{ event: event3, id: id3 },
-		]);
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+				{ event: event1, id: id1, location: pathLoc(location) },
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+				{ event: event1, id: id1, location: pathLoc(location) },
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
+		});
 
-		store.delete(id3);
-		assert.equal(store.eventCount, 1);
-		assert.equal(store.fileCount, 1);
-		assert.equal(store.calendarCount, 1);
+		it(`stores two events, only one with a file [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const location = mockLocation(withLineNumbers);
 
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
-			{ event: event4, id: id4 },
-		]);
-		assert.deepStrictEqual(store.getEventsInCalendar(calendar2), []);
+			const event1 = mockEvent();
+			const id1 = mockId();
 
-		assert.deepStrictEqual(store.getEventsInFile(file1), [
-			{ event: event4, id: id4 },
-		]);
-		assert.deepStrictEqual(store.getEventsInFile(file2), []);
-		assert.deepStrictEqual(store.getEventsInFile(file3), []);
+			const event2 = mockEvent();
+			const id2 = mockId();
 
-		store.delete(id4);
-		assert.equal(store.eventCount, 0);
-		assert.equal(store.fileCount, 0);
-		assert.equal(store.calendarCount, 0);
-	});
+			store.add({ calendar, location, id: id1, event: event1 });
+			store.add({ calendar, location: null, id: id2, event: event2 });
+
+			assert.equal(store.eventCount, 2);
+			assert.equal(store.fileCount, 1);
+			assert.equal(store.calendarCount, 1);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+				{ event: event1, id: id1, location: pathLoc(location) },
+				{ event: event2, id: id2, location: null },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+				{ event: event1, id: id1, location: pathLoc(location) },
+			]);
+		});
+
+		it(`stores two events in different calendars and files [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar1 = mockCalendar();
+			const calendar2 = mockCalendar();
+			// const file1 = mockFile();
+			// const file2 = mockFile();
+			const location1 = mockLocation(withLineNumbers);
+			const location2 = mockLocation(withLineNumbers);
+
+			const event1 = mockEvent();
+			const id1 = mockId();
+
+			const event2 = mockEvent();
+			const id2 = mockId();
+
+			store.add({
+				calendar: calendar1,
+				location: location1,
+				id: id1,
+				event: event1,
+			});
+			store.add({
+				calendar: calendar2,
+				location: location2,
+				id: id2,
+				event: event2,
+			});
+
+			assert.equal(store.eventCount, 2);
+			assert.equal(store.fileCount, 2);
+			assert.equal(store.calendarCount, 2);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+				{ event: event1, id: id1, location: pathLoc(location1) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+				{ event: event1, id: id1, location: pathLoc(location1) },
+			]);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location2.file), [
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
+		});
+
+		it(`stores and deletes one event [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar = mockCalendar();
+			const event = mockEvent();
+			const id = mockId();
+			const location = mockLocation(withLineNumbers);
+
+			store.add({ calendar, location, id, event });
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+				{ event, id, location: pathLoc(location) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+				{ event, id, location: pathLoc(location) },
+			]);
+			assert.equal(store.eventCount, 1);
+
+			const result = store.delete(id);
+			assert.deepStrictEqual(result, event);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
+			assert.deepStrictEqual(store.getEventsInFile(location.file), []);
+			assert.equal(store.eventCount, 0);
+		});
+
+		it(`stores many events in different calendars and files [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar1 = mockCalendar();
+			const calendar2 = mockCalendar();
+			const location1 = mockLocation(withLineNumbers);
+			const location2 = mockLocation(withLineNumbers);
+			const location3 = mockLocation(withLineNumbers);
+
+			const event1 = mockEvent();
+			const id1 = mockId();
+
+			const event2 = mockEvent();
+			const id2 = mockId();
+
+			const event3 = mockEvent();
+			const id3 = mockId();
+
+			store.add({
+				calendar: calendar1,
+				location: location1,
+				id: id1,
+				event: event1,
+			});
+			store.add({
+				calendar: calendar2,
+				location: location2,
+				id: id2,
+				event: event2,
+			});
+			store.add({
+				calendar: calendar2,
+				location: location3,
+				id: id3,
+				event: event3,
+			});
+
+			assert.equal(store.eventCount, 3);
+			assert.equal(store.fileCount, 3);
+			assert.equal(store.calendarCount, 2);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+				{ event: event1, id: id1, location: pathLoc(location1) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+				{ event: event1, id: id1, location: pathLoc(location1) },
+			]);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+				{ event: event2, id: id2, location: pathLoc(location2) },
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location2.file), [
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
+
+			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			assert.deepStrictEqual(toObject(store.eventsByCalendar), {
+				[calendar1.id]: [
+					{ event: event1, id: id1, location: pathLoc(location1) },
+				],
+				[calendar2.id]: [
+					{ event: event2, id: id2, location: pathLoc(location2) },
+					{ event: event3, id: id3, location: pathLoc(location3) },
+				],
+			});
+
+			assert.equal(store.getCalendarIdForEventId(id1), calendar1.id);
+			assert.equal(store.getCalendarIdForEventId(id2), calendar2.id);
+			assert.equal(store.getCalendarIdForEventId(id3), calendar2.id);
+			assert.deepStrictEqual(
+				store.getEventsInFileAndCalendar(location2.file, calendar2),
+				[{ event: event2, id: id2, location: pathLoc(location2) }]
+			);
+		});
+
+		it(`stores then deletes many events [withLineNumbers=${withLineNumbers}]`, () => {
+			const calendar1 = mockCalendar();
+			const calendar2 = mockCalendar();
+
+			const location1 = mockLocation(withLineNumbers);
+			const location2 = mockLocation(withLineNumbers);
+			const location3 = mockLocation(withLineNumbers);
+
+			const event1 = mockEvent();
+			const id1 = mockId();
+
+			const event2 = mockEvent();
+			const id2 = mockId();
+
+			const event3 = mockEvent();
+			const id3 = mockId();
+
+			store.add({
+				calendar: calendar1,
+				location: location1,
+				id: id1,
+				event: event1,
+			});
+			store.add({
+				calendar: calendar2,
+				location: location2,
+				id: id2,
+				event: event2,
+			});
+			store.add({
+				calendar: calendar2,
+				location: location3,
+				id: id3,
+				event: event3,
+			});
+
+			assert.equal(store.eventCount, 3);
+			assert.equal(store.fileCount, 3);
+			assert.equal(store.calendarCount, 2);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+				{ event: event1, id: id1, location: pathLoc(location1) },
+			]);
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+				{ event: event2, id: id2, location: pathLoc(location2) },
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+				{ event: event1, id: id1, location: pathLoc(location1) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location2.file), [
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			store.delete(id2);
+
+			assert.equal(store.eventCount, 2);
+			assert.equal(store.fileCount, 2);
+			assert.equal(store.calendarCount, 2);
+			store.delete(id1);
+			assert.equal(store.eventCount, 1);
+			assert.equal(store.fileCount, 1);
+			assert.equal(store.calendarCount, 1);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), []);
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			assert.deepStrictEqual(store.getEventsInFile(location1.file), []);
+			assert.deepStrictEqual(store.getEventsInFile(location2.file), []);
+			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			const id4 = mockId();
+			const event4 = mockEvent();
+			const location4 = { file: location1.file, lineNumber: 30 };
+			store.add({
+				calendar: calendar1,
+				location: location4,
+				id: id4,
+				event: event4,
+			});
+			assert.equal(store.eventCount, 2);
+			assert.equal(store.fileCount, 2);
+			assert.equal(store.calendarCount, 2);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+				{ event: event4, id: id4, location: pathLoc(location4) },
+			]);
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+				{ event: event4, id: id4, location: pathLoc(location4) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location2.file), []);
+			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+				{ event: event3, id: id3, location: pathLoc(location3) },
+			]);
+
+			store.delete(id3);
+			assert.equal(store.eventCount, 1);
+			assert.equal(store.fileCount, 1);
+			assert.equal(store.calendarCount, 1);
+
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+				{ event: event4, id: id4, location: pathLoc(location4) },
+			]);
+			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), []);
+
+			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+				{ event: event4, id: id4, location: pathLoc(location4) },
+			]);
+			assert.deepStrictEqual(store.getEventsInFile(location2.file), []);
+			assert.deepStrictEqual(store.getEventsInFile(location3.file), []);
+
+			store.delete(id4);
+			assert.equal(store.eventCount, 0);
+			assert.equal(store.fileCount, 0);
+			assert.equal(store.calendarCount, 0);
+		});
+	}
 });

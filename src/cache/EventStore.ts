@@ -1,6 +1,6 @@
 import { TFile } from "obsidian";
 import { Calendar } from "../calendars/Calendar";
-import { OFCEvent } from "../types";
+import { EventLocation, OFCEvent } from "../types";
 
 interface Identifier {
 	id: string;
@@ -83,20 +83,45 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 	}
 }
 
-type EventResult = { id: string; event: OFCEvent };
+type StoreLoc = { path: string; lineNumber: number | undefined };
 
-// Class that stores events by their ID as the primary key, with secondary "indexes" by calendar and file.
-// You can look up events by what calendar they belong to, as well as what file their source lives in.
+type EventResult = {
+	id: string;
+	event: OFCEvent;
+	location: StoreLoc | null;
+};
+
+type AddEventProps = {
+	calendar: Calendar;
+	location: EventLocation | null;
+	id: string;
+	event: OFCEvent;
+};
+
+type EventDetails = Omit<AddEventProps, "location" | "calendar"> & {
+	location: StoreLoc | null;
+	calendarId: string;
+};
+
+/**
+ * Class that stores events by their ID as the primary key, with secondary "indexes"
+ * by calendar and file. You can look up events by what calendar they belong to, as
+ * well as what file their source lives in.
+ */
+// TODO: Add a position index, just stored as a line number for now. This will be one-to-one.
 export default class EventStore {
 	private store: Map<string, OFCEvent> = new Map();
 
 	private calendarIndex = new OneToMany<Calendar, EventID>();
+
 	private pathIndex = new OneToMany<Path, EventID>();
+	private lineNumbers: Map<string, number> = new Map();
 
 	clear() {
 		this.store.clear();
 		this.calendarIndex.clear();
 		this.pathIndex.clear();
+		this.lineNumbers.clear();
 	}
 
 	get fileCount() {
@@ -118,22 +143,18 @@ export default class EventStore {
 			if (!event) {
 				return;
 			}
-			result.push({ id, event });
+			const path = this.pathIndex.getRelated(new EventID(id));
+			let lineNumber: number | undefined = undefined;
+			if (path) {
+				lineNumber = this.lineNumbers.get(id);
+			}
+			const location = path ? { path, lineNumber } : null;
+			result.push({ id, event, location });
 		});
 		return result;
 	}
 
-	add({
-		calendar,
-		file,
-		id,
-		event,
-	}: {
-		calendar: Calendar;
-		file: TFile | null;
-		id: string;
-		event: OFCEvent;
-	}) {
+	add({ calendar, location, id, event }: AddEventProps) {
 		if (this.store.has(id)) {
 			throw new Error(
 				"Event with given ID already exists in the EventStore."
@@ -141,11 +162,13 @@ export default class EventStore {
 		}
 
 		this.store.set(id, event);
-
 		this.calendarIndex.add(calendar, new EventID(id));
-
-		if (file) {
+		if (location) {
+			const { file, lineNumber } = location;
 			this.pathIndex.add(new Path(file), new EventID(id));
+			if (lineNumber) {
+				this.lineNumbers.set(id, lineNumber);
+			}
 		}
 	}
 
@@ -157,6 +180,7 @@ export default class EventStore {
 
 		this.calendarIndex.delete(new EventID(id));
 		this.pathIndex.delete(new EventID(id));
+		this.lineNumbers.delete(id);
 		this.store.delete(id);
 		return event;
 	}
@@ -183,11 +207,28 @@ export default class EventStore {
 		return this.calendarIndex.getRelated(new EventID(id));
 	}
 
+	getFilePathForEventId(id: string): string | null {
+		return this.pathIndex.getRelated(new EventID(id));
+	}
+
 	get eventsByCalendar(): Map<string, EventResult[]> {
 		const result = new Map();
 		for (const [k, vs] of this.calendarIndex.groupByRelated) {
 			result.set(k, this.fetch(vs));
 		}
 		return result;
+	}
+
+	getEventDetails(eventId: string): EventDetails | null {
+		const event = this.getEventById(eventId);
+		const calendarId = this.getCalendarIdForEventId(eventId);
+		if (!event || !calendarId) {
+			return null;
+		}
+
+		const path = this.getFilePathForEventId(eventId);
+		const lineNumber = this.lineNumbers.get(eventId);
+		const location = path ? { path, lineNumber } : null;
+		return { id: eventId, event, calendarId, location };
 	}
 }

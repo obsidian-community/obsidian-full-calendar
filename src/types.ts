@@ -1,3 +1,5 @@
+import { TFile } from "obsidian";
+
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter
@@ -190,3 +192,8 @@ export class FCError {
 		this.message = message;
 	}
 }
+
+export type EventLocation = {
+	file: TFile;
+	lineNumber: number | undefined;
+};

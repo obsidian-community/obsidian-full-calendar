@@ -1,5 +1,5 @@
 import { EventInput, EventSourceInput } from "@fullcalendar/core";
-import { TFile, TFolder } from "obsidian";
+import { TFile } from "obsidian";
 import equal from "deep-equal";
 
 import { Calendar } from "../calendars/Calendar";
@@ -24,7 +24,7 @@ type UpdateViewCallback = (info: {
 }) => void;
 
 // TODO: Write tests for this function.
-const eventsAreDifferent = (
+export const eventsAreDifferent = (
 	oldEvents: OFCEvent[],
 	newEvents: OFCEvent[]
 ): boolean => {
@@ -131,11 +131,11 @@ export default class EventCache {
 	 */
 	async populate(): Promise<void> {
 		for (const calendar of this.calendars.values()) {
-			const events = await calendar.getEvents();
-			events.forEach((event) =>
+			const results = await calendar.getEvents();
+			results.forEach(([event, location]) =>
 				this.store.add({
 					calendar,
-					file: null, // TODO: figure out how to populate file from getEvents().
+					location,
 					id: event.id || this.generateId(),
 					event,
 				})
@@ -154,6 +154,56 @@ export default class EventCache {
 		for (const callback of this.updateViewCallbacks) {
 			callback(payload);
 		}
+	}
+
+	async newEvent(calendarId: string, newEvent: OFCEvent) {
+		const calendar = this.calendars.get(calendarId);
+		if (!calendar) {
+			return false;
+		}
+	}
+
+	// TODO: Replace boolean false with exceptions that contain helpful error messages.
+	async modifyEvent(eventId: string, newEvent: OFCEvent): Promise<boolean> {
+		const details = this.store.getEventDetails(eventId);
+		if (!details) {
+			return false;
+		}
+		const { calendarId, location: oldLocation } = details;
+		if (!calendarId) {
+			return false;
+		}
+		const calendar = this.calendars.get(calendarId);
+		if (!calendar) {
+			return false;
+		}
+		if (!(calendar instanceof EditableCalendar)) {
+			return false;
+		}
+
+		if (!oldLocation) {
+			return false;
+		}
+		const { path, lineNumber } = oldLocation;
+
+		const file = this.app.getFileByPath(path);
+		if (!file) {
+			return false;
+		}
+
+		const newLocation = await calendar.updateEvent(
+			{ file, lineNumber },
+			newEvent
+		);
+
+		this.store.delete(eventId);
+		this.store.add({
+			calendar,
+			location: newLocation || oldLocation,
+			id: newEvent.id || this.generateId(), // TODO: Can this re-use the existing eventId?
+			event: newEvent,
+		});
+		return true;
 	}
 
 	async fileUpdated(file: TFile): Promise<void> {
@@ -182,10 +232,10 @@ export default class EventCache {
 
 			const eventsHaveChanged = eventsAreDifferent(
 				oldEvents.map((r) => r.event),
-				newEvents
+				newEvents.map(([e, _]) => e)
 			);
 
-			// If no events have changed from what's in the cache, then no need to update subscribers.
+			// If no events have changed from what's in the cache, then there's no need to update the event store.
 			if (!eventsHaveChanged) {
 				return;
 			}
@@ -195,14 +245,15 @@ export default class EventCache {
 			oldIds.forEach((id) => {
 				this.store.delete(id);
 			});
-			const newEventsWithIds = newEvents.map((event) => ({
+			const newEventsWithIds = newEvents.map(([event, location]) => ({
 				event,
 				id: event.id || this.generateId(),
+				location,
 			}));
-			newEventsWithIds.forEach(({ event, id }) => {
+			newEventsWithIds.forEach(({ event, id, location }) => {
 				this.store.add({
 					calendar,
-					file,
+					location,
 					id,
 					event,
 				});
