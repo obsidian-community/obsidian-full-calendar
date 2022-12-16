@@ -1,5 +1,5 @@
 import { EventInput, EventSourceInput } from "@fullcalendar/core";
-import { App, TFile, TFolder } from "obsidian";
+import { TFile, TFolder } from "obsidian";
 import equal from "deep-equal";
 
 import { Calendar } from "../calendars/Calendar";
@@ -9,6 +9,7 @@ import { toEventInput } from "./interop";
 import { getColors } from "../models/util";
 import { CalendarInfo, OFCEvent } from "../types";
 import { FullCalendarSettings } from "../ui/settings";
+import { ObsidianInterface } from "src/ObsidianAdapter";
 
 type CalendarInitializerMap = Record<
 	CalendarInfo["type"],
@@ -57,7 +58,7 @@ const eventsAreDifferent = (
  * change on disk.
  */
 export default class EventCache {
-	private app: App;
+	private app: ObsidianInterface;
 	private settings: FullCalendarSettings;
 
 	private calendarInitializers: CalendarInitializerMap;
@@ -70,7 +71,7 @@ export default class EventCache {
 	private updateViewCallbacks: UpdateViewCallback[] = [];
 
 	constructor(
-		app: App,
+		app: ObsidianInterface,
 		settings: FullCalendarSettings,
 		calendarInitializers: CalendarInitializerMap
 	) {
@@ -89,7 +90,7 @@ export default class EventCache {
 
 	/**
 	 * Get all events from the cache in a FullCalendar-frienly format.
-	 * @returns
+	 * @returns EventSourceInputs for FullCalendar.
 	 */
 	getAllEvents(): EventSourceInput[] {
 		const result: EventSourceInput[] = [];
@@ -131,7 +132,7 @@ export default class EventCache {
 	async populate(): Promise<void> {
 		for (const calendar of this.calendars.values()) {
 			if (calendar instanceof EditableCalendar) {
-				const directory = this.app.vault.getAbstractFileByPath(
+				const directory = this.app.getAbstractFileByPath(
 					calendar.directory
 				);
 				if (!directory) {
@@ -155,15 +156,14 @@ export default class EventCache {
 					) {
 						// TODO: Parse events recursively
 					} else if (file instanceof TFile) {
-						const metadata =
-							this.app.metadataCache.getFileCache(file);
+						const metadata = this.app.getFileMetadata(file);
 						if (!metadata) {
 							continue;
 						}
 						calendar
 							.getEventsInFile(
 								metadata,
-								await this.app.vault.cachedRead(file)
+								await this.app.readFile(file)
 							)
 							.forEach((event) =>
 								this.store.add({
@@ -203,7 +203,7 @@ export default class EventCache {
 	}
 
 	async fileUpdated(file: TFile): Promise<void> {
-		const fileCache = this.app.metadataCache.getFileCache(file);
+		const fileCache = this.app.getFileMetadata(file);
 		if (!fileCache) {
 			return;
 		}
@@ -215,7 +215,7 @@ export default class EventCache {
 			return;
 		}
 
-		const contents = await this.app.vault.cachedRead(file);
+		const contents = await this.app.readFile(file);
 		const idsToRemove: string[] = [];
 		const eventsToAdd: CacheEntry[] = [];
 
