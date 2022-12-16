@@ -207,7 +207,7 @@ export default class EventCache {
 	}
 
 	async fileUpdated(file: TFile): Promise<void> {
-		const fileCache = this.app.getFileMetadata(file);
+		const fileCache = this.app.getMetadata(file);
 		if (!fileCache) {
 			return;
 		}

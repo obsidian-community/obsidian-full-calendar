@@ -9,7 +9,7 @@ import { Calendar } from "./Calendar";
 export abstract class EditableCalendar extends Calendar {
 	app: ObsidianInterface;
 
-	constructor(app: ObsidianInterface, color: string) {
+	constructor(color: string, app: ObsidianInterface) {
 		super(color);
 		this.app = app;
 	}

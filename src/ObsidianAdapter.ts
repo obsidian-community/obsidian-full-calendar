@@ -9,8 +9,8 @@ import {
 export interface ObsidianInterface {
 	getAbstractFileByPath(path: string): TAbstractFile | null;
 	getFileByPath(path: string): TFile | null;
-	getFileMetadata(file: TFile): CachedMetadata | null;
-	readFile(file: TFile): Promise<string>;
+	getMetadata(file: TFile): CachedMetadata | null;
+	read(file: TFile): Promise<string>;
 }
 
 export class ObsidianIO implements ObsidianInterface {
@@ -37,11 +37,11 @@ export class ObsidianIO implements ObsidianInterface {
 		return f;
 	}
 
-	getFileMetadata(file: TFile): CachedMetadata | null {
+	getMetadata(file: TFile): CachedMetadata | null {
 		return this.metadataCache.getFileCache(file);
 	}
 
-	readFile(file: TFile): Promise<string> {
+	read(file: TFile): Promise<string> {
 		return this.vault.cachedRead(file);
 	}
 }
