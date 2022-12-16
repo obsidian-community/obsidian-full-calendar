@@ -156,39 +156,52 @@ export default class EventCache {
 		}
 	}
 
-	async newEvent(calendarId: string, newEvent: OFCEvent) {
+	async addEvent(calendarId: string, event: OFCEvent): Promise<boolean> {
 		const calendar = this.calendars.get(calendarId);
 		if (!calendar) {
-			return false;
+			throw new Error(`Calendar ID ${calendarId} is not registered.`);
 		}
+		if (!(calendar instanceof EditableCalendar)) {
+			throw new Error(
+				`Event cannot be added to non-editable calendar of type ${calendar.type}`
+			);
+		}
+		const location = await calendar.addEvent(event);
+		this.store.add({
+			calendar,
+			location,
+			id: event.id || this.generateId(),
+			event,
+		});
+		return true;
 	}
 
-	// TODO: Replace boolean false with exceptions that contain helpful error messages.
 	async modifyEvent(eventId: string, newEvent: OFCEvent): Promise<boolean> {
 		const details = this.store.getEventDetails(eventId);
 		if (!details) {
-			return false;
+			throw new Error(`Event ID ${eventId} not present in event store.`);
 		}
 		const { calendarId, location: oldLocation } = details;
-		if (!calendarId) {
-			return false;
-		}
 		const calendar = this.calendars.get(calendarId);
 		if (!calendar) {
-			return false;
+			throw new Error(`Calendar ID ${calendarId} is not registered.`);
 		}
 		if (!(calendar instanceof EditableCalendar)) {
-			return false;
+			throw new Error(
+				`Event cannot be added to non-editable calendar of type ${calendar.type}`
+			);
 		}
 
 		if (!oldLocation) {
-			return false;
+			throw new Error(
+				`Event with ID ${eventId} does not have a location in the Vault.`
+			);
 		}
 		const { path, lineNumber } = oldLocation;
 
 		const file = this.app.getFileByPath(path);
 		if (!file) {
-			return false;
+			throw new Error(`File does not exist at path ${path}.`);
 		}
 
 		const newLocation = await calendar.updateEvent(
@@ -203,6 +216,8 @@ export default class EventCache {
 			id: newEvent.id || this.generateId(), // TODO: Can this re-use the existing eventId?
 			event: newEvent,
 		});
+
+		// TODO: For external subscribers, fire off an event when modifying.
 		return true;
 	}
 
@@ -240,16 +255,17 @@ export default class EventCache {
 				return;
 			}
 
-			// If events have changed in the calendar, then remove all the old events from the store and add in new ones.
-			const oldIds = oldEvents.map((r) => r.id);
-			oldIds.forEach((id) => {
-				this.store.delete(id);
-			});
 			const newEventsWithIds = newEvents.map(([event, location]) => ({
 				event,
 				id: event.id || this.generateId(),
 				location,
 			}));
+
+			// If events have changed in the calendar, then remove all the old events from the store and add in new ones.
+			const oldIds = oldEvents.map((r) => r.id);
+			oldIds.forEach((id) => {
+				this.store.delete(id);
+			});
 			newEventsWithIds.forEach(({ event, id, location }) => {
 				this.store.add({
 					calendar,
