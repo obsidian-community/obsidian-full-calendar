@@ -187,12 +187,6 @@ export const EditEvent = ({
 
 	return (
 		<>
-			<div>
-				<p style={{ float: "right" }}>
-					{open && <button onClick={open}>Open Note</button>}
-				</p>
-			</div>
-
 			<form onSubmit={handleSubmit}>
 				<p>
 					<input
@@ -204,11 +198,11 @@ export const EditEvent = ({
 						required
 						onChange={makeChangeListener(setTitle, (x) => x)}
 					/>
-				</p>
-				<p>
+
 					<select
 						id="calendar"
 						value={calendarIndex}
+						style={{ marginLeft: "15px" }}
 						onChange={makeChangeListener(
 							setCalendarIndex,
 							parseInt
@@ -244,6 +238,7 @@ export const EditEvent = ({
 						<input
 							type="date"
 							id="date"
+							style={{ marginRight: "10px" }}
 							value={date}
 							required={!isRecurring}
 							onChange={makeChangeListener(setDate, (x) => x)}
@@ -258,6 +253,7 @@ export const EditEvent = ({
 								type="time"
 								id="startTime"
 								value={startTime}
+								style={{ marginRight: "10px" }}
 								required
 								onChange={makeChangeListener(
 									setStartTime,
@@ -269,6 +265,7 @@ export const EditEvent = ({
 								type="time"
 								id="endTime"
 								value={endTime}
+								style={{ marginLeft: "10px" }}
 								required
 								onChange={makeChangeListener(
 									setEndTime,
@@ -279,22 +276,25 @@ export const EditEvent = ({
 					)}
 				</p>
 				<p>
-					<label htmlFor="allDay">All day event </label>
-					<input
-						id="allDay"
-						checked={allDay}
-						onChange={(e) => setAllDay(e.target.checked)}
-						type="checkbox"
-					/>
-				</p>
-				<p>
-					<label htmlFor="recurring">Recurring Event </label>
-					<input
-						id="recurring"
-						checked={isRecurring}
-						onChange={(e) => setIsRecurring(e.target.checked)}
-						type="checkbox"
-					/>
+					<span>
+						<input
+							id="allDay"
+							checked={allDay}
+							onChange={(e) => setAllDay(e.target.checked)}
+							type="checkbox"
+						/>
+						<label htmlFor="allDay">All Day Event </label>
+					</span>
+
+					<span style={{ marginLeft: "15px" }}>
+						<input
+							id="recurring"
+							checked={isRecurring}
+							onChange={(e) => setIsRecurring(e.target.checked)}
+							type="checkbox"
+						/>
+						<label htmlFor="recurring">Recurring Event </label>
+					</span>
 				</p>
 
 				{isRecurring && (
@@ -325,45 +325,61 @@ export const EditEvent = ({
 					</>
 				)}
 				<p>
-					<label htmlFor="task">Task Event </label>
-					<input
-						id="task"
-						checked={isTask}
-						onChange={(e) => {
-							setIsTask(e.target.checked);
-						}}
-						type="checkbox"
-					/>
-				</p>
-
-				{isTask && (
-					<>
-						<label htmlFor="taskStatus">Complete? </label>
+					<span>
 						<input
-							id="taskStatus"
-							checked={
-								!(complete === false || complete === undefined)
-							}
-							onChange={(e) =>
-								setComplete(
-									e.target.checked
-										? DateTime.now().toISO()
-										: false
-								)
-							}
+							id="task"
+							checked={isTask}
+							onChange={(e) => {
+								setIsTask(e.target.checked);
+							}}
 							type="checkbox"
 						/>
-					</>
-				)}
+						<label htmlFor="task">Task Event </label>
+					</span>
+
+					{isTask && (
+						<>
+							<span style={{ marginLeft: "15px" }}>
+								<input
+									id="taskStatus"
+									checked={
+										!(
+											complete === false ||
+											complete === undefined
+										)
+									}
+									onChange={(e) =>
+										setComplete(
+											e.target.checked
+												? DateTime.now().toISO()
+												: false
+										)
+									}
+									type="checkbox"
+								/>
+								<label htmlFor="taskStatus">Completed? </label>
+							</span>
+						</>
+					)}
+				</p>
 
 				<p
 					style={{
 						display: "flex",
-						justifyContent: "space-between",
+						justifyContent: "end",
 						width: "100%",
+						paddingTop: "15px",
+						marginTop: "10px",
+						borderTop:
+							"1px solid var(--background-modifier-border)",
 					}}
 				>
 					<button type="submit"> Save Event </button>
+					{open && (
+						<button onClick={open} style={{ marginLeft: "10px" }}>
+							Open Note
+						</button>
+					)}
 					<span>
 						{deleteEvent && (
 							<button
@@ -374,6 +390,7 @@ export const EditEvent = ({
 									color: "var(--background-modifier-error)",
 									borderColor:
 										"var(--background-modifier-error)",
+									marginLeft: "10px",
 									borderWidth: "1px",
 									borderStyle: "solid",
 								}}
