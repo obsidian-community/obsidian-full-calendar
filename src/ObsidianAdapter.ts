@@ -62,6 +62,13 @@ export interface ObsidianInterface {
 	 * @param newPath new path for this file.
 	 */
 	rename(file: TFile, newPath: string): Promise<void>;
+
+	/**
+	 * Send a file to the trash.
+	 * @param file file to delete
+	 * @param system set to true to send to system trash, otherwise Vault trash.
+	 */
+	trash(file: TFile, system: boolean): Promise<void>;
 }
 
 /**
@@ -75,6 +82,10 @@ export class ObsidianIO implements ObsidianInterface {
 	constructor(vault: Vault, metadataCache: MetadataCache) {
 		this.vault = vault;
 		this.metadataCache = metadataCache;
+	}
+
+	trash(file: TFile, system: boolean): Promise<void> {
+		return this.vault.trash(file, system);
 	}
 
 	rename(file: TFile, newPath: string): Promise<void> {

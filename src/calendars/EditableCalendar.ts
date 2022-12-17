@@ -30,6 +30,13 @@ export abstract class EditableCalendar extends Calendar {
 
 	abstract createEvent(event: OFCEvent): Promise<EventLocation>;
 
+	abstract deleteEvent(location: EventPathLocation): Promise<void>;
+
+	abstract moveEvent(
+		location: EventPathLocation,
+		destination: EditableCalendar
+	): Promise<EventLocation>;
+
 	abstract updateEvent(
 		location: EventPathLocation,
 		newEvent: OFCEvent

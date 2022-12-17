@@ -1,4 +1,4 @@
-import { EventInput, EventSourceInput } from "@fullcalendar/core";
+import { EventSourceInput } from "@fullcalendar/core";
 import { TFile } from "obsidian";
 import equal from "deep-equal";
 
@@ -8,8 +8,6 @@ import EventStore from "./EventStore";
 import { toEventInput } from "./interop";
 import { getColors } from "../models/util";
 import { CalendarInfo, OFCEvent } from "../types";
-import { FullCalendarSettings } from "../ui/settings";
-import { ObsidianInterface } from "src/ObsidianAdapter";
 
 type CalendarInitializerMap = Record<
 	CalendarInfo["type"],
@@ -20,7 +18,7 @@ type CacheEntry = { event: OFCEvent; id: string };
 
 type UpdateViewCallback = (info: {
 	toRemove: string[];
-	toAdd: EventInput[];
+	toAdd: CacheEntry[];
 }) => void;
 
 // TODO: Write tests for this function.
@@ -58,8 +56,7 @@ export const eventsAreDifferent = (
  * change on disk.
  */
 export default class EventCache {
-	private app: ObsidianInterface;
-	private settings: FullCalendarSettings;
+	private calendarInfos: CalendarInfo[];
 
 	private calendarInitializers: CalendarInitializerMap;
 
@@ -67,16 +64,17 @@ export default class EventCache {
 	private calendars = new Map<string, Calendar>();
 
 	private pkCounter = 0;
+	generateId(): string {
+		return `${this.pkCounter++}`;
+	}
 
 	private updateViewCallbacks: UpdateViewCallback[] = [];
 
 	constructor(
-		app: ObsidianInterface,
-		settings: FullCalendarSettings,
+		calendarInfos: CalendarInfo[],
 		calendarInitializers: CalendarInitializerMap
 	) {
-		this.app = app;
-		this.settings = settings;
+		this.calendarInfos = calendarInfos;
 		this.calendarInitializers = calendarInitializers;
 	}
 
@@ -84,8 +82,33 @@ export default class EventCache {
 		return this.store.getEventById(s);
 	}
 
-	clear() {
+	/**
+	 * Flush the cache and initialize calendars from the initializer map.
+	 */
+	reset(): void {
 		this.store.clear();
+		this.calendars.clear();
+
+		this.calendarInfos
+			.flatMap((s) => this.calendarInitializers[s.type](s) || [])
+			.forEach((cal) => this.calendars.set(cal.id, cal));
+	}
+
+	/**
+	 * Populate the cache with events.
+	 */
+	async populate(): Promise<void> {
+		for (const calendar of this.calendars.values()) {
+			const results = await calendar.getEvents();
+			results.forEach(([event, location]) =>
+				this.store.add({
+					calendar,
+					location,
+					id: event.id || this.generateId(),
+					event,
+				})
+			);
+		}
 	}
 
 	/**
@@ -110,45 +133,10 @@ export default class EventCache {
 		return result;
 	}
 
-	generateId(): string {
-		return `${this.pkCounter++}`;
-	}
-
-	/**
-	 * Flush the cache and initialize calendars from the initializer map.
-	 */
-	initialize(): void {
-		this.calendars.clear();
-		this.store.clear();
-
-		this.settings.calendarSources
-			.flatMap((s) => this.calendarInitializers[s.type](s) || [])
-			.forEach((cal) => this.calendars.set(cal.id, cal));
-	}
-
-	/**
-	 * Populate the cache with events.
-	 */
-	async populate(): Promise<void> {
-		for (const calendar of this.calendars.values()) {
-			const results = await calendar.getEvents();
-			results.forEach(([event, location]) =>
-				this.store.add({
-					calendar,
-					location,
-					id: event.id || this.generateId(),
-					event,
-				})
-			);
-		}
-	}
-
 	updateViews(toRemove: string[], toAdd: CacheEntry[]) {
 		const payload = {
 			toRemove,
-			toAdd: toAdd.flatMap(
-				({ event, id }) => toEventInput(id, event) || []
-			),
+			toAdd,
 		};
 
 		for (const callback of this.updateViewCallbacks) {
@@ -176,12 +164,12 @@ export default class EventCache {
 		return true;
 	}
 
-	async modifyEvent(eventId: string, newEvent: OFCEvent): Promise<boolean> {
+	private getDetailsForEdit(eventId: string) {
 		const details = this.store.getEventDetails(eventId);
 		if (!details) {
 			throw new Error(`Event ID ${eventId} not present in event store.`);
 		}
-		const { calendarId, location: oldLocation } = details;
+		const { calendarId, location } = details;
 		const calendar = this.calendars.get(calendarId);
 		if (!calendar) {
 			throw new Error(`Calendar ID ${calendarId} is not registered.`);
@@ -191,12 +179,22 @@ export default class EventCache {
 				`Event cannot be added to non-editable calendar of type ${calendar.type}`
 			);
 		}
-
-		if (!oldLocation) {
+		if (!location) {
 			throw new Error(
 				`Event with ID ${eventId} does not have a location in the Vault.`
 			);
 		}
+		return { calendar, location };
+	}
+
+	deleteEvent(eventId: string): Promise<void> {
+		const { calendar, location } = this.getDetailsForEdit(eventId);
+		return calendar.deleteEvent(location);
+	}
+
+	async modifyEvent(eventId: string, newEvent: OFCEvent): Promise<boolean> {
+		const { calendar, location: oldLocation } =
+			this.getDetailsForEdit(eventId);
 		const { path, lineNumber } = oldLocation;
 
 		const newLocation = await calendar.updateEvent(
@@ -235,11 +233,11 @@ export default class EventCache {
 
 			const newEvents = await calendar.getEventsInFile(file);
 
-			// Do we need to compare locations too?
 			const eventsHaveChanged = eventsAreDifferent(
-				oldEvents.map((r) => r.event),
-				newEvents.map(([e, _]) => e)
+				oldEvents.map(({ event }) => event),
+				newEvents.map(([event, _]) => event)
 			);
+			// TODO: Make sure locations have also not changed.
 
 			// If no events have changed from what's in the cache, then there's no need to update the event store.
 			if (!eventsHaveChanged) {

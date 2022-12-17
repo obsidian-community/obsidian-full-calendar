@@ -28,15 +28,18 @@ const filenameForEvent = (event: OFCEvent) => `${basenameFromEvent(event)}.md`;
 export default class NoteCalendar extends EditableCalendar {
 	private _directory: string;
 	private isRecursive: boolean;
+	private systemTrash: boolean;
 
 	constructor(
 		app: ObsidianInterface,
 		info: LocalCalendarSource,
-		isRecursive: boolean
+		isRecursive: boolean,
+		systemTrash: boolean
 	) {
 		super(info.color, app);
 		this._directory = info.directory;
 		this.isRecursive = isRecursive;
+		this.systemTrash = systemTrash;
 	}
 	get directory(): string {
 		return this._directory;
@@ -137,14 +140,34 @@ export default class NoteCalendar extends EditableCalendar {
 		return { file: newFile, lineNumber: undefined };
 	}
 
-	async moveEvent(location: EventLocation, destination: NoteCalendar) {
-		const { file, lineNumber } = location;
+	async moveEvent(location: EventPathLocation, destination: NoteCalendar) {
+		const { path, lineNumber } = location;
 		if (lineNumber !== undefined) {
 			throw new Error("Note calendar cannot handle inline events.");
+		}
+		const file = this.app.getFileByPath(path);
+		if (!file) {
+			throw new Error(`File ${path} not found.`);
 		}
 		const destDir = destination.directory;
 		const newPath = `${destDir}/${file.name}`;
 		await this.app.rename(file, newPath);
+		const newFile = this.app.getAbstractFileByPath(newPath);
+		if (!newFile || !(newFile instanceof TFile)) {
+			throw new Error("File cannot be found after rename.");
+		}
+		return { file: newFile, lineNumber: undefined };
+	}
+
+	deleteEvent({ path, lineNumber }: EventPathLocation): Promise<void> {
+		if (lineNumber !== undefined) {
+			throw new Error("Note calendar cannot handle inline events.");
+		}
+		const file = this.app.getFileByPath(path);
+		if (!file) {
+			throw new Error(`File ${path} not found.`);
+		}
+		return this.app.trash(file, this.systemTrash);
 	}
 
 	async upgradeNote(file: TFile, event: OFCEvent) {
