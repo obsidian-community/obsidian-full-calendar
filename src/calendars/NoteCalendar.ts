@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder } from "obsidian";
+import { TFile, TFolder } from "obsidian";
 import { EventPathLocation } from "src/cache/EventStore";
 import { ObsidianInterface } from "src/ObsidianAdapter";
 import {
@@ -63,7 +63,7 @@ export default class NoteCalendar extends EditableCalendar {
 		return [[event, { file, lineNumber: undefined }]];
 	}
 
-	async getEventsInFolderRecursive(
+	private async getEventsInFolderRecursive(
 		folder: TFolder
 	): Promise<EventResponse[]> {
 		const events = await Promise.all(
@@ -128,11 +128,12 @@ export default class NoteCalendar extends EditableCalendar {
 		await this.app.rewrite(file, (page) =>
 			modifyFrontmatterString(page, event)
 		);
-		const updatedPath = `${file.parent.path}/filenameForEvent(event)`;
+		const updatedPath = `${file.parent.path}/${filenameForEvent(event)}`;
 		if (file.path !== updatedPath) {
 			const newPath = updatedPath;
 			await this.app.rename(file, newPath);
 		}
+		// TODO: Test to see if a file reference is still valid after a rename.
 		const newFile = this.app.getAbstractFileByPath(updatedPath);
 		if (!newFile || !(newFile instanceof TFile)) {
 			throw new Error("File cannot be found after rename.");
@@ -140,10 +141,18 @@ export default class NoteCalendar extends EditableCalendar {
 		return { file: newFile, lineNumber: undefined };
 	}
 
-	async moveEvent(location: EventPathLocation, destination: NoteCalendar) {
+	async moveEvent(
+		location: EventPathLocation,
+		destination: EditableCalendar
+	): Promise<EventLocation> {
 		const { path, lineNumber } = location;
 		if (lineNumber !== undefined) {
 			throw new Error("Note calendar cannot handle inline events.");
+		}
+		if (!(destination instanceof NoteCalendar)) {
+			throw new Error(
+				`Event cannot be moved to a note calendar from a calendar of type ${destination.type}.`
+			);
 		}
 		const file = this.app.getFileByPath(path);
 		if (!file) {
@@ -152,6 +161,7 @@ export default class NoteCalendar extends EditableCalendar {
 		const destDir = destination.directory;
 		const newPath = `${destDir}/${file.name}`;
 		await this.app.rename(file, newPath);
+		// TODO: Test to see if a file reference is still valid after a rename.
 		const newFile = this.app.getAbstractFileByPath(newPath);
 		if (!newFile || !(newFile instanceof TFile)) {
 			throw new Error("File cannot be found after rename.");
@@ -167,7 +177,7 @@ export default class NoteCalendar extends EditableCalendar {
 		if (!file) {
 			throw new Error(`File ${path} not found.`);
 		}
-		return this.app.trash(file, this.systemTrash);
+		return this.app.delete(file, this.systemTrash);
 	}
 
 	async upgradeNote(file: TFile, event: OFCEvent) {

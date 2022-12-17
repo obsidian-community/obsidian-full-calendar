@@ -38,6 +38,7 @@ export type OFCEvent = SingleEventData | RecurringEventData;
  * Validates that an incoming object from a JS object (presumably parsed from a note's frontmatter)
  * is a valid event, and returns that event if so. If any required fields are missing, then returns null.
  */
+// TODO: Replace with Zod validator (https://github.com/colinhacks/zod)
 export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 	if (obj === undefined) {
 		return null;

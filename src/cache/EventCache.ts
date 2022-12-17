@@ -133,6 +133,20 @@ export default class EventCache {
 		return result;
 	}
 
+	on(eventType: "update", callback: UpdateViewCallback) {
+		switch (eventType) {
+			case "update":
+				this.updateViewCallbacks.push(callback);
+		}
+	}
+
+	off(eventType: "update", callback: UpdateViewCallback) {
+		switch (eventType) {
+			case "update":
+				this.updateViewCallbacks.filter((it) => it !== callback);
+		}
+	}
+
 	updateViews(toRemove: string[], toAdd: CacheEntry[]) {
 		const payload = {
 			toRemove,

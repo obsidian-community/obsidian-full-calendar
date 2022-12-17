@@ -1,5 +1,7 @@
 import {
+	App,
 	CachedMetadata,
+	FileManager,
 	MetadataCache,
 	TAbstractFile,
 	TFile,
@@ -64,11 +66,11 @@ export interface ObsidianInterface {
 	rename(file: TFile, newPath: string): Promise<void>;
 
 	/**
-	 * Send a file to the trash.
+	 * Delete a file.
 	 * @param file file to delete
 	 * @param system set to true to send to system trash, otherwise Vault trash.
 	 */
-	trash(file: TFile, system: boolean): Promise<void>;
+	delete(file: TFile, system: boolean): Promise<void>;
 }
 
 /**
@@ -78,18 +80,20 @@ export interface ObsidianInterface {
 export class ObsidianIO implements ObsidianInterface {
 	vault: Vault;
 	metadataCache: MetadataCache;
+	fileManager: FileManager;
 
-	constructor(vault: Vault, metadataCache: MetadataCache) {
-		this.vault = vault;
-		this.metadataCache = metadataCache;
+	constructor(app: App) {
+		this.vault = app.vault;
+		this.metadataCache = app.metadataCache;
+		this.fileManager = app.fileManager;
 	}
 
-	trash(file: TFile, system: boolean): Promise<void> {
+	delete(file: TFile, system: boolean): Promise<void> {
 		return this.vault.trash(file, system);
 	}
 
 	rename(file: TFile, newPath: string): Promise<void> {
-		return this.vault.rename(file, newPath);
+		return this.fileManager.renameFile(file, newPath);
 	}
 
 	async rewrite(
@@ -98,7 +102,7 @@ export class ObsidianIO implements ObsidianInterface {
 	): Promise<void> {
 		const page = await this.vault.read(file);
 		const newPage = rewriteFunc(page);
-		return this.vault.modify(file, newPage);
+		await this.vault.modify(file, newPage);
 	}
 
 	create(path: string, contents: string): Promise<TFile> {
