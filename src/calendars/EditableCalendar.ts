@@ -1,7 +1,10 @@
 import { TFile } from "obsidian";
+import { EventPathLocation } from "src/cache/EventStore";
 import { ObsidianInterface } from "src/ObsidianAdapter";
 import { EventLocation, OFCEvent } from "src/types";
 import { Calendar } from "./Calendar";
+
+export type EventResponse = [OFCEvent, EventLocation];
 
 /**
  * Abstract class representing the interface for a Calendar.
@@ -23,12 +26,12 @@ export abstract class EditableCalendar extends Calendar {
 		return path.startsWith(this.directory);
 	}
 
-	abstract getEventsInFile(file: TFile): Promise<[OFCEvent, EventLocation][]>;
+	abstract getEventsInFile(file: TFile): Promise<EventResponse[]>;
 
-	abstract addEvent(event: OFCEvent): Promise<EventLocation>;
+	abstract createEvent(event: OFCEvent): Promise<EventLocation>;
 
 	abstract updateEvent(
-		location: EventLocation,
+		location: EventPathLocation,
 		newEvent: OFCEvent
 	): Promise<EventLocation>;
 }

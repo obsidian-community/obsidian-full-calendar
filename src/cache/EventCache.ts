@@ -166,7 +166,7 @@ export default class EventCache {
 				`Event cannot be added to non-editable calendar of type ${calendar.type}`
 			);
 		}
-		const location = await calendar.addEvent(event);
+		const location = await calendar.createEvent(event);
 		this.store.add({
 			calendar,
 			location,
@@ -199,20 +199,15 @@ export default class EventCache {
 		}
 		const { path, lineNumber } = oldLocation;
 
-		const file = this.app.getFileByPath(path);
-		if (!file) {
-			throw new Error(`File does not exist at path ${path}.`);
-		}
-
 		const newLocation = await calendar.updateEvent(
-			{ file, lineNumber },
+			{ path, lineNumber },
 			newEvent
 		);
 
 		this.store.delete(eventId);
 		this.store.add({
 			calendar,
-			location: newLocation || oldLocation,
+			location: newLocation,
 			id: newEvent.id || this.generateId(), // TODO: Can this re-use the existing eventId?
 			event: newEvent,
 		});
@@ -222,11 +217,6 @@ export default class EventCache {
 	}
 
 	async fileUpdated(file: TFile): Promise<void> {
-		const fileCache = this.app.getMetadata(file);
-		if (!fileCache) {
-			return;
-		}
-
 		const calendars = [...this.calendars.values()].flatMap((c) =>
 			c instanceof EditableCalendar && c.containsPath(file.path) ? c : []
 		);
@@ -245,6 +235,7 @@ export default class EventCache {
 
 			const newEvents = await calendar.getEventsInFile(file);
 
+			// Do we need to compare locations too?
 			const eventsHaveChanged = eventsAreDifferent(
 				oldEvents.map((r) => r.event),
 				newEvents.map(([e, _]) => e)

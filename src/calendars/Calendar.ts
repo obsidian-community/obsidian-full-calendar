@@ -3,6 +3,8 @@ import { EventLocation, OFCEvent } from "src/types";
 
 export const ID_SEPARATOR = "::";
 
+type EventResponse = [OFCEvent, EventLocation | null];
+
 /**
  * Abstract class representing the interface for a Calendar.
  */
@@ -19,5 +21,5 @@ export abstract class Calendar {
 	/**
 	 * Return events along with their associated source files, if they exist.
 	 */
-	abstract getEvents(): Promise<[OFCEvent, EventLocation][]>;
+	abstract getEvents(): Promise<EventResponse[]>;
 }

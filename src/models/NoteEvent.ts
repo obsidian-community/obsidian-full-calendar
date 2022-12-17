@@ -1,5 +1,8 @@
 import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
-import { modifyFrontmatter } from "src/serialization/frontmatter";
+import {
+	modifyFrontmatter,
+	newFrontmatter,
+} from "src/serialization/frontmatter";
 import { OFCEvent, FCError, validateEvent } from "src/types";
 import { basenameFromEvent, LocalEvent } from "./Event";
 
@@ -35,8 +38,7 @@ export class NoteEvent extends LocalEvent {
 		if (vault.getAbstractFileByPath(filename)) {
 			throw new FCError(`File with name '${filename}' already exists`);
 		}
-		const file = await vault.create(filename, "");
-		await modifyFrontmatter(vault, file, data);
+		const file = await vault.create(filename, newFrontmatter(data));
 
 		return new NoteEvent(cache, vault, data, {
 			directory: file.parent.path,

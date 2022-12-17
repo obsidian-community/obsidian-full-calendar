@@ -83,12 +83,15 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
 	}
 }
 
-type StoreLoc = { path: string; lineNumber: number | undefined };
+export type EventPathLocation = {
+	path: string;
+	lineNumber: number | undefined;
+};
 
 type EventResult = {
 	id: string;
 	event: OFCEvent;
-	location: StoreLoc | null;
+	location: EventPathLocation | null;
 };
 
 type AddEventProps = {
@@ -99,7 +102,7 @@ type AddEventProps = {
 };
 
 type EventDetails = Omit<AddEventProps, "location" | "calendar"> & {
-	location: StoreLoc | null;
+	location: EventPathLocation | null;
 	calendarId: string;
 };
 
