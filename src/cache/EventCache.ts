@@ -4,12 +4,10 @@ import equal from "deep-equal";
 
 import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
-import EventStore from "./EventStore";
-import { toEventInput } from "./interop";
-import { getColors } from "../models/util";
+import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent } from "../types";
 
-type CalendarInitializerMap = Record<
+export type CalendarInitializerMap = Record<
 	CalendarInfo["type"],
 	(info: CalendarInfo) => Calendar | null
 >;
@@ -38,6 +36,15 @@ export const eventsAreDifferent = (
 		.filter(({ oldEvent, newEvent }) => !equal(oldEvent, newEvent));
 
 	return unmatchedEvents.length > 0;
+};
+
+export type CachedEvent = Pick<StoredEvent, "event" | "id">;
+
+// TODO: Going to need to handle event callbacks somehow.
+export type OFCEventSource = {
+	events: CachedEvent[];
+	editable: boolean;
+	color: string;
 };
 
 /**
@@ -70,6 +77,8 @@ export default class EventCache {
 
 	private updateViewCallbacks: UpdateViewCallback[] = [];
 
+	initialized = false;
+
 	constructor(
 		calendarInfos: CalendarInfo[],
 		calendarInitializers: CalendarInitializerMap
@@ -85,10 +94,15 @@ export default class EventCache {
 	/**
 	 * Flush the cache and initialize calendars from the initializer map.
 	 */
-	reset(): void {
+	reset(infos: CalendarInfo[]): void {
 		this.store.clear();
 		this.calendars.clear();
+		this.init();
+		this.initialized = false;
+		this.calendarInfos = infos;
+	}
 
+	init() {
 		this.calendarInfos
 			.flatMap((s) => this.calendarInitializers[s.type](s) || [])
 			.forEach((cal) => this.calendars.set(cal.id, cal));
@@ -98,6 +112,9 @@ export default class EventCache {
 	 * Populate the cache with events.
 	 */
 	async populate(): Promise<void> {
+		if (!this.initialized || this.calendars.size === 0) {
+			this.init();
+		}
 		for (const calendar of this.calendars.values()) {
 			const results = await calendar.getEvents();
 			results.forEach(([event, location]) =>
@@ -109,26 +126,26 @@ export default class EventCache {
 				})
 			);
 		}
+		this.initialized = true;
 	}
 
 	/**
 	 * Get all events from the cache in a FullCalendar-frienly format.
 	 * @returns EventSourceInputs for FullCalendar.
 	 */
-	getAllEvents(): EventSourceInput[] {
-		const result: EventSourceInput[] = [];
+	getAllEvents(): OFCEventSource[] {
+		const result: OFCEventSource[] = [];
 		for (const [calId, events] of this.store.eventsByCalendar.entries()) {
 			const calendar = this.calendars.get(calId);
 			if (!calendar) {
 				continue;
 			}
-			result.push({
+			const source: OFCEventSource = {
 				editable: calendar instanceof EditableCalendar,
-				events: events.flatMap(
-					({ id, event }) => toEventInput(id, event) || []
-				),
-				...getColors(calendar.color),
-			});
+				events: events.map(({ event, id }) => ({ event, id })), // make sure not to leak location data past the cache.
+				color: calendar.color,
+			};
+			result.push(source);
 		}
 		return result;
 	}
@@ -265,8 +282,8 @@ export default class EventCache {
 			}));
 
 			// If events have changed in the calendar, then remove all the old events from the store and add in new ones.
-			const oldIds = oldEvents.map((r) => r.id);
-			oldIds.forEach((id) => {
+			const oldIds = oldEvents.map((r: StoredEvent) => r.id);
+			oldIds.forEach((id: string) => {
 				this.store.delete(id);
 			});
 			newEventsWithIds.forEach(({ event, id, location }) => {

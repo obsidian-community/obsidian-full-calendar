@@ -88,7 +88,7 @@ export type EventPathLocation = {
 	lineNumber: number | undefined;
 };
 
-type EventResult = {
+export type StoredEvent = {
 	id: string;
 	event: OFCEvent;
 	location: EventPathLocation | null;
@@ -139,8 +139,8 @@ export default class EventStore {
 		return this.store.size;
 	}
 
-	fetch(ids: string[] | Set<string>): EventResult[] {
-		const result: EventResult[] = [];
+	fetch(ids: string[] | Set<string>): StoredEvent[] {
+		const result: StoredEvent[] = [];
 		ids.forEach((id) => {
 			const event = this.store.get(id);
 			if (!event) {
@@ -192,15 +192,15 @@ export default class EventStore {
 		return this.store.get(id) || null;
 	}
 
-	getEventsInFile(file: TFile): EventResult[] {
+	getEventsInFile(file: TFile): StoredEvent[] {
 		return this.fetch(this.pathIndex.getBy(new Path(file)));
 	}
 
-	getEventsInCalendar(calendar: Calendar): EventResult[] {
+	getEventsInCalendar(calendar: Calendar): StoredEvent[] {
 		return this.fetch(this.calendarIndex.getBy(calendar));
 	}
 
-	getEventsInFileAndCalendar(file: TFile, calendar: Calendar): EventResult[] {
+	getEventsInFileAndCalendar(file: TFile, calendar: Calendar): StoredEvent[] {
 		const inFile = this.pathIndex.getBy(new Path(file));
 		const inCalendar = this.calendarIndex.getBy(calendar);
 		return this.fetch([...inFile].filter((id) => inCalendar.has(id)));
@@ -214,7 +214,7 @@ export default class EventStore {
 		return this.pathIndex.getRelated(new EventID(id));
 	}
 
-	get eventsByCalendar(): Map<string, EventResult[]> {
+	get eventsByCalendar(): Map<string, StoredEvent[]> {
 		const result = new Map();
 		for (const [k, vs] of this.calendarIndex.groupByRelated) {
 			result.set(k, this.fetch(vs));

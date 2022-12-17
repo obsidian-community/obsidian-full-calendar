@@ -155,13 +155,20 @@ export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
 	url: "https://caldav.icloud.com";
 };
 
+export type TestSource = {
+	type: "FOR_TEST_ONLY";
+	id: string;
+	events: OFCEvent[];
+} & CalendarSourceCommon;
+
 export type CalendarInfo =
 	| LocalCalendarSource
 	| DailyNoteCalendarSource
 	| GoogleCalendarSource
 	| ICalSource
 	| CalDAVSource
-	| ICloudSource;
+	| ICloudSource
+	| TestSource;
 
 /**
  * Construct a partial calendar source of the specified type

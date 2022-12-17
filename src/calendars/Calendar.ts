@@ -3,7 +3,7 @@ import { EventLocation, OFCEvent } from "src/types";
 
 export const ID_SEPARATOR = "::";
 
-type EventResponse = [OFCEvent, EventLocation | null];
+export type EventResponse = [OFCEvent, EventLocation | null];
 
 /**
  * Abstract class representing the interface for a Calendar.
