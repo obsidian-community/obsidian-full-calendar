@@ -45,14 +45,15 @@ const pathLoc = ({ file, lineNumber }: EventLocation) => ({
 	lineNumber,
 });
 
-describe("EventStore tests", () => {
-	let store = new EventStore();
-	beforeEach(() => {
-		store.clear();
-	});
+describe.each([true, false])(
+	"EventStore tests with lineNumbers=%p",
+	(withLineNumbers) => {
+		let store = new EventStore();
+		beforeEach(() => {
+			store.clear();
+		});
 
-	for (const withLineNumbers of [true, false]) {
-		it(`stores one event [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores one event`, () => {
 			const calendar = mockCalendar();
 			const event = mockEvent();
 			const id = mockId();
@@ -69,7 +70,7 @@ describe("EventStore tests", () => {
 			assert.equal(store.eventCount, 1);
 		});
 
-		it(`throws when trying to overwrite an ID entry [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`throws when trying to overwrite an ID entry`, () => {
 			const calendar = mockCalendar();
 			const location = mockLocation(withLineNumbers);
 			const id = mockId();
@@ -92,7 +93,7 @@ describe("EventStore tests", () => {
 			);
 		});
 
-		it(`throws when trying to overwrite an ID entry [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`throws when trying to overwrite an ID entry`, () => {
 			const calendar = mockCalendar();
 			const location = mockLocation(withLineNumbers);
 			const id = mockId();
@@ -109,7 +110,7 @@ describe("EventStore tests", () => {
 			assert.deepStrictEqual(store.getEventById(id), event2);
 		});
 
-		it(`stores one event without a file [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores one event without a file`, () => {
 			const calendar = mockCalendar();
 			const event = mockEvent();
 			const id = mockId();
@@ -122,17 +123,17 @@ describe("EventStore tests", () => {
 			assert.equal(0, store.fileCount);
 		});
 
-		it(`gets events in new calendar [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`gets events in new calendar`, () => {
 			const calendar = mockCalendar();
 			assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
 		});
 
-		it(`gets events in new file [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`gets events in new file`, () => {
 			const calendar = mockFile();
 			assert.deepStrictEqual(store.getEventsInFile(calendar), []);
 		});
 
-		it(`stores two events in the same file [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores two events in the same file`, () => {
 			const calendar = mockCalendar();
 			const location = mockLocation(withLineNumbers);
 			const location2 = { file: location.file, lineNumber: 102 };
@@ -165,7 +166,7 @@ describe("EventStore tests", () => {
 			]);
 		});
 
-		it(`stores two events, only one with a file [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores two events, only one with a file`, () => {
 			const calendar = mockCalendar();
 			const location = mockLocation(withLineNumbers);
 
@@ -191,7 +192,7 @@ describe("EventStore tests", () => {
 			]);
 		});
 
-		it(`stores two events in different calendars and files [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores two events in different calendars and files`, () => {
 			const calendar1 = mockCalendar();
 			const calendar2 = mockCalendar();
 			// const file1 = mockFile();
@@ -237,7 +238,7 @@ describe("EventStore tests", () => {
 			]);
 		});
 
-		it(`stores and deletes one event [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores and deletes one event`, () => {
 			const calendar = mockCalendar();
 			const event = mockEvent();
 			const id = mockId();
@@ -261,7 +262,7 @@ describe("EventStore tests", () => {
 			assert.equal(store.eventCount, 0);
 		});
 
-		it(`stores many events in different calendars and files [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores many events in different calendars and files`, () => {
 			const calendar1 = mockCalendar();
 			const calendar2 = mockCalendar();
 			const location1 = mockLocation(withLineNumbers);
@@ -338,7 +339,7 @@ describe("EventStore tests", () => {
 			);
 		});
 
-		it(`stores then deletes many events [withLineNumbers=${withLineNumbers}]`, () => {
+		it(`stores then deletes many events`, () => {
 			const calendar1 = mockCalendar();
 			const calendar2 = mockCalendar();
 
@@ -467,4 +468,4 @@ describe("EventStore tests", () => {
 			assert.equal(store.calendarCount, 0);
 		});
 	}
-});
+);

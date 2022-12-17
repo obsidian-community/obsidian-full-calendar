@@ -1,4 +1,3 @@
-import { EventSourceInput } from "@fullcalendar/core";
 import { TFile } from "obsidian";
 import equal from "deep-equal";
 
@@ -89,6 +88,10 @@ export default class EventCache {
 
 	getEventById(s: string): OFCEvent | null {
 		return this.store.getEventById(s);
+	}
+
+	getCalendarById(c: string): Calendar | undefined {
+		return this.calendars.get(c);
 	}
 
 	/**

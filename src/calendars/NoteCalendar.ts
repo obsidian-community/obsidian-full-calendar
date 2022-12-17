@@ -11,7 +11,7 @@ import {
 	LocalCalendarSource,
 	validateEvent,
 } from "src/types";
-import { EditableCalendar, EventResponse } from "./EditableCalendar";
+import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
 const basenameFromEvent = (event: OFCEvent): string => {
 	switch (event.type) {
@@ -26,6 +26,7 @@ const basenameFromEvent = (event: OFCEvent): string => {
 const filenameForEvent = (event: OFCEvent) => `${basenameFromEvent(event)}.md`;
 
 export default class NoteCalendar extends EditableCalendar {
+	app: ObsidianInterface;
 	private _directory: string;
 	private isRecursive: boolean;
 	private systemTrash: boolean;
@@ -36,7 +37,8 @@ export default class NoteCalendar extends EditableCalendar {
 		isRecursive: boolean,
 		systemTrash: boolean
 	) {
-		super(info.color, app);
+		super(info.color);
+		this.app = app;
 		this._directory = info.directory;
 		this.isRecursive = isRecursive;
 		this.systemTrash = systemTrash;
@@ -52,7 +54,7 @@ export default class NoteCalendar extends EditableCalendar {
 		return this.directory;
 	}
 
-	async getEventsInFile(file: TFile): Promise<EventResponse[]> {
+	async getEventsInFile(file: TFile): Promise<EditableEventResponse[]> {
 		let event = validateEvent(this.app.getMetadata(file)?.frontmatter);
 		if (!event) {
 			return [];
@@ -65,7 +67,7 @@ export default class NoteCalendar extends EditableCalendar {
 
 	private async getEventsInFolderRecursive(
 		folder: TFolder
-	): Promise<EventResponse[]> {
+	): Promise<EditableEventResponse[]> {
 		const events = await Promise.all(
 			folder.children.map(async (file) => {
 				if (file instanceof TFile) {
@@ -80,7 +82,7 @@ export default class NoteCalendar extends EditableCalendar {
 		return events.flat();
 	}
 
-	async getEvents(): Promise<EventResponse[]> {
+	async getEvents(): Promise<EditableEventResponse[]> {
 		const eventFolder = this.app.getAbstractFileByPath(this.directory);
 		if (!eventFolder) {
 			throw new Error(`Cannot get folder ${this.directory}`);
@@ -88,7 +90,7 @@ export default class NoteCalendar extends EditableCalendar {
 		if (!(eventFolder instanceof TFolder)) {
 			throw new Error(`${eventFolder} is not a directory.`);
 		}
-		const events: EventResponse[] = [];
+		const events: EditableEventResponse[] = [];
 		for (const file of eventFolder.children) {
 			if (file instanceof TFile) {
 				const results = await this.getEventsInFile(file);

@@ -1,10 +1,15 @@
 import { assert } from "chai";
 import { Calendar, EventResponse } from "../calendars/Calendar";
+import {
+	EditableCalendar,
+	EditableEventResponse,
+} from "../calendars/EditableCalendar";
 import { CalendarInfo, OFCEvent } from "src/types";
 import EventCache, {
 	CalendarInitializerMap,
 	OFCEventSource,
 } from "./EventCache";
+import { TFile } from "obsidian";
 
 const withCounter = <T>(f: (x: string) => T, label?: string) => {
 	const counter = () => {
@@ -20,7 +25,7 @@ const mockEvent = withCounter(
 	"event"
 );
 
-class TestCalendar extends Calendar {
+class TestReadonlyCalendar extends Calendar {
 	private _id: string;
 	events: OFCEvent[] = [];
 	constructor(color: string, id: string, events: OFCEvent[]) {
@@ -79,7 +84,11 @@ describe("event cache with readonly calendar", () => {
 				if (info.type !== "FOR_TEST_ONLY") {
 					return null;
 				}
-				return new TestCalendar(info.color, info.id, info.events);
+				return new TestReadonlyCalendar(
+					info.color,
+					info.id,
+					info.events || []
+				);
 			})
 		);
 	it("populates a single event", async () => {
@@ -183,5 +192,80 @@ describe("event cache with readonly calendar", () => {
 			async () => await f(cache, eventId),
 			/non-editable calendar/
 		);
+	});
+});
+
+class TestEditable extends EditableCalendar {
+	private _directory: string;
+	events: EditableEventResponse[];
+	constructor(
+		color: string,
+		directory: string,
+		events: EditableEventResponse[]
+	) {
+		super(color);
+		this._directory = directory;
+		this.events = events;
+	}
+	get directory(): string {
+		return this._directory;
+	}
+
+	getEvents = jest
+		.fn()
+		.mockReturnValue(new Promise((resolve) => resolve(this.events)));
+	getEventsInFile = jest.fn();
+
+	createEvent = jest.fn();
+
+	deleteEvent = jest.fn();
+	moveEvent = jest.fn();
+	updateEvent = jest.fn();
+
+	get type(): string {
+		return "TEST_EDITABLE_EVENT";
+	}
+	get id(): string {
+		return `TEST::${this.directory}`;
+	}
+}
+
+const mockFile = withCounter((path) => ({ path } as TFile), "file");
+const mockLocation = (withLine = false) => ({
+	file: mockFile(),
+	lineNumber: withLine ? Math.floor(Math.random() * 100) : undefined,
+});
+
+const mockEventResponse = (): EditableEventResponse => [
+	mockEvent(),
+	mockLocation(),
+];
+
+describe("editable calendars", () => {
+	const makeCache = (events: EditableEventResponse[]) =>
+		new EventCache(
+			[{ type: "FOR_TEST_ONLY", id: "test", events: [], color: "black" }],
+			initializerMap((info) => {
+				if (info.type !== "FOR_TEST_ONLY") {
+					return null;
+				}
+				return new TestEditable(info.color, info.id, events);
+			})
+		);
+
+	it("populates a single event", async () => {
+		const e1 = mockEventResponse();
+		const cache = makeCache([e1]);
+
+		assert.isFalse(cache.initialized);
+		// cache.init();
+		// await cache.populate();
+		// assert.isTrue(cache.initialized);
+
+		// const sources = cache.getAllEvents();
+		// assert.equal(sources.length, 1);
+		// assert.deepStrictEqual(extractEvents(sources[0]), [e1[0]]);
+		// assert.deepStrictEqual(sources[0].color, "#000000");
+		// assert.isFalse(sources[0].editable);
 	});
 });

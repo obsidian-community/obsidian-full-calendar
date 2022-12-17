@@ -158,7 +158,7 @@ export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
 export type TestSource = {
 	type: "FOR_TEST_ONLY";
 	id: string;
-	events: OFCEvent[];
+	events?: OFCEvent[];
 } & CalendarSourceCommon;
 
 export type CalendarInfo =
