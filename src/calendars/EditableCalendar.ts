@@ -1,5 +1,5 @@
 import { TFile } from "obsidian";
-import { EventPathLocation } from "src/cache/EventStore";
+import { EventPathLocation } from "src/core/EventStore";
 import { EventLocation, OFCEvent } from "src/types";
 import { Calendar } from "./Calendar";
 

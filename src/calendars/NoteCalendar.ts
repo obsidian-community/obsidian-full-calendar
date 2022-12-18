@@ -1,5 +1,5 @@
 import { TFile, TFolder } from "obsidian";
-import { EventPathLocation } from "src/cache/EventStore";
+import { EventPathLocation } from "src/core/EventStore";
 import { ObsidianInterface } from "src/ObsidianAdapter";
 import {
 	modifyFrontmatterString,
