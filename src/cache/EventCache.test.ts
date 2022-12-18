@@ -4,12 +4,13 @@ import {
 	EditableCalendar,
 	EditableEventResponse,
 } from "../calendars/EditableCalendar";
-import { CalendarInfo, OFCEvent } from "src/types";
+import { CalendarInfo, EventLocation, OFCEvent } from "src/types";
 import EventCache, {
 	CalendarInitializerMap,
 	OFCEventSource,
 } from "./EventCache";
 import { TFile } from "obsidian";
+import { EventPathLocation } from "./EventStore";
 
 const withCounter = <T>(f: (x: string) => T, label?: string) => {
 	const counter = () => {
@@ -392,6 +393,42 @@ describe("editable calendars", () => {
 			assert.equal(cache._storeForTest.calendarCount, 1);
 			assert.equal(cache._storeForTest.fileCount, 4);
 			assert.equal(cache._storeForTest.eventCount, 4);
+		});
+	});
+
+	describe("delete events", () => {
+		const pathResult = (loc: EventLocation): EventPathLocation => ({
+			path: loc.file.path,
+			lineNumber: loc.lineNumber,
+		});
+		it("delete one", async () => {
+			const event = mockEventResponse();
+			const cache = makeCache([event]);
+
+			assert.isFalse(cache.initialized);
+			cache.init();
+			await cache.populate();
+			assert.isTrue(cache.initialized);
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			const sources = cache.getAllEvents();
+			assert.equal(sources.length, 1);
+			const id = sources[0].events[0].id;
+
+			await cache.deleteEvent(id);
+
+			const calendar = getCalendar(cache, "test");
+			assert.equal(calendar.deleteEvent.mock.calls.length, 1);
+			assert.deepStrictEqual(calendar.deleteEvent.mock.calls[0], [
+				pathResult(event[1]),
+			]);
+
+			assert.equal(cache._storeForTest.calendarCount, 0);
+			assert.equal(cache._storeForTest.fileCount, 0);
+			assert.equal(cache._storeForTest.eventCount, 0);
 		});
 	});
 });

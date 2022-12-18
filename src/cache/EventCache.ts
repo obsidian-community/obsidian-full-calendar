@@ -223,6 +223,7 @@ export default class EventCache {
 
 	deleteEvent(eventId: string): Promise<void> {
 		const { calendar, location } = this.getDetailsForEdit(eventId);
+		this.store.delete(eventId);
 		return calendar.deleteEvent(location);
 	}
 
