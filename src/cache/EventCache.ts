@@ -304,4 +304,8 @@ export default class EventCache {
 
 		this.updateViews(idsToRemove, eventsToAdd);
 	}
+
+	get _storeForTest() {
+		return this.store;
+	}
 }
