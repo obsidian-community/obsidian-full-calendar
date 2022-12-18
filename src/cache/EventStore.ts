@@ -139,7 +139,7 @@ export default class EventStore {
 		return this.store.size;
 	}
 
-	fetch(ids: string[] | Set<string>): StoredEvent[] {
+	private fetch(ids: string[] | Set<string>): StoredEvent[] {
 		const result: StoredEvent[] = [];
 		ids.forEach((id) => {
 			const event = this.store.get(id);
