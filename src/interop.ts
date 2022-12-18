@@ -1,5 +1,5 @@
 import { EventApi, EventInput } from "@fullcalendar/core";
-import { OFCEvent } from "../types";
+import { OFCEvent } from "./types";
 
 import { DateTime, Duration } from "luxon";
 

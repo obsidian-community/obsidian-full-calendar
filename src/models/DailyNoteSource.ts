@@ -5,7 +5,7 @@ import {
 	getAllDailyNotes,
 	getDateFromPath,
 } from "obsidian-daily-notes-interface";
-import { toEventInput } from "src/core/interop";
+import { toEventInput } from "src/interop";
 import {
 	getAllInlineEventsFromFile,
 	getListsUnderHeading,
