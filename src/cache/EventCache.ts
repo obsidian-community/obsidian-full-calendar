@@ -241,7 +241,7 @@ export default class EventCache {
 		this.store.add({
 			calendar,
 			location: newLocation,
-			id: newEvent.id || this.generateId(), // TODO: Can this re-use the existing eventId?
+			id: eventId, // TODO: Can this re-use the existing eventId?
 			event: newEvent,
 		});
 

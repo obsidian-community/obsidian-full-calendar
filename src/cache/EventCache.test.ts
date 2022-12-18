@@ -97,7 +97,6 @@ describe("event cache with readonly calendar", () => {
 		const cache = makeCache([event]);
 
 		assert.isFalse(cache.initialized);
-		cache.init();
 		await cache.populate();
 		assert.isTrue(cache.initialized);
 
@@ -117,10 +116,7 @@ describe("event cache with readonly calendar", () => {
 		const event3 = mockEvent();
 		const cache = makeCache([event1, event2, event3]);
 
-		assert.isFalse(cache.initialized);
-		cache.init();
 		await cache.populate();
-		assert.isTrue(cache.initialized);
 
 		const sources = cache.getAllEvents();
 		assert.equal(sources.length, 1);
@@ -151,10 +147,7 @@ describe("event cache with readonly calendar", () => {
 				events: events2,
 			},
 		]);
-		assert.isFalse(cache.initialized);
-		cache.init();
 		await cache.populate();
-		assert.isTrue(cache.initialized);
 
 		const sources = cache.getAllEvents();
 		assert.equal(sources.length, 2);
@@ -266,10 +259,7 @@ describe("editable calendars", () => {
 		const e1 = mockEventResponse();
 		const cache = makeCache([e1]);
 
-		assert.isFalse(cache.initialized);
-		cache.init();
 		await cache.populate();
-		assert.isTrue(cache.initialized);
 
 		const calendar = getCalendar(cache, "test");
 
@@ -287,10 +277,7 @@ describe("editable calendars", () => {
 		it("empty cache", async () => {
 			const cache = makeCache([]);
 
-			assert.isFalse(cache.initialized);
-			cache.init();
 			await cache.populate();
-			assert.isTrue(cache.initialized);
 
 			const calendar = getCalendar(cache, "test");
 
@@ -312,10 +299,7 @@ describe("editable calendars", () => {
 			const event = mockEventResponse();
 			const cache = makeCache([event]);
 
-			assert.isFalse(cache.initialized);
-			cache.init();
 			await cache.populate();
-			assert.isTrue(cache.initialized);
 
 			const calendar = getCalendar(cache, "test");
 
@@ -339,10 +323,7 @@ describe("editable calendars", () => {
 			const event = mockEventResponse();
 			const cache = makeCache([event]);
 
-			assert.isFalse(cache.initialized);
-			cache.init();
 			await cache.populate();
-			assert.isTrue(cache.initialized);
 
 			const event2 = mockEvent();
 			const loc = mockLocation();
@@ -366,10 +347,7 @@ describe("editable calendars", () => {
 			const event = mockEventResponse();
 			const cache = makeCache([event]);
 
-			assert.isFalse(cache.initialized);
-			cache.init();
 			await cache.populate();
-			assert.isTrue(cache.initialized);
 
 			const calendar = getCalendar(cache, "test");
 
@@ -395,20 +373,16 @@ describe("editable calendars", () => {
 			assert.equal(cache._storeForTest.eventCount, 4);
 		});
 	});
-
+	const pathResult = (loc: EventLocation): EventPathLocation => ({
+		path: loc.file.path,
+		lineNumber: loc.lineNumber,
+	});
 	describe("delete events", () => {
-		const pathResult = (loc: EventLocation): EventPathLocation => ({
-			path: loc.file.path,
-			lineNumber: loc.lineNumber,
-		});
 		it("delete one", async () => {
 			const event = mockEventResponse();
 			const cache = makeCache([event]);
 
-			assert.isFalse(cache.initialized);
-			cache.init();
 			await cache.populate();
-			assert.isTrue(cache.initialized);
 
 			assert.equal(cache._storeForTest.calendarCount, 1);
 			assert.equal(cache._storeForTest.fileCount, 1);
@@ -431,12 +405,168 @@ describe("editable calendars", () => {
 			assert.equal(cache._storeForTest.eventCount, 0);
 		});
 
-		it.todo("delete non-existing event");
+		it("delete non-existing event", async () => {
+			const event = mockEventResponse();
+			const cache = makeCache([event]);
+
+			await cache.populate();
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			assertFailed(
+				() => cache.deleteEvent("unknown ID"),
+				/not present in event store/
+			);
+
+			const calendar = getCalendar(cache, "test");
+			assert.equal(calendar.deleteEvent.mock.calls.length, 0);
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+		});
 	});
 
 	describe("modify event", () => {
-		it.todo("modify existing event");
-		it.todo("modify non-existing event");
+		it("modify existing event and move to another file", async () => {
+			const event = mockEventResponse();
+			const cache = makeCache([event]);
+
+			await cache.populate();
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			const sources = cache.getAllEvents();
+			assert.equal(sources.length, 1);
+			const id = sources[0].events[0].id;
+
+			const newEvent = mockEvent();
+			const newLoc = mockLocation();
+
+			const calendar = getCalendar(cache, "test");
+			calendar.updateEvent.mockReturnValueOnce(
+				new Promise((resolve) => resolve(newLoc))
+			);
+
+			assert.equal(
+				cache._storeForTest.getEventsInFile(event[1].file).length,
+				1
+			);
+
+			await cache.modifyEvent(id, newEvent);
+
+			assert.equal(calendar.updateEvent.mock.calls.length, 1);
+			assert.deepStrictEqual(calendar.updateEvent.mock.calls[0], [
+				pathResult(event[1]),
+				newEvent,
+			]);
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			assert.deepStrictEqual(
+				cache._storeForTest.getEventById(id),
+				newEvent
+			);
+
+			assert.equal(
+				cache._storeForTest.getEventsInFile(event[1].file).length,
+				0
+			);
+			assert.equal(
+				cache._storeForTest.getEventsInFile(newLoc.file).length,
+				1
+			);
+		});
+		it("modify existing event and stay in the same file", async () => {
+			const event = mockEventResponse();
+			const cache = makeCache([event]);
+
+			await cache.populate();
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			const sources = cache.getAllEvents();
+			assert.equal(sources.length, 1);
+			const id = sources[0].events[0].id;
+
+			const newEvent = mockEvent();
+			const newLoc = mockLocation();
+
+			const calendar = getCalendar(cache, "test");
+			calendar.updateEvent.mockReturnValueOnce(
+				new Promise((resolve) =>
+					resolve({
+						file: event[1].file,
+						lineNumber: newLoc.lineNumber,
+					})
+				)
+			);
+
+			assert.equal(
+				cache._storeForTest.getEventsInFile(event[1].file).length,
+				1
+			);
+
+			await cache.modifyEvent(id, newEvent);
+
+			assert.equal(calendar.updateEvent.mock.calls.length, 1);
+			assert.deepStrictEqual(calendar.updateEvent.mock.calls[0], [
+				pathResult(event[1]),
+				newEvent,
+			]);
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			assert.deepStrictEqual(
+				cache._storeForTest.getEventById(id),
+				newEvent
+			);
+
+			assert.equal(
+				cache._storeForTest.getEventsInFile(event[1].file).length,
+				1
+			);
+		});
+		it("modify non-existing event", async () => {
+			const event = mockEventResponse();
+			const cache = makeCache([event]);
+
+			await cache.populate();
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+
+			assertFailed(
+				() => cache.modifyEvent("unknown ID", mockEvent()),
+				/not present in event store/
+			);
+
+			const sources = cache.getAllEvents();
+			assert.equal(sources.length, 1);
+			const id = sources[0].events[0].id;
+
+			const calendar = getCalendar(cache, "test");
+			assert.equal(calendar.updateEvent.mock.calls.length, 0);
+			assert.deepStrictEqual(
+				cache._storeForTest.getEventById(id),
+				event[0]
+			);
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+		});
 	});
 
 	describe("filesystem update callback", () => {
