@@ -243,7 +243,7 @@ const mockEventResponse = (): EditableEventResponse => [
 	mockLocation(),
 ];
 
-const assertCounts = (
+const assertCacheContentCounts = (
 	cache: EventCache,
 	{
 		calendars,
@@ -310,7 +310,11 @@ describe("editable calendars", () => {
 			assert.equal(calendar.createEvent.mock.calls.length, 1);
 			assert.deepStrictEqual(calendar.createEvent.mock.calls[0], [event]);
 
-			assertCounts(cache, { calendars: 1, files: 1, events: 1 });
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 		});
 
 		it("in the same file", async () => {
@@ -332,9 +336,11 @@ describe("editable calendars", () => {
 				event2,
 			]);
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 2);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 2,
+			});
 		});
 
 		it("in a different file", async () => {
@@ -356,9 +362,11 @@ describe("editable calendars", () => {
 				event2,
 			]);
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 2);
-			assert.equal(cache._storeForTest.eventCount, 2);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 2,
+				events: 2,
+			});
 		});
 
 		it("adding many events", async () => {
@@ -386,9 +394,11 @@ describe("editable calendars", () => {
 
 			assert.equal(calendar.createEvent.mock.calls.length, 3);
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 4);
-			assert.equal(cache._storeForTest.eventCount, 4);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 4,
+				events: 4,
+			});
 		});
 	});
 	const pathResult = (loc: EventLocation): EventPathLocation => ({
@@ -402,9 +412,11 @@ describe("editable calendars", () => {
 
 			await cache.populate();
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 
 			const sources = cache.getAllEvents();
 			assert.equal(sources.length, 1);
@@ -418,9 +430,11 @@ describe("editable calendars", () => {
 				pathResult(event[1]),
 			]);
 
-			assert.equal(cache._storeForTest.calendarCount, 0);
-			assert.equal(cache._storeForTest.fileCount, 0);
-			assert.equal(cache._storeForTest.eventCount, 0);
+			assertCacheContentCounts(cache, {
+				calendars: 0,
+				files: 0,
+				events: 0,
+			});
 		});
 
 		it("delete non-existing event", async () => {
@@ -428,6 +442,11 @@ describe("editable calendars", () => {
 			const cache = makeCache([event]);
 
 			await cache.populate();
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 
 			assert.equal(cache._storeForTest.calendarCount, 1);
 			assert.equal(cache._storeForTest.fileCount, 1);
@@ -441,9 +460,11 @@ describe("editable calendars", () => {
 			const calendar = getCalendar(cache, "test");
 			assert.equal(calendar.deleteEvent.mock.calls.length, 0);
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 		});
 	});
 
@@ -454,6 +475,7 @@ describe("editable calendars", () => {
 
 		it.each([
 			[
+				"calendar moves event to a new file",
 				newLoc,
 				[
 					{ file: oldEvent[1].file, numEvents: 0 },
@@ -461,63 +483,64 @@ describe("editable calendars", () => {
 				],
 			],
 			[
+				"calendar keeps event in the same file, but moves it around",
 				{ file: oldEvent[1].file, lineNumber: newLoc.lineNumber },
 				[
 					{ file: oldEvent[1].file, numEvents: 1 },
 					{ file: newLoc.file, numEvents: 0 },
 				],
 			],
-		])(
-			"modify existing event and move to another file",
-			async (newLocation, fileDetails) => {
-				const cache = makeCache([oldEvent]);
+		])("%p", async (_, newLocation, fileDetails) => {
+			const cache = makeCache([oldEvent]);
 
-				await cache.populate();
+			await cache.populate();
 
-				assert.equal(cache._storeForTest.calendarCount, 1);
-				assert.equal(cache._storeForTest.fileCount, 1);
-				assert.equal(cache._storeForTest.eventCount, 1);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 
-				const sources = cache.getAllEvents();
-				assert.equal(sources.length, 1);
-				const id = sources[0].events[0].id;
+			const sources = cache.getAllEvents();
+			assert.equal(sources.length, 1);
+			const id = sources[0].events[0].id;
 
-				const calendar = getCalendar(cache, "test");
-				calendar.updateEvent.mockReturnValueOnce(
-					new Promise((resolve) => resolve(newLocation))
-				);
+			const calendar = getCalendar(cache, "test");
+			calendar.updateEvent.mockReturnValueOnce(
+				new Promise((resolve) => resolve(newLocation))
+			);
 
+			assert.equal(
+				cache._storeForTest.getEventsInFile(oldEvent[1].file).length,
+				1
+			);
+
+			await cache.modifyEvent(id, newEvent);
+
+			assert.equal(calendar.updateEvent.mock.calls.length, 1);
+			assert.deepStrictEqual(calendar.updateEvent.mock.calls[0], [
+				pathResult(oldEvent[1]),
+				newEvent,
+			]);
+
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
+
+			assert.deepStrictEqual(
+				cache._storeForTest.getEventById(id),
+				newEvent
+			);
+
+			for (const { file, numEvents } of fileDetails) {
 				assert.equal(
-					cache._storeForTest.getEventsInFile(oldEvent[1].file)
-						.length,
-					1
+					cache._storeForTest.getEventsInFile(file).length,
+					numEvents
 				);
-
-				await cache.modifyEvent(id, newEvent);
-
-				assert.equal(calendar.updateEvent.mock.calls.length, 1);
-				assert.deepStrictEqual(calendar.updateEvent.mock.calls[0], [
-					pathResult(oldEvent[1]),
-					newEvent,
-				]);
-
-				assert.equal(cache._storeForTest.calendarCount, 1);
-				assert.equal(cache._storeForTest.fileCount, 1);
-				assert.equal(cache._storeForTest.eventCount, 1);
-
-				assert.deepStrictEqual(
-					cache._storeForTest.getEventById(id),
-					newEvent
-				);
-
-				for (const { file, numEvents } of fileDetails) {
-					assert.equal(
-						cache._storeForTest.getEventsInFile(file).length,
-						numEvents
-					);
-				}
 			}
-		);
+		});
 
 		it("modify non-existing event", async () => {
 			const event = mockEventResponse();
@@ -525,9 +548,11 @@ describe("editable calendars", () => {
 
 			await cache.populate();
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 
 			assertFailed(
 				() => cache.modifyEvent("unknown ID", mockEvent()),
@@ -545,66 +570,105 @@ describe("editable calendars", () => {
 				event[0]
 			);
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
+			assertCacheContentCounts(cache, {
+				calendars: 1,
+				files: 1,
+				events: 1,
+			});
 		});
 	});
 
 	describe("filesystem update callback", () => {
 		const callbackMock = jest.fn();
-		const event = mockEventResponse();
+		const oldEvent = mockEventResponse();
+		const newEvent = mockEventResponse();
 		let cache: EventCache;
 		beforeEach(() => {
-			cache = makeCache([event]);
+			cache = makeCache([oldEvent]);
 			cache.populate();
 			callbackMock.mockClear();
 			cache.on("update", callbackMock);
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
 		});
 
-		it("updates when there's a new file", async () => {
-			const event2 = mockEventResponse();
-			const calendar = getCalendar(cache, "test");
+		it.each([
+			{
+				test: "New event in a new file",
+				eventsInFile: [newEvent],
+				file: newEvent[1].file,
+				counts: { files: 2, events: 2 },
+				callback: { toRemoveLength: 0, eventsToAdd: [newEvent[0]] },
+			},
+			{
+				test: "Changing events in an existing location",
+				eventsInFile: [[newEvent[0], oldEvent[1]]],
+				file: oldEvent[1].file,
+				counts: { files: 1, events: 1 },
+				callback: { toRemoveLength: 1, eventsToAdd: [newEvent[0]] },
+			},
+			{
+				test: "No callback fired if event does not change.",
+				eventsInFile: [oldEvent],
+				file: oldEvent[1].file,
+				counts: { files: 1, events: 1 },
+				callback: null,
+			},
+		])(
+			"$test",
+			async ({
+				eventsInFile,
+				file,
+				counts: { files, events },
+				callback,
+			}) => {
+				const calendar = getCalendar(cache, "test");
 
-			calendar.getEventsInFile.mockReturnValue(
-				new Promise((resolve) => resolve([event2]))
-			);
+				assertCacheContentCounts(cache, {
+					calendars: 1,
+					files: 1,
+					events: 1,
+				});
 
-			await cache.fileUpdated(event2[1].file);
+				calendar.getEventsInFile.mockReturnValue(
+					new Promise((resolve) => resolve(eventsInFile))
+				);
 
-			assert.equal(cache._storeForTest.eventCount, 2);
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 2);
+				await cache.fileUpdated(file);
 
-			assert.equal(callbackMock.mock.calls.length, 1);
+				assertCacheContentCounts(cache, {
+					calendars: 1,
+					files,
+					events,
+				});
 
-			const callbackInvocation: {
-				toRemove: string[];
-				toAdd: CacheEntry[];
-			} = callbackMock.mock.calls[0][0];
-			assert.hasAllKeys(callbackInvocation, ["toRemove", "toAdd"]);
-			assert.equal(callbackInvocation.toRemove.length, 0);
-			assert.equal(callbackInvocation.toAdd.length, 1);
-			assert.equal(callbackInvocation.toAdd[0].event, event2[0]);
-		});
-		it("updates when events change", async () => {
-			const event2 = mockEvent();
-			const calendar = getCalendar(cache, "test");
+				if (callback) {
+					assert.equal(callbackMock.mock.calls.length, 1);
+					const { toRemoveLength, eventsToAdd } = callback;
+					const callbackInvocation: {
+						toRemove: string[];
+						toAdd: CacheEntry[];
+					} = callbackMock.mock.calls[0][0];
+					assert.hasAllKeys(callbackInvocation, [
+						"toRemove",
+						"toAdd",
+					]);
 
-			calendar.getEventsInFile.mockReturnValue(
-				new Promise((resolve) => resolve([[event2, event[1]]]))
-			);
-
-			await cache.fileUpdated(event[1].file);
-
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
-		});
-		it.todo("doesn't update when events are the same");
+					assert.equal(
+						callbackInvocation.toRemove.length,
+						toRemoveLength
+					);
+					assert.equal(
+						callbackInvocation.toAdd.length,
+						eventsToAdd.length
+					);
+					assert.deepStrictEqual(
+						callbackInvocation.toAdd.map((e) => e.event),
+						eventsToAdd
+					);
+				} else {
+					assert.equal(callbackMock.mock.calls.length, 0);
+				}
+			}
+		);
 		it.todo("updates when events are the same but locations are different");
 	});
 
