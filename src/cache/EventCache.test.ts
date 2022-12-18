@@ -100,6 +100,9 @@ describe("event cache with readonly calendar", () => {
 		await cache.populate();
 		assert.isTrue(cache.initialized);
 
+		const calendar = cache.getCalendarById("test");
+		assert.exists(calendar);
+		assert.equal(calendar?.id, "test");
 		const sources = cache.getAllEvents();
 		assert.equal(sources.length, 1);
 		assert.deepStrictEqual(extractEvents(sources[0]), [event]);
@@ -211,9 +214,7 @@ class TestEditable extends EditableCalendar {
 		return this._directory;
 	}
 
-	getEvents = jest
-		.fn()
-		.mockReturnValue(new Promise((resolve) => resolve(this.events)));
+	getEvents = jest.fn(async () => this.events);
 	getEventsInFile = jest.fn();
 
 	createEvent = jest.fn();
@@ -226,7 +227,7 @@ class TestEditable extends EditableCalendar {
 		return "TEST_EDITABLE_EVENT";
 	}
 	get id(): string {
-		return `TEST::${this.directory}`;
+		return this.directory;
 	}
 }
 
@@ -258,14 +259,43 @@ describe("editable calendars", () => {
 		const cache = makeCache([e1]);
 
 		assert.isFalse(cache.initialized);
-		// cache.init();
-		// await cache.populate();
-		// assert.isTrue(cache.initialized);
+		cache.init();
+		await cache.populate();
+		assert.isTrue(cache.initialized);
 
-		// const sources = cache.getAllEvents();
-		// assert.equal(sources.length, 1);
-		// assert.deepStrictEqual(extractEvents(sources[0]), [e1[0]]);
-		// assert.deepStrictEqual(sources[0].color, "#000000");
-		// assert.isFalse(sources[0].editable);
+		const calendar = cache.getCalendarById("test");
+		assert.exists(calendar);
+		assert.instanceOf(calendar, TestEditable);
+
+		const sources = cache.getAllEvents();
+
+		assert.equal((calendar as TestEditable).getEvents.mock.calls.length, 1);
+		assert.equal(sources.length, 1);
+
+		assert.deepStrictEqual(extractEvents(sources[0]), [e1[0]]);
+		assert.deepStrictEqual(sources[0].color, "black");
+		assert.isTrue(sources[0].editable);
+	});
+
+	it("adds an event", async () => {
+		const cache = makeCache([]);
+
+		assert.isFalse(cache.initialized);
+		cache.init();
+		await cache.populate();
+		assert.isTrue(cache.initialized);
+
+		const calendar = cache.getCalendarById("test") as TestEditable;
+		assert.exists(calendar);
+		assert.instanceOf(calendar, TestEditable);
+
+		const event = mockEvent();
+		const loc = mockLocation();
+		calendar.createEvent.mockReturnValueOnce(
+			new Promise((resolve) => resolve(loc))
+		);
+		assert.isTrue(await cache.addEvent("test", event));
+		assert.equal(calendar.createEvent.mock.calls.length, 1);
+		assert.deepStrictEqual(calendar.createEvent.mock.calls[0], [event]);
 	});
 });
