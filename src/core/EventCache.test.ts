@@ -243,6 +243,19 @@ const mockEventResponse = (): EditableEventResponse => [
 	mockLocation(),
 ];
 
+const assertCounts = (
+	cache: EventCache,
+	{
+		calendars,
+		files,
+		events,
+	}: { calendars: number; files: number; events: number }
+) => {
+	assert.equal(cache._storeForTest.calendarCount, calendars);
+	assert.equal(cache._storeForTest.fileCount, files);
+	assert.equal(cache._storeForTest.eventCount, events);
+};
+
 describe("editable calendars", () => {
 	const makeCache = (events: EditableEventResponse[]) =>
 		new EventCache(
@@ -297,9 +310,7 @@ describe("editable calendars", () => {
 			assert.equal(calendar.createEvent.mock.calls.length, 1);
 			assert.deepStrictEqual(calendar.createEvent.mock.calls[0], [event]);
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
+			assertCounts(cache, { calendars: 1, files: 1, events: 1 });
 		});
 
 		it("in the same file", async () => {
@@ -549,15 +560,14 @@ describe("editable calendars", () => {
 			cache.populate();
 			callbackMock.mockClear();
 			cache.on("update", callbackMock);
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
 		});
 
 		it("updates when there's a new file", async () => {
 			const event2 = mockEventResponse();
 			const calendar = getCalendar(cache, "test");
-
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
 
 			calendar.getEventsInFile.mockReturnValue(
 				new Promise((resolve) => resolve([event2]))
@@ -580,7 +590,20 @@ describe("editable calendars", () => {
 			assert.equal(callbackInvocation.toAdd.length, 1);
 			assert.equal(callbackInvocation.toAdd[0].event, event2[0]);
 		});
-		it.todo("updates when events change");
+		it("updates when events change", async () => {
+			const event2 = mockEvent();
+			const calendar = getCalendar(cache, "test");
+
+			calendar.getEventsInFile.mockReturnValue(
+				new Promise((resolve) => resolve([[event2, event[1]]]))
+			);
+
+			await cache.fileUpdated(event[1].file);
+
+			assert.equal(cache._storeForTest.calendarCount, 1);
+			assert.equal(cache._storeForTest.fileCount, 1);
+			assert.equal(cache._storeForTest.eventCount, 1);
+		});
 		it.todo("doesn't update when events are the same");
 		it.todo("updates when events are the same but locations are different");
 	});
