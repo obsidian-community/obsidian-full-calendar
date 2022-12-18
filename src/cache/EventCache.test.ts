@@ -430,5 +430,27 @@ describe("editable calendars", () => {
 			assert.equal(cache._storeForTest.fileCount, 0);
 			assert.equal(cache._storeForTest.eventCount, 0);
 		});
+
+		it.todo("delete non-existing event");
+	});
+
+	describe("modify event", () => {
+		it.todo("modify existing event");
+		it.todo("modify non-existing event");
+	});
+
+	describe("filesystem update callback", () => {
+		const callbackMock = jest.fn();
+		const event = mockEventResponse();
+		let cache;
+		beforeEach(() => {
+			cache = makeCache([event]);
+			callbackMock.mockClear();
+			cache.on("update", callbackMock);
+		});
+		it.todo("updates when there's no existing event");
+		it.todo("updates when events change");
+		it.todo("doesn't update when events are the same");
+		it.todo("updates when events are the same but locations are different");
 	});
 });

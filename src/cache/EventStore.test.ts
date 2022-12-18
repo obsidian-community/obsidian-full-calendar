@@ -308,6 +308,9 @@ describe.each([true, false])(
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
 
+			// TODO: There appears to be a race condition or some other kind of nondeterminism here.
+			// When lineNumbers=true, id13/file12 sometime has a lineNumber of undefined rather than 0.
+			// Try to run this test a bunch and figure out what the issue is.
 			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
 				{ event: event2, id: id2, location: pathLoc(location2) },
 				{ event: event3, id: id3, location: pathLoc(location3) },
