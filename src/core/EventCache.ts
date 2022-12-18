@@ -11,7 +11,7 @@ export type CalendarInitializerMap = Record<
 	(info: CalendarInfo) => Calendar | null
 >;
 
-type CacheEntry = { event: OFCEvent; id: string };
+export type CacheEntry = { event: OFCEvent; id: string };
 
 type UpdateViewCallback = (info: {
 	toRemove: string[];
@@ -265,7 +265,8 @@ export default class EventCache {
 				file,
 				calendar
 			);
-
+			// TODO: Relying on calendars for file I/O means that we're potentially
+			// reading the file from disk multiple times. Could be more effecient.
 			const newEvents = await calendar.getEventsInFile(file);
 
 			const eventsHaveChanged = eventsAreDifferent(
