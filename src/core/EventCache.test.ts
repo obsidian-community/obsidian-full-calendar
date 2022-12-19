@@ -1,4 +1,7 @@
 import { assert } from "chai";
+
+import { TFile } from "obsidian";
+
 import { Calendar, EventResponse } from "../calendars/Calendar";
 import {
 	EditableCalendar,
@@ -10,9 +13,7 @@ import EventCache, {
 	CalendarInitializerMap,
 	OFCEventSource,
 } from "./EventCache";
-import { TFile } from "obsidian";
 import { EventPathLocation } from "./EventStore";
-import { createCipheriv } from "crypto";
 
 const withCounter = <T>(f: (x: string) => T, label?: string) => {
 	const counter = () => {
