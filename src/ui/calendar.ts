@@ -33,6 +33,7 @@ interface ExtraRenderProps {
 		mouseEvent: MouseEvent
 	) => Promise<void>;
 	toggleTask?: (event: EventApi, isComplete: boolean) => Promise<boolean>;
+	forceNarrow?: boolean;
 }
 
 export function renderCalendar(
@@ -41,6 +42,7 @@ export function renderCalendar(
 	settings?: ExtraRenderProps
 ): Calendar {
 	const isMobile = window.innerWidth < 500;
+	const isNarrow = settings?.forceNarrow || isMobile;
 	const {
 		eventClick,
 		select,
@@ -80,16 +82,21 @@ export function renderCalendar(
 		],
 		googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
 		initialView:
-			settings?.initialView?.[isMobile ? "mobile" : "desktop"] ||
-			(isMobile ? "timeGrid3Days" : "timeGridWeek"),
+			settings?.initialView?.[isNarrow ? "mobile" : "desktop"] ||
+			(isNarrow ? "timeGrid3Days" : "timeGridWeek"),
 		nowIndicator: true,
 		scrollTimeReset: false,
 
-		headerToolbar: !isMobile
+		headerToolbar: !isNarrow
 			? {
 					left: "prev,next today",
 					center: "title",
 					right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+			  }
+			: !isMobile
+			? {
+					right: "today,prev,next",
+					left: "timeGrid3Days,timeGridDay,listWeek",
 			  }
 			: false,
 		footerToolbar: isMobile
@@ -103,7 +110,7 @@ export function renderCalendar(
 			timeGridDay: {
 				type: "timeGrid",
 				duration: { days: 1 },
-				buttonText: isMobile ? "1" : "day",
+				buttonText: isNarrow ? "1" : "day",
 			},
 			timeGrid3Days: {
 				type: "timeGrid",

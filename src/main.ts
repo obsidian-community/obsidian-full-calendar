@@ -1,5 +1,9 @@
 import { MarkdownView, Plugin } from "obsidian";
-import { CalendarView, FULL_CALENDAR_VIEW_TYPE } from "./ui/view";
+import {
+	CalendarView,
+	FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
+	FULL_CALENDAR_VIEW_TYPE,
+} from "./ui/view";
 import { renderCalendar } from "./ui/calendar";
 
 import { EventModal } from "./ui/modal";
@@ -18,29 +22,39 @@ export default class FullCalendarPlugin extends Plugin {
 	processFrontmatter = toEventInput;
 
 	async activateView() {
-		this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
-
-		await this.app.workspace.getUnpinnedLeaf().setViewState({
-			type: FULL_CALENDAR_VIEW_TYPE,
-			active: true,
-		});
-
-		this.app.workspace.revealLeaf(
-			this.app.workspace.getLeavesOfType(FULL_CALENDAR_VIEW_TYPE)[0]
+		const leaves = this.app.workspace.getLeavesOfType(
+			FULL_CALENDAR_VIEW_TYPE
 		);
+		if (leaves.length === 0) {
+			const leaf = this.app.workspace.getLeaf("tab");
+			await leaf.setViewState({
+				type: FULL_CALENDAR_VIEW_TYPE,
+				active: true,
+			});
+		} else {
+			await Promise.all(
+				leaves.map((l) => (l.view as CalendarView).onOpen())
+			);
+		}
 	}
 	async onload() {
 		await this.loadSettings();
 
 		this.registerView(
 			FULL_CALENDAR_VIEW_TYPE,
-			(leaf) => new CalendarView(leaf, this)
+			(leaf) => new CalendarView(leaf, this, false)
 		);
+
+		this.registerView(
+			FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
+			(leaf) => new CalendarView(leaf, this, true)
+		);
+
 		this.addRibbonIcon(
 			"calendar-glyph",
 			"Open Full Calendar",
-			(_: MouseEvent) => {
-				this.activateView();
+			async (_: MouseEvent) => {
+				await this.activateView();
 			}
 		);
 
@@ -60,6 +74,24 @@ export default class FullCalendarPlugin extends Plugin {
 				this.activateView();
 			},
 		});
+
+		this.addCommand({
+			id: "full-calendar-open-sidebar",
+			name: "Open in sidebar",
+			callback: () => {
+				if (
+					this.app.workspace.getLeavesOfType(
+						FULL_CALENDAR_SIDEBAR_VIEW_TYPE
+					).length
+				) {
+					return;
+				}
+				this.app.workspace.getRightLeaf(false).setViewState({
+					type: FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
+				});
+			},
+		});
+
 		this.addCommand({
 			id: "full-calendar-upgrade-note",
 			name: "Upgrade note to event",
@@ -81,6 +113,7 @@ export default class FullCalendarPlugin extends Plugin {
 
 	onunload() {
 		this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
+		this.app.workspace.detachLeavesOfType(FULL_CALENDAR_SIDEBAR_VIEW_TYPE);
 	}
 
 	async loadSettings() {
