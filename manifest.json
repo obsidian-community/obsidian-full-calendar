@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-full-calendar",
 	"name": "Full Calendar",
-	"version": "0.9.2",
+	"version": "0.9.3",
 	"minAppVersion": "1.1.1",
 	"description": "Obsidian integration with Full Calendar (fullcalendar.io)",
 	"author": "Davis Haupt",
