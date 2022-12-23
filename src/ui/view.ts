@@ -22,16 +22,28 @@ import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import { getColors } from "../models/util";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
+export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
 
 export class CalendarView extends ItemView {
 	calendar: Calendar | null;
 	plugin: FullCalendarPlugin;
 	cacheCallback: (file: TFile) => void;
-	constructor(leaf: WorkspaceLeaf, plugin: FullCalendarPlugin) {
+	inSidebar: boolean;
+
+	constructor(
+		leaf: WorkspaceLeaf,
+		plugin: FullCalendarPlugin,
+		inSidebar = false
+	) {
 		super(leaf);
 		this.plugin = plugin;
 		this.calendar = null;
 		this.cacheCallback = this.onCacheUpdate.bind(this);
+		this.inSidebar = inSidebar;
+	}
+
+	getIcon(): string {
+		return "calendar-glyph";
 	}
 
 	getViewType() {
@@ -39,7 +51,7 @@ export class CalendarView extends ItemView {
 	}
 
 	getDisplayText() {
-		return "Calendar";
+		return this.inSidebar ? "Full Calendar" : "Calendar";
 	}
 
 	async onCacheUpdate(file: TFile) {
@@ -151,6 +163,7 @@ export class CalendarView extends ItemView {
 		}
 
 		this.calendar = renderCalendar(calendarEl, sources, {
+			forceNarrow: this.inSidebar,
 			eventClick: async (info) => {
 				if (
 					info.jsEvent.getModifierState("Control") ||
