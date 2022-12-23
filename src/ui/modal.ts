@@ -160,7 +160,10 @@ export class EventModal extends Modal {
 									let leaf =
 										this.app.workspace.getMostRecentLeaf();
 									if (leaf) {
-										await this.event.openIn(leaf);
+										await this.event.openIn(
+											leaf,
+											this.app.workspace
+										);
 										this.close();
 									}
 								}

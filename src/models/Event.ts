@@ -1,6 +1,12 @@
 import { Calendar, EventInput } from "@fullcalendar/core";
 import { dir } from "console";
-import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
+import {
+	MetadataCache,
+	TFile,
+	Vault,
+	Workspace,
+	WorkspaceLeaf,
+} from "obsidian";
 import { toEventInput } from "src/fullcalendar_interop";
 import { CalendarSource, OFCEvent, FCError } from "src/types";
 import { getColors } from "./util";
@@ -111,7 +117,7 @@ export abstract class LocalEvent extends EditableEvent {
 		this.filename = filename;
 	}
 
-	abstract openIn(leaf: WorkspaceLeaf): Promise<void>;
+	abstract openIn(leaf: WorkspaceLeaf, workspace: Workspace): Promise<void>;
 	abstract get path(): string;
 
 	get file(): TFile {

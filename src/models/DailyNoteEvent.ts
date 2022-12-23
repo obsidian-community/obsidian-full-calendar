@@ -4,6 +4,7 @@ import {
 	MetadataCache,
 	TFile,
 	Vault,
+	Workspace,
 	WorkspaceLeaf,
 } from "obsidian";
 import {
@@ -50,7 +51,10 @@ export class DailyNoteEvent extends LocalEvent {
 		this.heading = heading;
 	}
 
-	async openIn(leaf: WorkspaceLeaf): Promise<void> {
+	async openIn(leaf: WorkspaceLeaf, workspace: Workspace): Promise<void> {
+		if (leaf.getViewState().pinned) {
+			leaf = workspace.getLeaf("tab");
+		}
 		await leaf.openFile(this.file);
 		if (leaf.view instanceof MarkdownView) {
 			leaf.view.editor.setCursor({
