@@ -181,7 +181,7 @@ export class CalendarView extends ItemView {
 					}
 					let leaf = this.app.workspace.getMostRecentLeaf();
 					if (leaf) {
-						await leaf.openFile(event.file);
+						event.openIn(leaf, this.app.workspace);
 					}
 				} else {
 					new EventModal(
@@ -287,7 +287,7 @@ export class CalendarView extends ItemView {
 						item.setTitle("Go to note").onClick(() => {
 							let leaf = this.app.workspace.getMostRecentLeaf();
 							if (leaf) {
-								event.openIn(leaf);
+								event.openIn(leaf, this.app.workspace);
 								new Notice(`Opening "${e.title}"`);
 							}
 						})
