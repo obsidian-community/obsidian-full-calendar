@@ -22,9 +22,9 @@ export default class FullCalendarPlugin extends Plugin {
 	processFrontmatter = toEventInput;
 
 	async activateView() {
-		const leaves = this.app.workspace.getLeavesOfType(
-			FULL_CALENDAR_VIEW_TYPE
-		);
+		const leaves = this.app.workspace
+			.getLeavesOfType(FULL_CALENDAR_VIEW_TYPE)
+			.filter((l) => (l.view as CalendarView).inSidebar === false);
 		if (leaves.length === 0) {
 			const leaf = this.app.workspace.getLeaf("tab");
 			await leaf.setViewState({
