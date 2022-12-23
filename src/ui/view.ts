@@ -156,12 +156,19 @@ export class CalendarView extends ItemView {
 					info.jsEvent.getModifierState("Control") ||
 					info.jsEvent.getModifierState("Meta")
 				) {
-					let file = this.app.vault.getAbstractFileByPath(
-						info.event.id
+					console.log("open", info.event.id);
+					const event = await eventFromApi(
+						this.app.metadataCache,
+						this.app.vault,
+						this.plugin.settings,
+						info.event
 					);
-					if (file instanceof TFile) {
-						let leaf = this.app.workspace.getMostRecentLeaf();
-						await leaf.openFile(file);
+					if (!event) {
+						return;
+					}
+					let leaf = this.app.workspace.getMostRecentLeaf();
+					if (leaf) {
+						await leaf.openFile(event.file);
 					}
 				} else {
 					new EventModal(
@@ -235,7 +242,7 @@ export class CalendarView extends ItemView {
 			initialView: this.plugin.settings.initialView,
 			timeFormat24h: this.plugin.settings.timeFormat24h,
 			openContextMenuForEvent: async (e, mouseEvent) => {
-				const menu = new Menu(this.app);
+				const menu = new Menu();
 				const event = await eventFromApi(
 					this.app.metadataCache,
 					this.app.vault,
@@ -266,8 +273,10 @@ export class CalendarView extends ItemView {
 					menu.addItem((item) =>
 						item.setTitle("Go to note").onClick(() => {
 							let leaf = this.app.workspace.getMostRecentLeaf();
-							event.openIn(leaf);
-							new Notice(`Opening "${e.title}"`);
+							if (leaf) {
+								event.openIn(leaf);
+								new Notice(`Opening "${e.title}"`);
+							}
 						})
 					);
 					menu.addItem((item) =>

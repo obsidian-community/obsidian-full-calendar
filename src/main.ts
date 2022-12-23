@@ -18,16 +18,20 @@ export default class FullCalendarPlugin extends Plugin {
 	processFrontmatter = toEventInput;
 
 	async activateView() {
-		this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
-
-		await this.app.workspace.getUnpinnedLeaf().setViewState({
-			type: FULL_CALENDAR_VIEW_TYPE,
-			active: true,
-		});
-
-		this.app.workspace.revealLeaf(
-			this.app.workspace.getLeavesOfType(FULL_CALENDAR_VIEW_TYPE)[0]
+		const leaves = this.app.workspace.getLeavesOfType(
+			FULL_CALENDAR_VIEW_TYPE
 		);
+		if (leaves.length === 0) {
+			const leaf = this.app.workspace.getLeaf(false);
+			await leaf.setViewState({
+				type: FULL_CALENDAR_VIEW_TYPE,
+				active: true,
+			});
+		} else {
+			await Promise.all(
+				leaves.map((l) => (l.view as CalendarView).onOpen())
+			);
+		}
 	}
 	async onload() {
 		await this.loadSettings();
@@ -39,8 +43,8 @@ export default class FullCalendarPlugin extends Plugin {
 		this.addRibbonIcon(
 			"calendar-glyph",
 			"Open Full Calendar",
-			(_: MouseEvent) => {
-				this.activateView();
+			async (_: MouseEvent) => {
+				await this.activateView();
 			}
 		);
 

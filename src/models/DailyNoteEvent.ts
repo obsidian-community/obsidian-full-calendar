@@ -116,7 +116,7 @@ export class DailyNoteEvent extends LocalEvent {
 		}
 		const m = moment(data.date);
 		// @ts-ignore
-		let file = getDailyNote(m, getAllDailyNotes());
+		let file = getDailyNote(m, getAllDailyNotes()) as TFile;
 		if (!file) {
 			// @ts-ignore
 			file = await createDailyNote(m);
@@ -153,7 +153,7 @@ export class DailyNoteEvent extends LocalEvent {
 		if (newData.date !== oldData.date) {
 			const m = moment(newData.date);
 			// @ts-ignore
-			let note = getDailyNote(m, getAllDailyNotes());
+			let note = getDailyNote(m, getAllDailyNotes()) as TFile;
 			if (!note) {
 				// @ts-ignore
 				note = await createDailyNote(m);
