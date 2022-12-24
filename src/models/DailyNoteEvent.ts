@@ -4,6 +4,7 @@ import {
 	MetadataCache,
 	TFile,
 	Vault,
+	Workspace,
 	WorkspaceLeaf,
 } from "obsidian";
 import {
@@ -50,7 +51,10 @@ export class DailyNoteEvent extends LocalEvent {
 		this.heading = heading;
 	}
 
-	async openIn(leaf: WorkspaceLeaf): Promise<void> {
+	async openIn(leaf: WorkspaceLeaf, workspace: Workspace): Promise<void> {
+		if (leaf.getViewState().pinned) {
+			leaf = workspace.getLeaf("tab");
+		}
 		await leaf.openFile(this.file);
 		if (leaf.view instanceof MarkdownView) {
 			leaf.view.editor.setCursor({
@@ -116,7 +120,7 @@ export class DailyNoteEvent extends LocalEvent {
 		}
 		const m = moment(data.date);
 		// @ts-ignore
-		let file = getDailyNote(m, getAllDailyNotes());
+		let file = getDailyNote(m, getAllDailyNotes()) as TFile;
 		if (!file) {
 			// @ts-ignore
 			file = await createDailyNote(m);
@@ -153,7 +157,7 @@ export class DailyNoteEvent extends LocalEvent {
 		if (newData.date !== oldData.date) {
 			const m = moment(newData.date);
 			// @ts-ignore
-			let note = getDailyNote(m, getAllDailyNotes());
+			let note = getDailyNote(m, getAllDailyNotes()) as TFile;
 			if (!note) {
 				// @ts-ignore
 				note = await createDailyNote(m);

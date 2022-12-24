@@ -1,4 +1,10 @@
-import { MetadataCache, TFile, Vault, WorkspaceLeaf } from "obsidian";
+import {
+	MetadataCache,
+	TFile,
+	Vault,
+	Workspace,
+	WorkspaceLeaf,
+} from "obsidian";
 import {
 	modifyFrontmatter,
 	newFrontmatter,
@@ -99,7 +105,10 @@ export class NoteEvent extends LocalEvent {
 		return event;
 	}
 
-	async openIn(leaf: WorkspaceLeaf): Promise<void> {
+	async openIn(leaf: WorkspaceLeaf, workspace: Workspace): Promise<void> {
+		if (leaf.getViewState().pinned) {
+			leaf = workspace.getLeaf("tab");
+		}
 		await leaf.openFile(this.file);
 	}
 	async delete(): Promise<void> {

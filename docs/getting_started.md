@@ -11,3 +11,9 @@ Open Full Calendar from the command palette or the ribbon icon for the first tim
 Either click on the ribbon icon, or run the "Full Calendar: Open Calendar" command from the command palette.
 
 ![Open calendar](assets/open-calendar.gif)
+
+## Sidebar Calendar
+
+You can also open the calendar in the sidebar with the "Open in sidebar" command.
+
+![Sidebar calendar](assets/sidebar.gif)

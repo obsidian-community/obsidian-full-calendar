@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-full-calendar",
-	"version": "0.9.1",
+	"version": "0.9.5",
 	"description": "Obsidian integration with Full Calendar (fullcalendar.io)",
 	"main": "main.js",
 	"scripts": {
@@ -37,7 +37,7 @@
 		"esbuild": "0.13.12",
 		"husky": "^7.0.4",
 		"jest": "^29.3.1",
-		"obsidian": "^0.12.17",
+		"obsidian": "^0.16.3",
 		"prettier": "2.5.1",
 		"ts-jest": "^29.0.3",
 		"tslib": "2.3.1",
@@ -59,7 +59,7 @@
 		"deep-equal": "^2.1.0",
 		"ical.js": "^1.4.0",
 		"luxon": "^2.3.0",
-		"moment": "2.29.1",
+		"moment": "^2.29.4",
 		"obsidian-daily-notes-interface": "^0.9.4",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2"

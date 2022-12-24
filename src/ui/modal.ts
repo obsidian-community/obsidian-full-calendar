@@ -159,8 +159,13 @@ export class EventModal extends Modal {
 								if (this.event instanceof LocalEvent) {
 									let leaf =
 										this.app.workspace.getMostRecentLeaf();
-									await this.event.openIn(leaf);
-									this.close();
+									if (leaf) {
+										await this.event.openIn(
+											leaf,
+											this.app.workspace
+										);
+										this.close();
+									}
 								}
 						  }
 						: undefined,

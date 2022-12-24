@@ -81,7 +81,9 @@ export class DailyNoteSource extends EventSource {
 		const notes = getAllDailyNotes();
 		const events = (
 			await Promise.all(
-				Object.values(notes).map((f) => this.getAllEventsFromFile(f))
+				Object.values(notes).map((f) =>
+					this.getAllEventsFromFile(f as TFile)
+				)
 			)
 		)
 			.flat()

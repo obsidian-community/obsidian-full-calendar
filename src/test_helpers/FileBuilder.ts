@@ -56,7 +56,7 @@ type FileBlock =
 			level: number;
 	  }
 	| ListBlock
-	| { type: "frontmatter"; key: string; text: string | [string] }
+	| { type: "frontmatter"; key: string; text: any }
 	| { type: "text"; text: string };
 
 const makeFile = (
@@ -85,7 +85,7 @@ const makeFile = (
 
 	if (frontmatter.length > 0) {
 		const data: any = {};
-		const start = appendLine("---").start;
+		const { start } = appendLine("---");
 		for (const elt of frontmatter) {
 			if (Array.isArray(elt.text)) {
 				appendLine(`${elt.key}: [${elt.text}]`);
@@ -94,7 +94,7 @@ const makeFile = (
 			}
 			data[elt.key] = elt.text;
 		}
-		const end = appendLine("---").end;
+		const { end } = appendLine("---");
 		meta.frontmatter = {
 			position: { start, end },
 			...data,
@@ -204,7 +204,7 @@ export class FileBuilder {
 	 * @param frontmatter Dictionary representing YAML frontmatter.
 	 * @returns an updated FileBuilder
 	 */
-	frontmatter(frontmatter: any): FileBuilder {
+	frontmatter(frontmatter: Record<string, any>): FileBuilder {
 		const frontmatterLines = Object.entries(frontmatter).map(
 			([k, v]): FileBlock => ({ type: "frontmatter", key: k, text: v })
 		);
