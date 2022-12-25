@@ -39,6 +39,8 @@ export default class FullCalendarPlugin extends Plugin {
 	}
 	async onload() {
 		await this.loadSettings();
+		// @ts-ignore
+		window.vault = this.app.vault;
 
 		this.registerView(
 			FULL_CALENDAR_VIEW_TYPE,

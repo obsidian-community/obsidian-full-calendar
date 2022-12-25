@@ -166,7 +166,6 @@ export class CalendarView extends ItemView {
 					info.jsEvent.getModifierState("Control") ||
 					info.jsEvent.getModifierState("Meta")
 				) {
-					console.log("open", info.event.id);
 					const event = await eventFromApi(
 						this.app.metadataCache,
 						this.app.vault,
