@@ -185,7 +185,7 @@ export class DailyNoteEvent extends LocalEvent {
 		const heading = this.cache
 			.getFileCache(file)
 			?.headings?.find((h) => h.heading == this.heading);
-		if (this.data.type !== "single") {
+		if (this.data.type && this.data.type !== "single") {
 			throw new FCError(
 				"Daily note calendar does not support recurring events."
 			);
