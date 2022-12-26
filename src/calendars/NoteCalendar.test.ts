@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { CachedMetadata, HeadingCache, Loc, Pos } from "obsidian";
 import { ObsidianInterface } from "src/ObsidianAdapter";
 
 // TODO: Make a file "builder" where you build up a file with a series of funcitons

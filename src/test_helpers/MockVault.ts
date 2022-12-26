@@ -9,6 +9,21 @@ import {
 } from "obsidian";
 import { basename, dirname, join, normalize } from "path";
 
+/**
+ * Return all files that exist under a given folder.
+ * @param folder Folder to collect children under.
+ * @returns All files under this folder, recursively.
+ */
+const collectChildren = (folder: TFolder): TAbstractFile[] => {
+	return folder.children.flatMap((f) => {
+		if (f instanceof TFolder) {
+			return [f, ...collectChildren(f)];
+		} else {
+			return f;
+		}
+	});
+};
+
 export class MockVault implements Vault {
 	root: TFolder;
 	contents: Map<string, string>;
@@ -27,16 +42,7 @@ export class MockVault implements Vault {
 	}
 
 	getAllLoadedFiles(): TAbstractFile[] {
-		const recurse = (folder: TFolder): TAbstractFile[] => {
-			return folder.children.flatMap((f) => {
-				if (f instanceof TFolder) {
-					return [f, ...recurse(f)];
-				} else {
-					return f;
-				}
-			});
-		};
-		return [this.root, ...recurse(this.root)];
+		return [this.root, ...collectChildren(this.root)];
 	}
 
 	getAbstractFileByPath(path: string): TAbstractFile | null {
@@ -100,7 +106,6 @@ export class MockVault implements Vault {
 		let folder = new TFolder();
 		folder.name = basename(path);
 		this.setParent(path, folder);
-		throw new Error("Parent path is not folder.");
 	}
 	async delete(
 		file: TAbstractFile,
@@ -111,8 +116,59 @@ export class MockVault implements Vault {
 	trash(file: TAbstractFile, system: boolean): Promise<void> {
 		return this.delete(file);
 	}
-	rename(file: TAbstractFile, newPath: string): Promise<void> {
-		throw new Error("Method not implemented.");
+
+	async rename(file: TAbstractFile, newPath: string): Promise<void> {
+		const newParentPath = dirname(newPath);
+		const newParent = this.getAbstractFileByPath(newParentPath);
+		if (!(newParent instanceof TFolder)) {
+			throw new Error(`No such folder: ${newParentPath}`);
+		}
+
+		if (file instanceof TFile) {
+			// If we're renaming a file, just update the parent and name in the
+			// file, and the entry in the content map.
+			const contents = this.contents.get(file.path);
+			if (!contents) {
+				throw new Error(`File did not have contents: ${file.path}`);
+			}
+			this.contents.delete(file.path);
+
+			// Update the parent and name and re-set contents with the new path.
+			// NOTE: This relies on using the included mock that derives the path
+			// from the parent and filename as a getter property.
+			file.parent = newParent;
+			file.name = basename(newPath);
+			this.contents.set(file.path, contents);
+		} else if (file instanceof TFolder) {
+			// If we're renaming a folder, we need to update the content map for
+			// every TFile under this folder.
+
+			// Collect all files under this folder, get the string contents, delete
+			// the entry for the old path, and return the file and contents in a tuple.
+			const filesAndContents = collectChildren(file)
+				.flatMap((f) => (f instanceof TFile ? f : []))
+				.map((f): [TFile, string] => {
+					const contents = this.contents.get(f.path);
+					if (!contents) {
+						throw new Error(
+							`File did not have contents: ${f.path}`
+						);
+					}
+					this.contents.delete(f.path);
+					return [f, contents];
+				});
+
+			// Update the parent and name for this folder.
+			file.parent = newParent;
+			file.name = basename(newPath);
+
+			// Re-add all the paths to the content dir.
+			for (const [f, contents] of filesAndContents) {
+				this.contents.set(f.path, contents);
+			}
+		} else {
+			throw new Error(`File is not a file or folder: ${file.path}`);
+		}
 	}
 
 	async modify(
