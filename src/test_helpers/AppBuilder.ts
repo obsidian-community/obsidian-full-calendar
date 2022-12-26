@@ -31,6 +31,8 @@ export class MockCache implements MetadataCache {
 		return this.getCache(file.path);
 	}
 
+	// Below here is not implemented.
+
 	getFirstLinkpathDest(linkpath: string, sourcePath: string): TFile | null {
 		throw new Error("Method not implemented.");
 	}
