@@ -158,5 +158,162 @@ describe("AppBuilder tests", () => {
 
 		const files = app.vault.getAllLoadedFiles();
 		assert.equal(files.length, 4);
+		const rootFile = app.vault.getAbstractFileByPath("root.md") as TFile;
+		assert.isNotNull(rootFile);
+		expect([
+			await app.vault.read(rootFile),
+			app.metadataCache.getFileCache(rootFile),
+		]).toMatchInlineSnapshot(`
+		[
+		  "## Root
+		",
+		  {
+		    "headings": [
+		      {
+		        "heading": "Root",
+		        "level": 2,
+		        "position": {
+		          "end": {
+		            "col": 7,
+		            "line": 0,
+		            "offset": 7,
+		          },
+		          "start": {
+		            "col": 0,
+		            "line": 0,
+		            "offset": 0,
+		          },
+		        },
+		      },
+		    ],
+		  },
+		]
+	`);
+		const nestedFile = app.vault.getAbstractFileByPath(
+			"nested/nestedfile.md"
+		) as TFile;
+		assert.isNotNull(nestedFile);
+		expect([
+			await app.vault.read(nestedFile),
+			app.metadataCache.getFileCache(nestedFile),
+		]).toMatchInlineSnapshot(`
+		[
+		  "## Nested
+		",
+		  {
+		    "headings": [
+		      {
+		        "heading": "Nested",
+		        "level": 2,
+		        "position": {
+		          "end": {
+		            "col": 9,
+		            "line": 0,
+		            "offset": 9,
+		          },
+		          "start": {
+		            "col": 0,
+		            "line": 0,
+		            "offset": 0,
+		          },
+		        },
+		      },
+		    ],
+		  },
+		]
+	`);
+	});
+	it("nested a few", async () => {
+		const app = builder
+			.file("root.md", new FileBuilder().heading(2, "Root"))
+			.folder(
+				new MockAppBuilder("nested")
+					.file(
+						"nestedfile.md",
+						new FileBuilder().heading(2, "Nested")
+					)
+					.folder(
+						new MockAppBuilder("double").file(
+							"double.md",
+							new FileBuilder().heading(2, "Double")
+						)
+					)
+			)
+			.done();
+		const files = app.vault.getAllLoadedFiles();
+		expect(files.map((f) => f.path)).toMatchInlineSnapshot(`
+		[
+		  "/",
+		  "root.md",
+		  "nested",
+		  "nested/nestedfile.md",
+		  "nested/double",
+		  "nested/double/double.md",
+		]
+	`);
+		const nestedFile = app.vault.getAbstractFileByPath(
+			"nested/double/double.md"
+		) as TFile;
+		assert.isNotNull(nestedFile);
+		expect([
+			nestedFile,
+			await app.vault.read(nestedFile),
+			app.metadataCache.getFileCache(nestedFile),
+		]).toMatchInlineSnapshot(`
+		[
+		  TFile {
+		    "name": "double.md",
+		    "parent": TFolder {
+		      "children": [
+		        [Circular],
+		      ],
+		      "name": "/double",
+		      "parent": TFolder {
+		        "children": [
+		          TFile {
+		            "name": "nestedfile.md",
+		            "parent": [Circular],
+		          },
+		          [Circular],
+		        ],
+		        "name": "/nested",
+		        "parent": TFolder {
+		          "children": [
+		            TFile {
+		              "name": "root.md",
+		              "parent": [Circular],
+		            },
+		            [Circular],
+		          ],
+		          "name": "/",
+		          "parent": null,
+		        },
+		      },
+		    },
+		  },
+		  "## Double
+		",
+		  {
+		    "headings": [
+		      {
+		        "heading": "Double",
+		        "level": 2,
+		        "position": {
+		          "end": {
+		            "col": 9,
+		            "line": 0,
+		            "offset": 9,
+		          },
+		          "start": {
+		            "col": 0,
+		            "line": 0,
+		            "offset": 0,
+		          },
+		        },
+		      },
+		    ],
+		  },
+		]
+	`);
 	});
 });

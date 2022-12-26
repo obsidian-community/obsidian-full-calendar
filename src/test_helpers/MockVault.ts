@@ -51,9 +51,11 @@ export class MockVault implements Vault {
 		return this.root;
 	}
 	async read(file: TFile): Promise<string> {
-		const contents = this.contents.get(join("/", file.path));
+		const p = join("/", file.path);
+		const contents = this.contents.get(p);
 		if (!contents) {
-			throw new Error("File doesn't have contents.");
+			console.log(this.contents);
+			throw new Error(`File at path ${p} does not have contents`);
 		}
 		return contents;
 	}

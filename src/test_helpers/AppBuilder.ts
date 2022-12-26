@@ -92,10 +92,24 @@ export class MockApp implements App {
 	}
 }
 
+interface FileTree<T> {
+	[key: string]: { t: "file"; v: T } | { t: "folder"; v: FileTree<T> };
+}
+
+function toPathMap<T>(tree: FileTree<T>): Map<string, T> {
+	const recurse = (t: FileTree<T>, path: string): [string, T][] =>
+		Object.entries(t).flatMap(([name, v]) =>
+			v.t === "file"
+				? [[join(path, name), v.v]]
+				: recurse(v.v, join(path, name))
+		);
+	return new Map(recurse(tree, "/"));
+}
+
 export class MockAppBuilder {
 	children: TAbstractFile[];
-	metadata: Record<string, CachedMetadata>;
-	contents: Record<string, string>;
+	metadata: FileTree<CachedMetadata>;
+	contents: FileTree<string>;
 	path: string;
 
 	static make() {
@@ -105,10 +119,10 @@ export class MockAppBuilder {
 	constructor(
 		path: string,
 		children: TAbstractFile[] = [],
-		contents: Record<string, string> = {},
-		metadata: Record<string, CachedMetadata> = {}
+		contents: FileTree<string> = {},
+		metadata: FileTree<CachedMetadata> = {}
 	) {
-		this.path = path;
+		this.path = join("/", path);
 		this.children = children;
 		this.metadata = metadata;
 		this.contents = contents;
@@ -119,13 +133,12 @@ export class MockAppBuilder {
 		file.name = filename;
 
 		const [contents, metadata] = builder.done();
-		const path = join(this.path, filename);
 
 		return new MockAppBuilder(
 			this.path,
 			[...this.children, file],
-			{ ...this.contents, [path]: contents },
-			{ ...this.metadata, [path]: metadata }
+			{ ...this.contents, [filename]: { t: "file", v: contents } },
+			{ ...this.metadata, [filename]: { t: "file", v: metadata } }
 		);
 	}
 
@@ -133,8 +146,8 @@ export class MockAppBuilder {
 		return new MockAppBuilder(
 			this.path,
 			[...this.children, f.makeFolder()],
-			{ ...this.contents, ...f.contents },
-			{ ...this.metadata, ...f.metadata }
+			{ ...this.contents, [f.path]: { t: "folder", v: f.contents } },
+			{ ...this.metadata, [f.path]: { t: "folder", v: f.metadata } }
 		);
 	}
 
@@ -148,11 +161,8 @@ export class MockAppBuilder {
 
 	done(): MockApp {
 		return new MockApp(
-			new MockVault(
-				this.makeFolder(),
-				new Map(Object.entries(this.contents))
-			),
-			new MockCache(new Map(Object.entries(this.metadata)))
+			new MockVault(this.makeFolder(), toPathMap(this.contents)),
+			new MockCache(toPathMap(this.metadata))
 		);
 	}
 }
