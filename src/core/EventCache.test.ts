@@ -1,5 +1,3 @@
-import { assert } from "chai";
-
 import { TFile } from "obsidian";
 
 import { Calendar, EventResponse } from "../calendars/Calendar";
@@ -70,14 +68,11 @@ async function assertFailed(func: () => Promise<any>, message: RegExp) {
 	try {
 		await func();
 	} catch (e) {
-		if (e instanceof Error) {
-			assert.match(e.message, message);
-		} else {
-			assert(true);
-		}
+		expect(e).toBeInstanceOf(Error);
+		expect((e as Error).message).toMatch(message);
 		return;
 	}
-	assert(false);
+	expect(false).toBeTruthy();
 }
 
 describe("event cache with readonly calendar", () => {
@@ -99,18 +94,18 @@ describe("event cache with readonly calendar", () => {
 		const event = mockEvent();
 		const cache = makeCache([event]);
 
-		assert.isFalse(cache.initialized);
+		expect(cache.initialized).toBeFalsy();
 		await cache.populate();
-		assert.isTrue(cache.initialized);
+		expect(cache.initialized).toBeTruthy();
 
 		const calendar = cache.getCalendarById("test");
-		assert.exists(calendar);
-		assert.equal(calendar?.id, "test");
+		expect(calendar).toBeTruthy();
+		expect(calendar?.id).toBe("test");
 		const sources = cache.getAllEvents();
-		assert.equal(sources.length, 1);
-		assert.deepStrictEqual(extractEvents(sources[0]), [event]);
-		assert.deepStrictEqual(sources[0].color, "#000000");
-		assert.isFalse(sources[0].editable);
+		expect(sources.length).toBe(1);
+		expect(extractEvents(sources[0])).toEqual([event]);
+		expect(sources[0].color).toEqual("#000000");
+		expect(sources[0].editable).toBeFalsy();
 	});
 
 	it("populates multiple events", async () => {
@@ -122,14 +117,10 @@ describe("event cache with readonly calendar", () => {
 		await cache.populate();
 
 		const sources = cache.getAllEvents();
-		assert.equal(sources.length, 1);
-		assert.deepStrictEqual(extractEvents(sources[0]), [
-			event1,
-			event2,
-			event3,
-		]);
-		assert.deepStrictEqual(sources[0].color, "#000000");
-		assert.isFalse(sources[0].editable);
+		expect(sources.length).toBe(1);
+		expect(extractEvents(sources[0])).toEqual([event1, event2, event3]);
+		expect(sources[0].color).toEqual("#000000");
+		expect(sources[0].editable);
 	});
 
 	it("properly sorts events into separate calendars", async () => {
@@ -153,13 +144,13 @@ describe("event cache with readonly calendar", () => {
 		await cache.populate();
 
 		const sources = cache.getAllEvents();
-		assert.equal(sources.length, 2);
-		assert.deepStrictEqual(extractEvents(sources[0]), events1);
-		assert.deepStrictEqual(sources[0].color, "red");
-		assert.isFalse(sources[0].editable);
-		assert.deepStrictEqual(extractEvents(sources[1]), events2);
-		assert.deepStrictEqual(sources[1].color, "blue");
-		assert.isFalse(sources[1].editable);
+		expect(sources.length).toBe(2);
+		expect(extractEvents(sources[0])).toEqual(events1);
+		expect(sources[0].color).toEqual("red");
+		expect(sources[0].editable);
+		expect(extractEvents(sources[1])).toEqual(events2);
+		expect(sources[1].color).toEqual("blue");
+		expect(sources[1].editable);
 	});
 
 	it.each([
@@ -185,10 +176,10 @@ describe("event cache with readonly calendar", () => {
 		await cache.populate();
 
 		const sources = cache.getAllEvents();
-		assert.equal(sources.length, 1);
+		expect(sources.length).toBe(1);
 		const eventId = sources[0].events[0].id;
 
-		await assertFailed(
+		assertFailed(
 			async () => await f(cache, eventId),
 			/non-editable calendar/
 		);
@@ -252,9 +243,9 @@ const assertCacheContentCounts = (
 		events,
 	}: { calendars: number; files: number; events: number }
 ) => {
-	assert.equal(cache._storeForTest.calendarCount, calendars);
-	assert.equal(cache._storeForTest.fileCount, files);
-	assert.equal(cache._storeForTest.eventCount, events);
+	expect(cache._storeForTest.calendarCount).toBe(calendars);
+	expect(cache._storeForTest.fileCount).toBe(files);
+	expect(cache._storeForTest.eventCount).toBe(events);
 };
 
 describe("editable calendars", () => {
@@ -271,8 +262,8 @@ describe("editable calendars", () => {
 
 	const getCalendar = (cache: EventCache, id: string) => {
 		const calendar = cache.getCalendarById(id);
-		assert.exists(calendar);
-		assert.instanceOf(calendar, TestEditable);
+		expect(calendar).toBeTruthy();
+		expect(calendar).toBeInstanceOf(TestEditable);
 		return calendar as TestEditable;
 	};
 
@@ -286,12 +277,12 @@ describe("editable calendars", () => {
 
 		const sources = cache.getAllEvents();
 
-		assert.equal((calendar as TestEditable).getEvents.mock.calls.length, 1);
-		assert.equal(sources.length, 1);
+		expect((calendar as TestEditable).getEvents.mock.calls.length).toBe(1);
+		expect(sources.length).toBe(1);
 
-		assert.deepStrictEqual(extractEvents(sources[0]), [e1[0]]);
-		assert.deepStrictEqual(sources[0].color, "black");
-		assert.isTrue(sources[0].editable);
+		expect(extractEvents(sources[0])).toEqual([e1[0]]);
+		expect(sources[0].color).toEqual("black");
+		expect(sources[0].editable).toBeTruthy();
 	});
 
 	describe("add events", () => {
@@ -307,9 +298,9 @@ describe("editable calendars", () => {
 			calendar.createEvent.mockReturnValueOnce(
 				new Promise((resolve) => resolve(loc))
 			);
-			assert.isTrue(await cache.addEvent("test", event));
-			assert.equal(calendar.createEvent.mock.calls.length, 1);
-			assert.deepStrictEqual(calendar.createEvent.mock.calls[0], [event]);
+			expect(await cache.addEvent("test", event)).toBeTruthy();
+			expect(calendar.createEvent.mock.calls.length).toBe(1);
+			expect(calendar.createEvent.mock.calls[0]).toEqual([event]);
 
 			assertCacheContentCounts(cache, {
 				calendars: 1,
@@ -331,11 +322,9 @@ describe("editable calendars", () => {
 			calendar.createEvent.mockReturnValueOnce(
 				new Promise((resolve) => resolve(loc))
 			);
-			assert.isTrue(await cache.addEvent("test", event2));
-			assert.equal(calendar.createEvent.mock.calls.length, 1);
-			assert.deepStrictEqual(calendar.createEvent.mock.calls[0], [
-				event2,
-			]);
+			expect(await cache.addEvent("test", event2)).toBeTruthy();
+			expect(calendar.createEvent.mock.calls.length).toBe(1);
+			expect(calendar.createEvent.mock.calls[0]).toEqual([event2]);
 
 			assertCacheContentCounts(cache, {
 				calendars: 1,
@@ -357,11 +346,9 @@ describe("editable calendars", () => {
 			calendar.createEvent.mockReturnValueOnce(
 				new Promise((resolve) => resolve(loc))
 			);
-			assert.isTrue(await cache.addEvent("test", event2));
-			assert.equal(calendar.createEvent.mock.calls.length, 1);
-			assert.deepStrictEqual(calendar.createEvent.mock.calls[0], [
-				event2,
-			]);
+			expect(await cache.addEvent("test", event2)).toBeTruthy();
+			expect(calendar.createEvent.mock.calls.length).toBe(1);
+			expect(calendar.createEvent.mock.calls[0]).toEqual([event2]);
 
 			assertCacheContentCounts(cache, {
 				calendars: 1,
@@ -389,11 +376,11 @@ describe("editable calendars", () => {
 					new Promise((resolve) => resolve(mockLocation()))
 				);
 
-			assert.isTrue(await cache.addEvent("test", mockEvent()));
-			assert.isTrue(await cache.addEvent("test", mockEvent()));
-			assert.isTrue(await cache.addEvent("test", mockEvent()));
+			expect(await cache.addEvent("test", mockEvent())).toBeTruthy();
+			expect(await cache.addEvent("test", mockEvent())).toBeTruthy();
+			expect(await cache.addEvent("test", mockEvent())).toBeTruthy();
 
-			assert.equal(calendar.createEvent.mock.calls.length, 3);
+			expect(calendar.createEvent.mock.calls.length).toBe(3);
 
 			assertCacheContentCounts(cache, {
 				calendars: 1,
@@ -420,14 +407,14 @@ describe("editable calendars", () => {
 			});
 
 			const sources = cache.getAllEvents();
-			assert.equal(sources.length, 1);
+			expect(sources.length).toBe(1);
 			const id = sources[0].events[0].id;
 
 			await cache.deleteEvent(id);
 
 			const calendar = getCalendar(cache, "test");
-			assert.equal(calendar.deleteEvent.mock.calls.length, 1);
-			assert.deepStrictEqual(calendar.deleteEvent.mock.calls[0], [
+			expect(calendar.deleteEvent.mock.calls.length).toBe(1);
+			expect(calendar.deleteEvent.mock.calls[0]).toEqual([
 				pathResult(event[1]),
 			]);
 
@@ -449,9 +436,9 @@ describe("editable calendars", () => {
 				events: 1,
 			});
 
-			assert.equal(cache._storeForTest.calendarCount, 1);
-			assert.equal(cache._storeForTest.fileCount, 1);
-			assert.equal(cache._storeForTest.eventCount, 1);
+			expect(cache._storeForTest.calendarCount).toBe(1);
+			expect(cache._storeForTest.fileCount).toBe(1);
+			expect(cache._storeForTest.eventCount).toBe(1);
 
 			assertFailed(
 				() => cache.deleteEvent("unknown ID"),
@@ -459,7 +446,7 @@ describe("editable calendars", () => {
 			);
 
 			const calendar = getCalendar(cache, "test");
-			assert.equal(calendar.deleteEvent.mock.calls.length, 0);
+			expect(calendar.deleteEvent.mock.calls.length).toBe(0);
 
 			assertCacheContentCounts(cache, {
 				calendars: 1,
@@ -503,7 +490,7 @@ describe("editable calendars", () => {
 			});
 
 			const sources = cache.getAllEvents();
-			assert.equal(sources.length, 1);
+			expect(sources.length).toBe(1);
 			const id = sources[0].events[0].id;
 
 			const calendar = getCalendar(cache, "test");
@@ -511,15 +498,14 @@ describe("editable calendars", () => {
 				new Promise((resolve) => resolve(newLocation))
 			);
 
-			assert.equal(
-				cache._storeForTest.getEventsInFile(oldEvent[1].file).length,
-				1
-			);
+			expect(
+				cache._storeForTest.getEventsInFile(oldEvent[1].file).length
+			).toBe(1);
 
 			await cache.modifyEvent(id, newEvent);
 
-			assert.equal(calendar.updateEvent.mock.calls.length, 1);
-			assert.deepStrictEqual(calendar.updateEvent.mock.calls[0], [
+			expect(calendar.updateEvent.mock.calls.length).toBe(1);
+			expect(calendar.updateEvent.mock.calls[0]).toEqual([
 				pathResult(oldEvent[1]),
 				newEvent,
 			]);
@@ -530,14 +516,10 @@ describe("editable calendars", () => {
 				events: 1,
 			});
 
-			assert.deepStrictEqual(
-				cache._storeForTest.getEventById(id),
-				newEvent
-			);
+			expect(cache._storeForTest.getEventById(id)).toEqual(newEvent);
 
 			for (const { file, numEvents } of fileDetails) {
-				assert.equal(
-					cache._storeForTest.getEventsInFile(file).length,
+				expect(cache._storeForTest.getEventsInFile(file).length).toBe(
 					numEvents
 				);
 			}
@@ -561,15 +543,12 @@ describe("editable calendars", () => {
 			);
 
 			const sources = cache.getAllEvents();
-			assert.equal(sources.length, 1);
+			expect(sources.length).toBe(1);
 			const id = sources[0].events[0].id;
 
 			const calendar = getCalendar(cache, "test");
-			assert.equal(calendar.updateEvent.mock.calls.length, 0);
-			assert.deepStrictEqual(
-				cache._storeForTest.getEventById(id),
-				event[0]
-			);
+			expect(calendar.updateEvent.mock.calls.length).toBe(0);
+			expect(cache._storeForTest.getEventById(id)).toEqual(event[0]);
 
 			assertCacheContentCounts(cache, {
 				calendars: 1,
@@ -642,31 +621,27 @@ describe("editable calendars", () => {
 				});
 
 				if (callback) {
-					assert.equal(callbackMock.mock.calls.length, 1);
+					expect(callbackMock).toBeCalled();
 					const { toRemoveLength, eventsToAdd } = callback;
 					const callbackInvocation: {
 						toRemove: string[];
 						toAdd: CacheEntry[];
 					} = callbackMock.mock.calls[0][0];
-					assert.hasAllKeys(callbackInvocation, [
-						"toRemove",
-						"toAdd",
-					]);
 
-					assert.equal(
-						callbackInvocation.toRemove.length,
+					expect(callbackInvocation.toAdd).toBeDefined();
+					expect(callbackInvocation.toRemove).toBeDefined();
+
+					expect(callbackInvocation.toRemove.length).toBe(
 						toRemoveLength
 					);
-					assert.equal(
-						callbackInvocation.toAdd.length,
+					expect(callbackInvocation.toAdd.length).toBe(
 						eventsToAdd.length
 					);
-					assert.deepStrictEqual(
-						callbackInvocation.toAdd.map((e) => e.event),
-						eventsToAdd
-					);
+					expect(
+						callbackInvocation.toAdd.map((e) => e.event)
+					).toEqual(eventsToAdd);
 				} else {
-					assert.equal(callbackMock.mock.calls.length, 0);
+					expect(callbackMock.mock.calls.length).toBe(0);
 				}
 			}
 		);

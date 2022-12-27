@@ -1,5 +1,4 @@
 import { getInlineAttributes } from "./inline";
-import { assert } from "chai";
 
 it.each([
 	["one variable [hello:: world]", { hello: "world" }],
@@ -9,5 +8,5 @@ it.each([
 		{},
 	],
 ])("%p", (line: string, obj: any) => {
-	assert.deepEqual(getInlineAttributes(line), obj);
+	expect(getInlineAttributes(line)).toEqual(obj);
 });

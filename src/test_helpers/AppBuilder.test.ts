@@ -1,4 +1,3 @@
-import { assert } from "chai";
 import { TFile } from "obsidian";
 import { MockAppBuilder } from "./AppBuilder";
 import { FileBuilder, ListBuilder } from "./FileBuilder";
@@ -132,7 +131,7 @@ describe("AppBuilder read tests", () => {
 			.file("file3.md", new FileBuilder().heading(2, "file3 heading"))
 			.file("file4.md", new FileBuilder().heading(2, "file4 heading"))
 			.done();
-		assert.equal(app.vault.getAllLoadedFiles().length, 5);
+		expect(app.vault.getAllLoadedFiles().length).toBe(5);
 		for (let i = 1; i <= 4; i++) {
 			const basename = `file${i}`;
 			const file = app.vault.getAbstractFileByPath(
@@ -140,11 +139,11 @@ describe("AppBuilder read tests", () => {
 			) as TFile;
 			const contents = await app.vault.read(file);
 			const metadata = app.metadataCache.getFileCache(file);
-			assert.equal(contents, `## ${basename} heading\n`);
+			expect(contents).toBe(`## ${basename} heading\n`);
 			const headings = metadata?.headings || [];
-			assert.equal(headings[0].heading, `${basename} heading`);
-			assert.equal(headings[0].level, 2);
-			assert.equal(await app.vault.cachedRead(file), contents);
+			expect(headings[0].heading).toBe(`${basename} heading`);
+			expect(headings[0].level).toBe(2);
+			expect(await app.vault.cachedRead(file)).toBe(contents);
 		}
 	});
 	it("nested folders", async () => {
@@ -159,9 +158,9 @@ describe("AppBuilder read tests", () => {
 			.done();
 
 		const files = app.vault.getAllLoadedFiles();
-		assert.equal(files.length, 4);
+		expect(files.length).toBe(4);
 		const rootFile = app.vault.getAbstractFileByPath("root.md") as TFile;
-		assert.isNotNull(rootFile);
+		expect(rootFile).toBeTruthy();
 		expect([
 			await app.vault.read(rootFile),
 			app.metadataCache.getFileCache(rootFile),
@@ -194,7 +193,7 @@ describe("AppBuilder read tests", () => {
 		const nestedFile = app.vault.getAbstractFileByPath(
 			"nested/nestedfile.md"
 		) as TFile;
-		assert.isNotNull(nestedFile);
+		expect(nestedFile).toBeTruthy();
 		expect([
 			await app.vault.read(nestedFile),
 			app.metadataCache.getFileCache(nestedFile),
@@ -256,7 +255,7 @@ describe("AppBuilder read tests", () => {
 		const nestedFile = app.vault.getAbstractFileByPath(
 			"nested/double/double.md"
 		) as TFile;
-		assert.isNotNull(nestedFile);
+		expect(nestedFile).toBeTruthy();
 		expect([
 			nestedFile,
 			await app.vault.read(nestedFile),

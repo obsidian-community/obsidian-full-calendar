@@ -2,7 +2,6 @@ import { TFile } from "obsidian";
 import { Calendar } from "../calendars/Calendar";
 import EventStore from "./EventStore";
 import { EventLocation, OFCEvent } from "../types";
-import { assert } from "chai";
 
 const withCounter = <T>(f: (x: string) => T, label?: string) => {
 	const counter = () => {
@@ -61,13 +60,13 @@ describe.each([true, false])(
 
 			store.add({ calendar, location, id, event });
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+			expect(store.getEventsInCalendar(calendar)).toEqual([
 				{ event, id, location: pathLoc(location) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+			expect(store.getEventsInFile(location.file)).toEqual([
 				{ event, id, location: pathLoc(location) },
 			]);
-			assert.equal(store.eventCount, 1);
+			expect(store.eventCount).toBe(1);
 		});
 
 		it(`throws when trying to overwrite an ID entry`, () => {
@@ -78,19 +77,21 @@ describe.each([true, false])(
 
 			store.add({ calendar, location, id, event });
 
-			assert.throws(() => store.add({ calendar, location, id, event }));
+			expect(() =>
+				store.add({ calendar, location, id, event })
+			).toThrow();
 			const calendar2 = mockCalendar();
 			const event2 = mockEvent();
 			const location2 = mockLocation(withLineNumbers);
-			assert.throws(() =>
+			expect(() =>
 				store.add({ calendar: calendar2, location, id, event })
-			);
-			assert.throws(() =>
+			).toThrow();
+			expect(() =>
 				store.add({ calendar, location: location2, id, event })
-			);
-			assert.throws(() =>
+			).toThrow();
+			expect(() =>
 				store.add({ calendar, location, id, event: event2 })
-			);
+			).toThrow();
 		});
 
 		it(`throws when trying to overwrite an ID entry`, () => {
@@ -101,13 +102,13 @@ describe.each([true, false])(
 			const event2 = mockEvent();
 
 			store.add({ calendar, location, id, event });
-			assert.equal(store.eventCount, 1);
-			assert.deepStrictEqual(store.getEventById(id), event);
+			expect(store.eventCount).toBe(1);
+			expect(store.getEventById(id)).toEqual(event);
 			store.delete(id);
-			assert.equal(store.eventCount, 0);
+			expect(store.eventCount).toBe(0);
 			store.add({ calendar, location, id, event: event2 });
-			assert.equal(store.eventCount, 1);
-			assert.deepStrictEqual(store.getEventById(id), event2);
+			expect(store.eventCount).toBe(1);
+			expect(store.getEventById(id)).toEqual(event2);
 		});
 
 		it(`stores one event without a file`, () => {
@@ -117,20 +118,20 @@ describe.each([true, false])(
 
 			store.add({ calendar, location: null, id, event });
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+			expect(store.getEventsInCalendar(calendar)).toEqual([
 				{ event, id, location: null },
 			]);
-			assert.equal(0, store.fileCount);
+			expect(0).toBe(store.fileCount);
 		});
 
 		it(`gets events in new calendar`, () => {
 			const calendar = mockCalendar();
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
+			expect(store.getEventsInCalendar(calendar)).toEqual([]);
 		});
 
 		it(`gets events in new file`, () => {
 			const calendar = mockFile();
-			assert.deepStrictEqual(store.getEventsInFile(calendar), []);
+			expect(store.getEventsInFile(calendar)).toEqual([]);
 		});
 
 		it(`stores two events in the same file`, () => {
@@ -152,15 +153,15 @@ describe.each([true, false])(
 				event: event2,
 			});
 
-			assert.equal(store.eventCount, 2);
-			assert.equal(store.fileCount, 1);
-			assert.equal(store.calendarCount, 1);
+			expect(store.eventCount).toBe(2);
+			expect(store.fileCount).toBe(1);
+			expect(store.calendarCount).toBe(1);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+			expect(store.getEventsInCalendar(calendar)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location) },
 				{ event: event2, id: id2, location: pathLoc(location2) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+			expect(store.getEventsInFile(location.file)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location) },
 				{ event: event2, id: id2, location: pathLoc(location2) },
 			]);
@@ -179,15 +180,15 @@ describe.each([true, false])(
 			store.add({ calendar, location, id: id1, event: event1 });
 			store.add({ calendar, location: null, id: id2, event: event2 });
 
-			assert.equal(store.eventCount, 2);
-			assert.equal(store.fileCount, 1);
-			assert.equal(store.calendarCount, 1);
+			expect(store.eventCount).toBe(2);
+			expect(store.fileCount).toBe(1);
+			expect(store.calendarCount).toBe(1);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+			expect(store.getEventsInCalendar(calendar)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location) },
 				{ event: event2, id: id2, location: null },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+			expect(store.getEventsInFile(location.file)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location) },
 			]);
 		});
@@ -219,21 +220,21 @@ describe.each([true, false])(
 				event: event2,
 			});
 
-			assert.equal(store.eventCount, 2);
-			assert.equal(store.fileCount, 2);
-			assert.equal(store.calendarCount, 2);
+			expect(store.eventCount).toBe(2);
+			expect(store.fileCount).toBe(2);
+			expect(store.calendarCount).toBe(2);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+			expect(store.getEventsInCalendar(calendar1)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+			expect(store.getEventsInFile(location1.file)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+			expect(store.getEventsInCalendar(calendar2)).toEqual([
 				{ event: event2, id: id2, location: pathLoc(location2) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location2.file), [
+			expect(store.getEventsInFile(location2.file)).toEqual([
 				{ event: event2, id: id2, location: pathLoc(location2) },
 			]);
 		});
@@ -246,20 +247,20 @@ describe.each([true, false])(
 
 			store.add({ calendar, location, id, event });
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), [
+			expect(store.getEventsInCalendar(calendar)).toEqual([
 				{ event, id, location: pathLoc(location) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location.file), [
+			expect(store.getEventsInFile(location.file)).toEqual([
 				{ event, id, location: pathLoc(location) },
 			]);
-			assert.equal(store.eventCount, 1);
+			expect(store.eventCount).toBe(1);
 
 			const result = store.delete(id);
-			assert.deepStrictEqual(result, event);
+			expect(result).toEqual(event);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar), []);
-			assert.deepStrictEqual(store.getEventsInFile(location.file), []);
-			assert.equal(store.eventCount, 0);
+			expect(store.getEventsInCalendar(calendar)).toEqual([]);
+			expect(store.getEventsInFile(location.file)).toEqual([]);
+			expect(store.eventCount).toBe(0);
 		});
 
 		it(`stores many events in different calendars and files`, () => {
@@ -297,33 +298,33 @@ describe.each([true, false])(
 				event: event3,
 			});
 
-			assert.equal(store.eventCount, 3);
-			assert.equal(store.fileCount, 3);
-			assert.equal(store.calendarCount, 2);
+			expect(store.eventCount).toBe(3);
+			expect(store.fileCount).toBe(3);
+			expect(store.calendarCount).toBe(2);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+			expect(store.getEventsInCalendar(calendar1)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+			expect(store.getEventsInFile(location1.file)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
 
 			// TODO: There appears to be a race condition or some other kind of nondeterminism here.
 			// When lineNumbers=true, id13/file12 sometime has a lineNumber of undefined rather than 0.
 			// Try to run this test a bunch and figure out what the issue is.
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+			expect(store.getEventsInCalendar(calendar2)).toEqual([
 				{ event: event2, id: id2, location: pathLoc(location2) },
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location2.file), [
+			expect(store.getEventsInFile(location2.file)).toEqual([
 				{ event: event2, id: id2, location: pathLoc(location2) },
 			]);
 
-			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+			expect(store.getEventsInFile(location3.file)).toEqual([
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
-			assert.deepStrictEqual(toObject(store.eventsByCalendar), {
+			expect(toObject(store.eventsByCalendar)).toEqual({
 				[calendar1.id]: [
 					{ event: event1, id: id1, location: pathLoc(location1) },
 				],
@@ -333,13 +334,14 @@ describe.each([true, false])(
 				],
 			});
 
-			assert.equal(store.getCalendarIdForEventId(id1), calendar1.id);
-			assert.equal(store.getCalendarIdForEventId(id2), calendar2.id);
-			assert.equal(store.getCalendarIdForEventId(id3), calendar2.id);
-			assert.deepStrictEqual(
-				store.getEventsInFileAndCalendar(location2.file, calendar2),
-				[{ event: event2, id: id2, location: pathLoc(location2) }]
-			);
+			expect(store.getCalendarIdForEventId(id1)).toBe(calendar1.id);
+			expect(store.getCalendarIdForEventId(id2)).toBe(calendar2.id);
+			expect(store.getCalendarIdForEventId(id3)).toBe(calendar2.id);
+			expect(
+				store.getEventsInFileAndCalendar(location2.file, calendar2)
+			).toEqual([
+				{ event: event2, id: id2, location: pathLoc(location2) },
+			]);
 		});
 
 		it(`stores then deletes many events`, () => {
@@ -378,46 +380,46 @@ describe.each([true, false])(
 				event: event3,
 			});
 
-			assert.equal(store.eventCount, 3);
-			assert.equal(store.fileCount, 3);
-			assert.equal(store.calendarCount, 2);
+			expect(store.eventCount).toBe(3);
+			expect(store.fileCount).toBe(3);
+			expect(store.calendarCount).toBe(2);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+			expect(store.getEventsInCalendar(calendar1)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+			expect(store.getEventsInCalendar(calendar2)).toEqual([
 				{ event: event2, id: id2, location: pathLoc(location2) },
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
-			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+			expect(store.getEventsInFile(location1.file)).toEqual([
 				{ event: event1, id: id1, location: pathLoc(location1) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location2.file), [
+			expect(store.getEventsInFile(location2.file)).toEqual([
 				{ event: event2, id: id2, location: pathLoc(location2) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+			expect(store.getEventsInFile(location3.file)).toEqual([
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
 			store.delete(id2);
 
-			assert.equal(store.eventCount, 2);
-			assert.equal(store.fileCount, 2);
-			assert.equal(store.calendarCount, 2);
+			expect(store.eventCount).toBe(2);
+			expect(store.fileCount).toBe(2);
+			expect(store.calendarCount).toBe(2);
 			store.delete(id1);
-			assert.equal(store.eventCount, 1);
-			assert.equal(store.fileCount, 1);
-			assert.equal(store.calendarCount, 1);
+			expect(store.eventCount).toBe(1);
+			expect(store.fileCount).toBe(1);
+			expect(store.calendarCount).toBe(1);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), []);
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+			expect(store.getEventsInCalendar(calendar1)).toEqual([]);
+			expect(store.getEventsInCalendar(calendar2)).toEqual([
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
-			assert.deepStrictEqual(store.getEventsInFile(location1.file), []);
-			assert.deepStrictEqual(store.getEventsInFile(location2.file), []);
-			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+			expect(store.getEventsInFile(location1.file)).toEqual([]);
+			expect(store.getEventsInFile(location2.file)).toEqual([]);
+			expect(store.getEventsInFile(location3.file)).toEqual([
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
@@ -430,45 +432,45 @@ describe.each([true, false])(
 				id: id4,
 				event: event4,
 			});
-			assert.equal(store.eventCount, 2);
-			assert.equal(store.fileCount, 2);
-			assert.equal(store.calendarCount, 2);
+			expect(store.eventCount).toBe(2);
+			expect(store.fileCount).toBe(2);
+			expect(store.calendarCount).toBe(2);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+			expect(store.getEventsInCalendar(calendar1)).toEqual([
 				{ event: event4, id: id4, location: pathLoc(location4) },
 			]);
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), [
+			expect(store.getEventsInCalendar(calendar2)).toEqual([
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
-			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+			expect(store.getEventsInFile(location1.file)).toEqual([
 				{ event: event4, id: id4, location: pathLoc(location4) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location2.file), []);
-			assert.deepStrictEqual(store.getEventsInFile(location3.file), [
+			expect(store.getEventsInFile(location2.file)).toEqual([]);
+			expect(store.getEventsInFile(location3.file)).toEqual([
 				{ event: event3, id: id3, location: pathLoc(location3) },
 			]);
 
 			store.delete(id3);
-			assert.equal(store.eventCount, 1);
-			assert.equal(store.fileCount, 1);
-			assert.equal(store.calendarCount, 1);
+			expect(store.eventCount).toBe(1);
+			expect(store.fileCount).toBe(1);
+			expect(store.calendarCount).toBe(1);
 
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar1), [
+			expect(store.getEventsInCalendar(calendar1)).toEqual([
 				{ event: event4, id: id4, location: pathLoc(location4) },
 			]);
-			assert.deepStrictEqual(store.getEventsInCalendar(calendar2), []);
+			expect(store.getEventsInCalendar(calendar2)).toEqual([]);
 
-			assert.deepStrictEqual(store.getEventsInFile(location1.file), [
+			expect(store.getEventsInFile(location1.file)).toEqual([
 				{ event: event4, id: id4, location: pathLoc(location4) },
 			]);
-			assert.deepStrictEqual(store.getEventsInFile(location2.file), []);
-			assert.deepStrictEqual(store.getEventsInFile(location3.file), []);
+			expect(store.getEventsInFile(location2.file)).toEqual([]);
+			expect(store.getEventsInFile(location3.file)).toEqual([]);
 
 			store.delete(id4);
-			assert.equal(store.eventCount, 0);
-			assert.equal(store.fileCount, 0);
-			assert.equal(store.calendarCount, 0);
+			expect(store.eventCount).toBe(0);
+			expect(store.fileCount).toBe(0);
+			expect(store.calendarCount).toBe(0);
 		});
 	}
 );

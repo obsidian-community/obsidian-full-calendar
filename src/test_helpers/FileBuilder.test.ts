@@ -1,4 +1,3 @@
-import { assert } from "chai";
 import { FileBuilder, ListBuilder } from "./FileBuilder";
 
 /**
@@ -29,7 +28,7 @@ describe("frontmatter tests", () => {
 		"
 	`);
 
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			frontmatter: {
 				key: "value",
 				position: {
@@ -55,7 +54,7 @@ describe("frontmatter tests", () => {
 		---
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			frontmatter: {
 				title: "event",
 				startTime: "13:00",
@@ -77,7 +76,7 @@ describe("frontmatter tests", () => {
 		---
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			frontmatter: {
 				values: ["A", "B", "C"],
 				position: {
@@ -101,7 +100,7 @@ describe("frontmatter tests", () => {
 		F1ST!!!!!
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			frontmatter: {
 				hello: 1,
 				world: 2,
@@ -122,7 +121,7 @@ describe("headings", () => {
 			"# Hello world!
 			"
 		`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			headings: [
 				{
 					position: {
@@ -147,7 +146,7 @@ describe("headings", () => {
 			## Third heading
 			"
 		`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			headings: [
 				{
 					position: {
@@ -198,7 +197,7 @@ describe("headings", () => {
 			## Another thing
 			"
 		`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			headings: [
 				{
 					position: {
@@ -277,7 +276,7 @@ describe("text", () => {
 		"hello, world!
 		"
 	`);
-		assert.deepStrictEqual(metadata, {});
+		expect(metadata).toEqual({});
 	});
 	it("a few lines", () => {
 		const [contents, metadata] = new FileBuilder()
@@ -291,7 +290,7 @@ describe("text", () => {
 		p.s. fake text is hard to be creative with
 		"
 	`);
-		assert.deepStrictEqual(metadata, {});
+		expect(metadata).toEqual({});
 	});
 });
 describe("lists", () => {
@@ -303,7 +302,7 @@ describe("lists", () => {
 		"- one item
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			listItems: [
 				{
 					position: {
@@ -325,7 +324,7 @@ describe("lists", () => {
 		- two item
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			listItems: [
 				{
 					position: {
@@ -355,7 +354,7 @@ describe("lists", () => {
 		- two item
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			listItems: [
 				{
 					position: {
@@ -387,7 +386,7 @@ describe("lists", () => {
 		- two item
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			listItems: [
 				{
 					position: {
@@ -423,7 +422,7 @@ describe("lists", () => {
 		- regular item
 		"
 	`);
-		assert.deepStrictEqual(metadata, {
+		expect(metadata).toEqual({
 			listItems: [
 				{
 					position: {
@@ -498,7 +497,7 @@ it("big example", () => {
 		    - another nested item
 		"
 	`);
-	assert.deepStrictEqual(metadata, {
+	expect(metadata).toEqual({
 		headings: [
 			{
 				position: {
