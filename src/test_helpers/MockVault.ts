@@ -96,6 +96,9 @@ export class MockVault implements Vault {
 		data: string,
 		options?: DataWriteOptions | undefined
 	): Promise<TFile> {
+		if (this.getAbstractFileByPath(path)) {
+			throw new Error("File already exists.");
+		}
 		let file = new TFile();
 		file.name = basename(path);
 		this.setParent(path, file);

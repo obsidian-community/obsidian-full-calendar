@@ -2,7 +2,8 @@ import { assert } from "chai";
 import { TFile } from "obsidian";
 import { MockAppBuilder } from "./AppBuilder";
 import { FileBuilder, ListBuilder } from "./FileBuilder";
-describe("AppBuilder tests", () => {
+
+describe("AppBuilder read tests", () => {
 	let builder: MockAppBuilder;
 	beforeEach(() => {
 		builder = MockAppBuilder.make();
@@ -143,6 +144,7 @@ describe("AppBuilder tests", () => {
 			const headings = metadata?.headings || [];
 			assert.equal(headings[0].heading, `${basename} heading`);
 			assert.equal(headings[0].level, 2);
+			assert.equal(await app.vault.cachedRead(file), contents);
 		}
 	});
 	it("nested folders", async () => {
