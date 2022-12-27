@@ -33,13 +33,14 @@ export default class NoteCalendar extends EditableCalendar {
 
 	constructor(
 		app: ObsidianInterface,
-		info: LocalCalendarSource,
+		color: string,
+		directory: string,
 		isRecursive: boolean,
 		systemTrash: boolean
 	) {
-		super(info.color);
+		super(color);
 		this.app = app;
-		this._directory = info.directory;
+		this._directory = directory;
 		this.isRecursive = isRecursive;
 		this.systemTrash = systemTrash;
 	}
