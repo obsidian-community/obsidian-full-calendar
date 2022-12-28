@@ -1,16 +1,16 @@
 import { TFile, TFolder } from "obsidian";
-import { EventPathLocation } from "src/core/EventStore";
-import { ObsidianInterface } from "src/ObsidianAdapter";
+import { EventPathLocation } from "../core/EventStore";
+import { ObsidianInterface } from "../ObsidianAdapter";
 import {
 	modifyFrontmatterString,
 	newFrontmatter,
-} from "src/serialization/frontmatter";
+} from "../serialization/frontmatter";
 import {
 	OFCEvent,
 	EventLocation,
 	LocalCalendarSource,
 	validateEvent,
-} from "src/types";
+} from "../types";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
 const basenameFromEvent = (event: OFCEvent): string => {

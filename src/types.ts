@@ -63,14 +63,19 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 		if (!obj.date) {
 			return null;
 		}
-		return {
+		const event: OFCEvent = {
 			title: obj.title,
-			type: "single",
+			type: obj.type,
 			date: obj.date,
-			endDate: obj.endDate,
-			completed: obj.completed,
 			...timeInfo,
 		};
+		if (obj.completed) {
+			event.completed = obj.completed;
+		}
+		if (obj.endDate) {
+			event.endDate = obj.endDate;
+		}
+		return event;
 	} else if (obj.type === "recurring") {
 		if (obj.daysOfWeek === undefined) {
 			return null;

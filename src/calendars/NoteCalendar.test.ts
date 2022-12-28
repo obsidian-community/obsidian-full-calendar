@@ -1,7 +1,7 @@
 import { TFile } from "obsidian";
 import { ObsidianInterface } from "src/ObsidianAdapter";
-import { MockApp, MockAppBuilder } from "src/helpers/AppBuilder";
-import { FileBuilder } from "src/helpers/FileBuilder";
+import { MockApp, MockAppBuilder } from "../helpers/AppBuilder";
+import { FileBuilder } from "../helpers/FileBuilder";
 import { OFCEvent } from "src/types";
 import NoteCalendar from "./NoteCalendar";
 
@@ -29,19 +29,74 @@ const dirName = "events";
 const color = "#BADA55";
 
 describe("Note Calendar Tests", () => {
-	it("parses one event", async () => {
-		const eventInput: OFCEvent = {
-			title: "Test Event",
-			allDay: true,
-			date: "2022-01-01",
-		};
-		const title = "2022-01-01 Test Event.md";
+	it.each([
+		[
+			"One event",
+			[
+				{
+					title: "2022-01-01 Test Event.md",
+					event: {
+						title: "Test Event",
+						allDay: true,
+						date: "2022-01-01",
+					} as OFCEvent,
+				},
+			],
+		],
+		[
+			"Two events",
+			[
+				{
+					title: "2022-01-01 Test Event.md",
+					event: {
+						title: "Test Event",
+						allDay: true,
+						date: "2022-01-01",
+					} as OFCEvent,
+				},
+				{
+					title: "2022-01-02 Another Test Event.md",
+					event: {
+						title: "Another Test Event",
+						allDay: true,
+						date: "2022-01-02",
+					} as OFCEvent,
+				},
+			],
+		],
+		[
+			"Two events on the same day",
+			[
+				{
+					title: "2022-01-01 Test Event.md",
+					event: {
+						title: "Test Event",
+						allDay: true,
+						date: "2022-01-01",
+					} as OFCEvent,
+				},
+				{
+					title: "2022-01-01 Another Test Event.md",
+					event: {
+						title: "Another Test Event",
+						date: "2022-01-01",
+						startTime: "11:00",
+						endTime: "12:00",
+					} as OFCEvent,
+				},
+			],
+		],
+	])("%p", async (_, inputs: { title: string; event: OFCEvent }[]) => {
 		const obsidian = makeApp(
 			MockAppBuilder.make()
 				.folder(
-					new MockAppBuilder(dirName).file(
-						title,
-						new FileBuilder().frontmatter(eventInput)
+					inputs.reduce(
+						(builder, { title, event }) =>
+							builder.file(
+								title,
+								new FileBuilder().frontmatter(event)
+							),
+						new MockAppBuilder(dirName)
 					)
 				)
 				.done()
@@ -53,11 +108,24 @@ describe("Note Calendar Tests", () => {
 			false,
 			true
 		);
-		const events = await calendar.getEvents();
-		expect(events.length).toBe(1);
-		const [event, { file, lineNumber }] = events[0];
-		expect(event).toEqual(eventInput);
-		expect(file.path).toEqual(`${dirName}/${title}`);
-		expect(lineNumber).toBeUndefined();
+		const res = await calendar.getEvents();
+		expect(res.length).toBe(inputs.length);
+		const events = res.map((e) => e[0]);
+		const paths = res.map((e) => e[1].file.path);
+
+		expect(
+			res.every((elt) => elt[1].lineNumber === undefined)
+		).toBeTruthy();
+
+		for (const { event, title } of inputs) {
+			expect(events).toContainEqual(event);
+			expect(paths).toContainEqual(`${dirName}/${title}`);
+		}
+
+		for (const [event, { file }] of res) {
+			const eventsFromFile = await calendar.getEventsInFile(file);
+			expect(eventsFromFile.length).toBe(1);
+			expect(eventsFromFile[0][0]).toEqual(event);
+		}
 	});
 });
