@@ -107,7 +107,7 @@ export default class NoteCalendar extends EditableCalendar {
 	async createEvent(event: OFCEvent): Promise<EventLocation> {
 		const path = `${this.directory}/${filenameForEvent(event)}`;
 		if (this.app.getAbstractFileByPath(path)) {
-			throw new Error(`File ${path} already exists.`);
+			throw new Error(`Event at ${path} already exists.`);
 		}
 		const file = await this.app.create(path, newFrontmatter(event));
 		return { file, lineNumber: undefined };

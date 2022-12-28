@@ -1,9 +1,22 @@
+import { join } from "path";
 import { TFile } from "obsidian";
+
 import { ObsidianInterface } from "src/ObsidianAdapter";
 import { MockApp, MockAppBuilder } from "../helpers/AppBuilder";
 import { FileBuilder } from "../helpers/FileBuilder";
 import { OFCEvent } from "src/types";
 import NoteCalendar from "./NoteCalendar";
+
+async function assertFailed(func: () => Promise<any>, message: RegExp) {
+	try {
+		await func();
+	} catch (e) {
+		expect(e).toBeInstanceOf(Error);
+		expect((e as Error).message).toMatch(message);
+		return;
+	}
+	expect(false).toBeTruthy();
+}
 
 const makeApp = (app: MockApp): ObsidianInterface => ({
 	getAbstractFileByPath: (path) => app.vault.getAbstractFileByPath(path),
@@ -127,5 +140,67 @@ describe("Note Calendar Tests", () => {
 			expect(eventsFromFile.length).toBe(1);
 			expect(eventsFromFile[0][0]).toEqual(event);
 		}
+	});
+	it.todo("Recursive folder settings");
+
+	it("creates an event", async () => {
+		const obsidian = makeApp(MockAppBuilder.make().done());
+		const calendar = new NoteCalendar(
+			obsidian,
+			color,
+			dirName,
+			false,
+			true
+		);
+		const event: OFCEvent = {
+			title: "Test Event",
+			allDay: true,
+			date: "2022-01-01",
+		};
+
+		(obsidian.create as jest.Mock).mockReturnValue({
+			path: join(dirName, "2022-01-01 Test Event.md"),
+		});
+		const { lineNumber } = await calendar.createEvent(event);
+		expect(lineNumber).toBeUndefined();
+		expect(obsidian.create).toHaveBeenCalledTimes(1);
+		const returns = (obsidian.create as jest.Mock).mock.calls[0];
+		expect(returns).toMatchInlineSnapshot(`
+		[
+		  "events/2022-01-01 Test Event.md",
+		  "---
+		title: Test Event
+		allDay: true
+		date: 2022-01-01
+		---
+		",
+		]
+	`);
+	});
+
+	it("cannot overwrite event", async () => {
+		const event: OFCEvent = {
+			title: "Test Event",
+			allDay: true,
+			date: "2022-01-01",
+		};
+		const obsidian = makeApp(
+			MockAppBuilder.make()
+				.folder(
+					new MockAppBuilder("events").file(
+						"2022-01-01 Test Event.md",
+						new FileBuilder().frontmatter(event)
+					)
+				)
+				.done()
+		);
+		const calendar = new NoteCalendar(
+			obsidian,
+			color,
+			dirName,
+			false,
+			true
+		);
+		await assertFailed(() => calendar.createEvent(event), /already exists/);
 	});
 });
