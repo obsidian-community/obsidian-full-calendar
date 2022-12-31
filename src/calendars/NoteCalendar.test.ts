@@ -154,8 +154,9 @@ describe("Note Calendar Tests", () => {
 		);
 		const event: OFCEvent = {
 			title: "Test Event",
-			allDay: true,
 			date: "2022-01-01",
+			startTime: "11:00",
+			endTime: "12:30",
 		};
 
 		(obsidian.create as jest.Mock).mockReturnValue({
@@ -170,8 +171,9 @@ describe("Note Calendar Tests", () => {
 		  "events/2022-01-01 Test Event.md",
 		  "---
 		title: Test Event
-		allDay: true
 		date: 2022-01-01
+		startTime: 11:00
+		endTime: 12:30
 		---
 		",
 		]
@@ -203,4 +205,105 @@ describe("Note Calendar Tests", () => {
 		);
 		await assertFailed(() => calendar.createEvent(event), /already exists/);
 	});
+
+	it("modify an existing event and keeping the same day and title", async () => {
+		const event: OFCEvent = {
+			title: "Test Event",
+			date: "2022-01-01",
+			startTime: "11:00",
+			endTime: "12:30",
+		};
+		const filename = "2022-01-01 Test Event.md";
+		const obsidian = makeApp(
+			MockAppBuilder.make()
+				.folder(
+					new MockAppBuilder("events").file(
+						filename,
+						new FileBuilder().frontmatter(event)
+					)
+				)
+				.done()
+		);
+		const calendar = new NoteCalendar(
+			obsidian,
+			color,
+			dirName,
+			false,
+			true
+		);
+
+		const firstFile = obsidian.getAbstractFileByPath(
+			join("events", filename)
+		) as TFile;
+
+		const contents = await obsidian.read(firstFile);
+
+		const newLoc = await calendar.modifyEvent(
+			{ path: join("events", filename), lineNumber: undefined },
+			{ ...event, endTime: "13:30" }
+		);
+		expect(newLoc.file.path).toBe(join("events", filename));
+		expect(newLoc.lineNumber).toBeUndefined();
+
+		expect(obsidian.rewrite).toHaveReturnedTimes(1);
+		const [file, rewriteCallback] = (obsidian.rewrite as jest.Mock).mock
+			.calls[0];
+		expect(file.path).toBe(join("events", filename));
+
+		expect(rewriteCallback(contents)).toMatchInlineSnapshot(`
+		"---
+		title: Test Event
+		date: 2022-01-01
+		startTime: 11:00
+		endTime: 13:30
+		---
+		"
+	`);
+	});
+	// it("modify an existing event with a new date", async () => {
+	// 	const event: OFCEvent = {
+	// 		title: "Test Event",
+	// 		date: "2022-01-01",
+	// 		startTime: "11:00",
+	// 		endTime: "12:30",
+	// 	};
+	// 	const filename = "2022-01-01 Test Event.md";
+	// 	const obsidian = makeApp(
+	// 		MockAppBuilder.make()
+	// 			.folder(
+	// 				new MockAppBuilder("events").file(
+	// 					filename,
+	// 					new FileBuilder().frontmatter(event)
+	// 				)
+	// 			)
+	// 			.done()
+	// 	);
+	// 	const calendar = new NoteCalendar(
+	// 		obsidian,
+	// 		color,
+	// 		dirName,
+	// 		false,
+	// 		true
+	// 	);
+
+	// 	const firstFile = obsidian.getAbstractFileByPath(
+	// 		join("events", filename)
+	// 	) as TFile;
+
+	// 	const contents = await obsidian.read(firstFile);
+
+	// 	const newLoc = await calendar.modifyEvent(
+	// 		{ path: join("events", filename), lineNumber: undefined },
+	// 		{ ...event, date: "2022-01-02" }
+	// 	);
+
+	// 	const newFilename = "2022-01-02 Test Event.md";
+	// 	expect(newLoc.file.path).toBe(join("events", newFilename));
+	// 	expect(newLoc.lineNumber).toBeUndefined();
+
+	// 	expect(obsidian.rewrite).toHaveReturnedTimes(1);
+	// 	const [file, rewriteCallback] = (obsidian.rewrite as jest.Mock).mock
+	// 		.calls[0];
+	// 	expect(file.path).toBe(join("events", filename));
+	// });
 });

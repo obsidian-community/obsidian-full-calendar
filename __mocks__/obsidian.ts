@@ -50,3 +50,11 @@ export class TFolder extends TAbstractFile {
 		return this.path === "/";
 	}
 }
+
+export function parseYaml(yaml: string): Record<string, string> | null {
+	const [k, ...v] = yaml.split(":");
+	if (!k || !v) {
+		return null;
+	}
+	return Object.fromEntries([[k.trim(), v.join(":").trim()]]);
+}

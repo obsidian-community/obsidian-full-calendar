@@ -232,7 +232,7 @@ export default class EventCache {
 			this.getDetailsForEdit(eventId);
 		const { path, lineNumber } = oldLocation;
 
-		const newLocation = await calendar.updateEvent(
+		const newLocation = await calendar.modifyEvent(
 			{ path, lineNumber },
 			newEvent
 		);

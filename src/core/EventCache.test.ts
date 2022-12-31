@@ -213,8 +213,8 @@ class TestEditable extends EditableCalendar {
 	createEvent = jest.fn();
 
 	deleteEvent = jest.fn();
-	moveEvent = jest.fn();
-	updateEvent = jest.fn();
+	move = jest.fn();
+	modifyEvent = jest.fn();
 
 	get type(): string {
 		return "TEST_EDITABLE_EVENT";
@@ -494,7 +494,7 @@ describe("editable calendars", () => {
 			const id = sources[0].events[0].id;
 
 			const calendar = getCalendar(cache, "test");
-			calendar.updateEvent.mockReturnValueOnce(
+			calendar.modifyEvent.mockReturnValueOnce(
 				new Promise((resolve) => resolve(newLocation))
 			);
 
@@ -504,8 +504,8 @@ describe("editable calendars", () => {
 
 			await cache.modifyEvent(id, newEvent);
 
-			expect(calendar.updateEvent.mock.calls.length).toBe(1);
-			expect(calendar.updateEvent.mock.calls[0]).toEqual([
+			expect(calendar.modifyEvent.mock.calls.length).toBe(1);
+			expect(calendar.modifyEvent.mock.calls[0]).toEqual([
 				pathResult(oldEvent[1]),
 				newEvent,
 			]);
@@ -547,7 +547,7 @@ describe("editable calendars", () => {
 			const id = sources[0].events[0].id;
 
 			const calendar = getCalendar(cache, "test");
-			expect(calendar.updateEvent.mock.calls.length).toBe(0);
+			expect(calendar.modifyEvent.mock.calls.length).toBe(0);
 			expect(cache._storeForTest.getEventById(id)).toEqual(event[0]);
 
 			assertCacheContentCounts(cache, {

@@ -113,7 +113,7 @@ export default class NoteCalendar extends EditableCalendar {
 		return { file, lineNumber: undefined };
 	}
 
-	async updateEvent(
+	async modifyEvent(
 		location: EventPathLocation,
 		event: OFCEvent
 	): Promise<EventLocation> {
@@ -144,24 +144,24 @@ export default class NoteCalendar extends EditableCalendar {
 		return { file: newFile, lineNumber: undefined };
 	}
 
-	async moveEvent(
-		location: EventPathLocation,
-		destination: EditableCalendar
+	async move(
+		fromLocation: EventPathLocation,
+		toCalendar: EditableCalendar
 	): Promise<EventLocation> {
-		const { path, lineNumber } = location;
+		const { path, lineNumber } = fromLocation;
 		if (lineNumber !== undefined) {
 			throw new Error("Note calendar cannot handle inline events.");
 		}
-		if (!(destination instanceof NoteCalendar)) {
+		if (!(toCalendar instanceof NoteCalendar)) {
 			throw new Error(
-				`Event cannot be moved to a note calendar from a calendar of type ${destination.type}.`
+				`Event cannot be moved to a note calendar from a calendar of type ${toCalendar.type}.`
 			);
 		}
 		const file = this.app.getFileByPath(path);
 		if (!file) {
 			throw new Error(`File ${path} not found.`);
 		}
-		const destDir = destination.directory;
+		const destDir = toCalendar.directory;
 		const newPath = `${destDir}/${file.name}`;
 		await this.app.rename(file, newPath);
 		// TODO: Test to see if a file reference is still valid after a rename.
