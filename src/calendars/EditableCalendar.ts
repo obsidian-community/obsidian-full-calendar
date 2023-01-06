@@ -9,32 +9,32 @@ export type EditableEventResponse = [OFCEvent, EventLocation];
  * Abstract class representing the interface for a Calendar.
  */
 export abstract class EditableCalendar extends Calendar {
-	constructor(color: string) {
-		super(color);
-	}
+    constructor(color: string) {
+        super(color);
+    }
 
-	abstract get directory(): string;
+    abstract get directory(): string;
 
-	/**
-	 * Returns true if this calendar sources events from the given path.
-	 */
-	containsPath(path: string): boolean {
-		return path.startsWith(this.directory);
-	}
+    /**
+     * Returns true if this calendar sources events from the given path.
+     */
+    containsPath(path: string): boolean {
+        return path.startsWith(this.directory);
+    }
 
-	abstract getEventsInFile(file: TFile): Promise<EditableEventResponse[]>;
+    abstract getEventsInFile(file: TFile): Promise<EditableEventResponse[]>;
 
-	abstract createEvent(event: OFCEvent): Promise<EventLocation>;
+    abstract createEvent(event: OFCEvent): Promise<EventLocation>;
 
-	abstract deleteEvent(location: EventPathLocation): Promise<void>;
+    abstract deleteEvent(location: EventPathLocation): Promise<void>;
 
-	abstract move(
-		from: EventPathLocation,
-		to: EditableCalendar
-	): Promise<EventLocation>;
+    abstract move(
+        from: EventPathLocation,
+        to: EditableCalendar
+    ): Promise<EventLocation>;
 
-	abstract modifyEvent(
-		location: EventPathLocation,
-		newEvent: OFCEvent
-	): Promise<EventLocation>;
+    abstract modifyEvent(
+        location: EventPathLocation,
+        newEvent: OFCEvent
+    ): Promise<EventLocation>;
 }
