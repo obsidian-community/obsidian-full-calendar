@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin } from "obsidian";
+import { MarkdownView, Notice, Plugin } from "obsidian";
 import {
     CalendarView,
     FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
@@ -14,9 +14,13 @@ import {
 } from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
 import { EventModal } from "./ui/modal";
+import EventCache from "./core/EventCache";
+import NoteCalendar from "./calendars/NoteCalendar";
+import { ObsidianIO } from "./ObsidianAdapter";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
+    cache: EventCache | null = null;
 
     renderCalendar = renderCalendar;
     processFrontmatter = toEventInput;
@@ -33,14 +37,33 @@ export default class FullCalendarPlugin extends Plugin {
             });
         } else {
             await Promise.all(
-                leaves.map((l) =>
-                    this.app.workspace.setActiveLeaf(l, { focus: true })
-                )
+                leaves.map((l) => (l.view as CalendarView).onOpen())
             );
         }
     }
     async onload() {
         await this.loadSettings();
+        const obs = new ObsidianIO(this.app);
+
+        this.cache = new EventCache(this.settings.calendarSources, {
+            local: (info) => {
+                return info.type === "local"
+                    ? new NoteCalendar(
+                          obs,
+                          info.color,
+                          info.directory,
+                          this.settings.recursiveLocal,
+                          true
+                      )
+                    : null;
+            },
+            dailynote: () => null,
+            gcal: () => null,
+            ical: () => null,
+            caldav: () => null,
+            icloud: () => null,
+            FOR_TEST_ONLY: () => null,
+        });
 
         this.registerView(
             FULL_CALENDAR_VIEW_TYPE,
@@ -67,6 +90,19 @@ export default class FullCalendarPlugin extends Plugin {
             name: "New Event",
             callback: () => {
                 new EventModal(this.app, this, null).open();
+            },
+        });
+
+        this.addCommand({
+            id: "full-calendar-reset",
+            name: "Reset Event Cache",
+            callback: () => {
+                this.cache?.reset(this.settings.calendarSources);
+                this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
+                this.app.workspace.detachLeavesOfType(
+                    FULL_CALENDAR_SIDEBAR_VIEW_TYPE
+                );
+                new Notice("Full Calendar has been reset.");
             },
         });
         this.addCommand({

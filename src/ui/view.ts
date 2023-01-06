@@ -1,11 +1,15 @@
 import "./overrides.css";
 import { ItemView, Menu, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import { Calendar, EventApi } from "@fullcalendar/core";
+import { Calendar, EventApi, EventSourceInput } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
 import { EventModal } from "./modal";
 import { FCError, PLUGIN_SLUG } from "../types";
-import { dateEndpointsToFrontmatter, fromEventApi } from "../interop";
+import {
+    dateEndpointsToFrontmatter,
+    fromEventApi,
+    toEventInput,
+} from "../interop";
 import { IcsSource } from "../models/IcsSource";
 import { NoteSource } from "../models/NoteSource";
 import { RemoteSource } from "../models/RemoteSource";
@@ -17,6 +21,8 @@ import { DateTime } from "luxon";
 import { DailyNoteSource } from "../models/DailyNoteSource";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import { getColors } from "../models/util";
+import EventCache from "src/core/EventCache";
+import internal from "stream";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -52,112 +58,43 @@ export class CalendarView extends ItemView {
     }
 
     async onCacheUpdate(file: TFile) {
-        if (!this.calendar) {
-            return;
-        }
-        const source = this.plugin.settings.calendarSources.find(
-            (c) => c.type === "local" && file.path.startsWith(c.directory)
-        );
-        const dailyNoteSettings = getDailyNoteSettings();
-        if (source) {
-            const event = NoteEvent.fromFile(
-                this.app.metadataCache,
-                this.app.vault,
-                file
-            );
-            if (!event) {
-                return;
-            }
-            // Serialize ID correctly from file.
-            let calendarEvent = this.calendar.getEventById(event.idForCalendar);
-            if (source && event) {
-                if (calendarEvent) {
-                    calendarEvent.remove();
-                }
-                // TODO: Respect recursion settings when adding event to the calendar.
-                event.addTo(this.calendar, source);
-            }
-        } else if (
-            dailyNoteSettings.folder &&
-            file.path.startsWith(dailyNoteSettings.folder)
-        ) {
-            const source = this.plugin.settings.calendarSources.find(
-                (c) => c.type === "dailynote"
-            );
-            if (!source || source.type !== "dailynote") {
-                console.warn("Daily note calendar not loaded.");
-                return;
-            }
-
-            const s = new DailyNoteSource(
-                this.app.vault,
-                this.app.metadataCache,
-                source
-            );
-            const newEvents = (await s.getAllEventsFromFile(file))?.flatMap(
-                (e) => (e ? [e] : [])
-            );
-            let idx = 0;
-            let calendarEvent: EventApi | null = null;
-            const oldEvents: Record<string, EventApi> = {};
-            while (
-                (calendarEvent = this.calendar.getEventById(
-                    `dailynote::${file.path}::${idx++}`
-                ))
-            ) {
-                oldEvents[calendarEvent.id] = calendarEvent;
-            }
-            Object.values(oldEvents).forEach((e) => {
-                e.remove();
-            });
-            if (!newEvents) {
-                return;
-            }
-            newEvents.forEach((newEvent) => {
-                this.calendar?.addEvent({
-                    ...newEvent,
-                    ...getColors(source.color),
-                });
-            });
-        }
+        await this.plugin.cache?.fileUpdated(file);
     }
 
     async onOpen() {
         await this.plugin.loadSettings();
-        const noteSourcePromises = this.plugin.settings.calendarSources
-            .flatMap((s) => (s.type === "local" ? [s] : []))
-            .map(
-                (s) => new NoteSource(this.app.vault, this.app.metadataCache, s)
-            )
-            .map((ns) => ns.toApi(this.plugin.settings.recursiveLocal));
+        if (!this.plugin.cache) {
+            new Notice("Full Calendar event cache not loaded.");
+            return;
+        }
+        if (!this.plugin.cache.initialized) {
+            await this.plugin.cache.populate();
+        }
 
         const container = this.containerEl.children[1];
         container.empty();
         let calendarEl = container.createEl("div");
-        const noteSourceResults = await Promise.all(noteSourcePromises);
-        const sources = noteSourceResults.flatMap((s) =>
-            s instanceof FCError ? [] : [s]
-        );
+
         if (
-            sources.length === 0 &&
             this.plugin.settings.calendarSources.filter(
-                (s) =>
-                    s.type === "ical" ||
-                    s.type === "caldav" ||
-                    s.type === "icloud" ||
-                    s.type === "dailynote"
+                (s) => s.type !== "FOR_TEST_ONLY" && s.type !== "gcal"
             ).length === 0
         ) {
             renderOnboarding(this.app, this.plugin, calendarEl);
             return;
         }
 
-        let errs = noteSourceResults.flatMap((s) =>
-            s instanceof FCError ? [s] : []
-        );
-        for (const err of errs) {
-            new Notice(err.message);
-        }
+        const sources: EventSourceInput[] = this.plugin.cache
+            .getAllEvents()
+            .map(
+                ({ events, editable, color }): EventSourceInput => ({
+                    events: events.flatMap(
+                        (e) => toEventInput(e.id, e.event) || []
+                    ),
+                    editable,
+                    ...getColors(color),
+                })
+            );
 
         this.calendar = renderCalendar(calendarEl, sources, {
             forceNarrow: this.inSidebar,
@@ -166,18 +103,16 @@ export class CalendarView extends ItemView {
                     info.jsEvent.getModifierState("Control") ||
                     info.jsEvent.getModifierState("Meta")
                 ) {
-                    const event = await eventFromApi(
-                        this.app.metadataCache,
-                        this.app.vault,
-                        this.plugin.settings,
-                        info.event
+                    const event = this.plugin.cache?.getEventById(
+                        info.event.id
                     );
                     if (!event) {
                         return;
                     }
                     let leaf = this.app.workspace.getMostRecentLeaf();
                     if (leaf) {
-                        event.openIn(leaf, this.app.workspace);
+                        // TODO: Uncomment and fix
+                        // event.openIn(leaf, this.app.workspace);
                     }
                 } else {
                     new EventModal(

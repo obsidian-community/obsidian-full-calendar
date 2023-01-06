@@ -60,7 +60,6 @@ export class MockVault implements Vault {
         const p = join("/", file.path);
         const contents = this.contents.get(p);
         if (!contents) {
-            console.log(this.contents);
             throw new Error(`File at path ${p} does not have contents`);
         }
         return contents;

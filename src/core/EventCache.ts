@@ -107,7 +107,10 @@ export default class EventCache {
 
     init() {
         this.calendarInfos
-            .flatMap((s) => this.calendarInitializers[s.type](s) || [])
+            .flatMap((s) => {
+                const cal = this.calendarInitializers[s.type](s);
+                return cal || [];
+            })
             .forEach((cal) => this.calendars.set(cal.id, cal));
     }
 
@@ -167,7 +170,7 @@ export default class EventCache {
         }
     }
 
-    updateViews(toRemove: string[], toAdd: CacheEntry[]) {
+    private updateViews(toRemove: string[], toAdd: CacheEntry[]) {
         const payload = {
             toRemove,
             toAdd,
