@@ -44,7 +44,8 @@ export class NoteEvent extends LocalEvent {
 		if (vault.getAbstractFileByPath(filename)) {
 			throw new FCError(`File with name '${filename}' already exists`);
 		}
-		const file = await vault.create(filename, newFrontmatter(data));
+		const file = await vault.create(filename, "");
+		await modifyFrontmatter(vault, file, data);
 
 		return new NoteEvent(cache, vault, data, {
 			directory: file.parent.path,
