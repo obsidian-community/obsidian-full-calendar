@@ -7,7 +7,7 @@ import {
 	TFile,
 	Vault,
 } from "obsidian";
-import { OFCEvent, SingleEventData, validateEvent } from "src/types";
+import { OFCEvent, SingleEventData, validateEvent } from "../types";
 
 // PARSING
 
@@ -20,7 +20,9 @@ const parseBool = (s: string): boolean | string =>
 	s === "true" ? true : s === "false" ? false : s;
 
 const fieldRegex = /\[([^\]]+):: ?([^\]]+)\]/g;
-function getInlineAttributes(s: string): Record<string, string | boolean> {
+export function getInlineAttributes(
+	s: string
+): Record<string, string | boolean> {
 	return Object.fromEntries(
 		Array.from(s.matchAll(fieldRegex)).map((m) => [m[1], parseBool(m[2])])
 	);

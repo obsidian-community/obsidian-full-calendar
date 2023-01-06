@@ -6,14 +6,14 @@ import {
 } from "./ui/view";
 import { renderCalendar } from "./ui/calendar";
 
-import { EventModal } from "./ui/modal";
-import { toEventInput } from "./fullcalendar_interop";
+import { toEventInput } from "./interop";
 import {
 	DEFAULT_SETTINGS,
 	FullCalendarSettings,
 	FullCalendarSettingTab,
 } from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
+import { EventModal } from "./ui/modal";
 
 export default class FullCalendarPlugin extends Plugin {
 	settings: FullCalendarSettings = DEFAULT_SETTINGS;

@@ -58,23 +58,28 @@ function stringifyYamlAtom(v: PrintableAtom): string {
 	return result;
 }
 
-function stringifyYamlLine(k: string | number | symbol, v: PrintableAtom) {
+function stringifyYamlLine(
+	k: string | number | symbol,
+	v: PrintableAtom
+): string {
 	return `${String(k)}: ${stringifyYamlAtom(v)}`;
 }
 
-/**
- * Modify frontmatter for an Obsidian file in-place, adding new entries to the end.
- * @param modifications Object describing modifications/additions to the frontmatter.
- * @param file File to modify.
- * @param vault Obsidian Vault API.
- * @returns Array of keys which were updated rather than newly created.
- */
-export async function modifyFrontmatter(
-	vault: Vault,
-	file: TFile,
+export function newFrontmatter(fields: Partial<OFCEvent>): string {
+	return (
+		"---\n" +
+		Object.entries(fields)
+			.filter(([_, v]) => v !== undefined)
+			.map(([k, v]) => stringifyYamlLine(k, v))
+			.join("\n") +
+		"\n---\n"
+	);
+}
+
+export function modifyFrontmatterString(
+	page: string,
 	modifications: Partial<OFCEvent>
-): Promise<void> {
-	let page = await vault.read(file);
+): string {
 	const frontmatter = extractFrontmatter(page)?.split("\n");
 	let newFrontmatter: string[] = [];
 	if (!frontmatter) {
@@ -117,6 +122,22 @@ export async function modifyFrontmatter(
 				)
 		);
 	}
-	const newPage = replaceFrontmatter(page, newFrontmatter.join("\n") + "\n");
+	return replaceFrontmatter(page, newFrontmatter.join("\n") + "\n");
+}
+
+/**
+ * Modify frontmatter for an Obsidian file in-place, adding new entries to the end.
+ * @param modifications Object describing modifications/additions to the frontmatter.
+ * @param file File to modify.
+ * @param vault Obsidian Vault API.
+ * @returns Array of keys which were updated rather than newly created.
+ */
+export async function modifyFrontmatter(
+	vault: Vault,
+	file: TFile,
+	modifications: Partial<OFCEvent>
+): Promise<void> {
+	let page = await vault.read(file);
+	const newPage = modifyFrontmatterString(page, modifications);
 	await vault.modify(file, newPage);
 }

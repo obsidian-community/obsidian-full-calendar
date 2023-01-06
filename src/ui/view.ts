@@ -5,10 +5,7 @@ import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
 import { EventModal } from "./modal";
 import { FCError, PLUGIN_SLUG } from "../types";
-import {
-	dateEndpointsToFrontmatter,
-	fromEventApi,
-} from "../fullcalendar_interop";
+import { dateEndpointsToFrontmatter, fromEventApi } from "../interop";
 import { IcsSource } from "../models/IcsSource";
 import { NoteSource } from "../models/NoteSource";
 import { RemoteSource } from "../models/RemoteSource";
@@ -169,7 +166,6 @@ export class CalendarView extends ItemView {
 					info.jsEvent.getModifierState("Control") ||
 					info.jsEvent.getModifierState("Meta")
 				) {
-					console.log("open", info.event.id);
 					const event = await eventFromApi(
 						this.app.metadataCache,
 						this.app.vault,

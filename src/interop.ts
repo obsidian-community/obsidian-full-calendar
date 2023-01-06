@@ -3,6 +3,10 @@ import { OFCEvent } from "./types";
 
 import { DateTime, Duration } from "luxon";
 
+/*
+ * Functions for converting between the types used by the FullCalendar view plugin and types used internally by Obsidian Full Calendar.
+ */
+
 const parseTime = (time: string): Duration | null => {
 	let parsed = DateTime.fromFormat(time, "h:mm a");
 	if (parsed.invalidReason) {

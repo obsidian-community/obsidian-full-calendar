@@ -1,4 +1,4 @@
-import { MetadataCache, Vault } from "obsidian";
+import { TFile } from "obsidian";
 
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
@@ -14,7 +14,8 @@ export type RangeTimeData = {
 };
 
 export type CommonEventData = {
-	title?: string;
+	title: string;
+	id?: string; // Only set for remote calendars.
 } & (RangeTimeData | AllDayData);
 
 export type SingleEventData = {
@@ -37,6 +38,7 @@ export type OFCEvent = SingleEventData | RecurringEventData;
  * Validates that an incoming object from a JS object (presumably parsed from a note's frontmatter)
  * is a valid event, and returns that event if so. If any required fields are missing, then returns null.
  */
+// TODO: Replace with Zod validator (https://github.com/colinhacks/zod)
 export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 	if (obj === undefined) {
 		return null;
@@ -61,14 +63,19 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 		if (!obj.date) {
 			return null;
 		}
-		return {
+		const event: OFCEvent = {
 			title: obj.title,
-			type: "single",
+			type: obj.type,
 			date: obj.date,
-			endDate: obj.endDate,
-			completed: obj.completed,
 			...timeInfo,
 		};
+		if (obj.completed !== undefined || obj.completed !== null) {
+			event.completed = obj.completed;
+		}
+		if (obj.endDate) {
+			event.endDate = obj.endDate;
+		}
+		return event;
 	} else if (obj.type === "recurring") {
 		if (obj.daysOfWeek === undefined) {
 			return null;
@@ -153,20 +160,27 @@ export type ICloudSource = Omit<CalDAVSource, "type" | "url"> & {
 	url: "https://caldav.icloud.com";
 };
 
-export type CalendarSource =
+export type TestSource = {
+	type: "FOR_TEST_ONLY";
+	id: string;
+	events?: OFCEvent[];
+} & CalendarSourceCommon;
+
+export type CalendarInfo =
 	| LocalCalendarSource
 	| DailyNoteCalendarSource
 	| GoogleCalendarSource
 	| ICalSource
 	| CalDAVSource
-	| ICloudSource;
+	| ICloudSource
+	| TestSource;
 
 /**
  * Construct a partial calendar source of the specified type
  */
 export function makeDefaultPartialCalendarSource(
-	type: CalendarSource["type"]
-): Partial<CalendarSource> {
+	type: CalendarInfo["type"]
+): Partial<CalendarInfo> {
 	if (type === "icloud") {
 		return {
 			type: type,
@@ -191,3 +205,8 @@ export class FCError {
 		this.message = message;
 	}
 }
+
+export type EventLocation = {
+	file: TFile;
+	lineNumber: number | undefined;
+};

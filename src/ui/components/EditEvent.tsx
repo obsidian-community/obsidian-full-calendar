@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
-	CalendarSource,
+	CalendarInfo,
 	OFCEvent,
 	SingleEventData,
 	RangeTimeData,
@@ -82,7 +82,7 @@ const DaySelect = ({
 
 interface EditEventProps {
 	submit: (frontmatter: OFCEvent, calendarIndex: number) => Promise<void>;
-	readonly calendars: CalendarSource[];
+	readonly calendars: CalendarInfo[];
 	defaultCalendarIndex: number;
 	initialEvent?: Partial<OFCEvent>;
 	open?: () => Promise<void>;
