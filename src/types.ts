@@ -69,7 +69,7 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
 			date: obj.date,
 			...timeInfo,
 		};
-		if (obj.completed) {
+		if (obj.completed !== undefined || obj.completed !== null) {
 			event.completed = obj.completed;
 		}
 		if (obj.endDate) {
