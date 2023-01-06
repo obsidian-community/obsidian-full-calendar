@@ -5,10 +5,7 @@ import {
 	Workspace,
 	WorkspaceLeaf,
 } from "obsidian";
-import {
-	modifyFrontmatter,
-	newFrontmatter,
-} from "src/serialization/frontmatter";
+import { modifyFrontmatter } from "src/serialization/frontmatter";
 import { OFCEvent, FCError, validateEvent } from "src/types";
 import { basenameFromEvent, LocalEvent } from "./Event";
 
