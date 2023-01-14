@@ -1,8 +1,11 @@
-import { DateTime } from "luxon";
+import "./EditEvent.css";
+import { DateTime, Info } from "luxon";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { CalendarSource, OFCEvent, RangeTimeData } from "../../types";
-import { RRule } from "rrule";
+import { Frequency, RRule } from "rrule";
+import { ALL_WEEKDAYS } from "rrule/dist/esm/weekday";
+import { Options } from "rrule/dist/esm/types";
 
 function makeChangeListener<T>(
 	setState: React.Dispatch<React.SetStateAction<T>>,
@@ -15,35 +18,80 @@ function formatDate(date: Date | null | undefined): string {
 	return date?.toISOString().substring(0, 10) ?? "";
 }
 
-interface DayChoiceProps {
-	code: string;
-	label: string;
-	isSelected: boolean;
-	onClick: (code: string) => void;
+interface FancyChoiceProps<T extends Labelled> {
+	options: T[];
+	onChange?: (selection: T[]) => void;
+	selection?: T[];
 }
 
-const DayChoice = ({ code, label, isSelected, onClick }: DayChoiceProps) => (
-	<button
-		type="button"
-		style={{
-			marginLeft: "0.25rem",
-			marginRight: "0.25rem",
-			padding: "0",
-			backgroundColor: isSelected
-				? "var(--interactive-accent)"
-				: "var(--interactive-normal)",
-			color: isSelected ? "var(--text-on-accent)" : "var(--text-normal)",
-			borderStyle: "solid",
-			borderWidth: "1px",
-			borderRadius: "50%",
-			width: "25px",
-			height: "25px",
-		}}
-		onClick={() => onClick(code)}
-	>
-		<b>{label[0]}</b>
-	</button>
-);
+const DAYS = Info.weekdays("long").map((label, i) => ({
+	label,
+	value: ALL_WEEKDAYS[(i + 1) % 7],
+}));
+const MONTHS = Info.months("long").map((label, value) => ({
+	label,
+	value: value + 1,
+}));
+const FREQUENCIES = [
+	{ value: Frequency.YEARLY, label: "year", maxInterval: 100 },
+	{ value: Frequency.MONTHLY, label: "month", maxInterval: 12 },
+	{ value: Frequency.WEEKLY, label: "week", maxInterval: 52 },
+	{ value: Frequency.DAILY, label: "day", maxInterval: 365 },
+];
+
+interface Labelled {
+	label: string;
+}
+
+function FancySelect<T extends Labelled>({
+	options,
+	onChange,
+	selection,
+}: FancyChoiceProps<T>) {
+	const [sel, setSel] = useState(selection ?? []);
+
+	return (
+		<div style={{ display: "flex", flexWrap: "wrap", gap: ".25em" }}>
+			{options.map((value, i) => {
+				const isSelected = sel.some((v) => v === value);
+				const onClick = () => {
+					const newSel = isSelected
+						? sel.filter((v) => v !== value)
+						: [...sel, value];
+
+					setSel(newSel);
+
+					if (onChange) {
+						onChange(newSel);
+					}
+				};
+
+				return (
+					<button
+						key={i}
+						type="button"
+						style={{
+							padding: ".6em",
+							backgroundColor: isSelected
+								? "var(--interactive-accent)"
+								: "var(--interactive-normal)",
+							color: isSelected
+								? "var(--text-on-accent)"
+								: "var(--text-normal)",
+							borderStyle: "solid",
+							borderWidth: "1px",
+							borderRadius: "20px",
+							fontWeight: "bold",
+						}}
+						onClick={onClick}
+					>
+						{value.label}
+					</button>
+				);
+			})}
+		</div>
+	);
+}
 
 interface EditEventProps {
 	submit: (frontmatter: OFCEvent, calendarIndex: number) => Promise<void>;
@@ -73,6 +121,9 @@ export const EditEvent = ({
 			: formatDate(rule?.options.dtstart)) ?? ""
 	);
 
+	const frequency = rule
+		? FREQUENCIES.find((f) => f.value === rule.options.freq)
+		: undefined;
 	const isRecurring = rule !== undefined;
 	let initialStartTime = "";
 	let initialEndTime = "";
@@ -113,9 +164,30 @@ export const EditEvent = ({
 		}
 	}, [titleRef]);
 
-	const updateRule = (action: () => void) => {
-		action();
-		setRule(rule);
+	const updateRule = (action: (options: Options) => void) => {
+		if (rule) {
+			const newOptions = { ...rule.options };
+
+			action(newOptions);
+			setRule(new RRule(newOptions));
+		}
+	};
+
+	const updateFrequency = (frequency: string) => {
+		if (frequency === "") {
+			setRule(undefined);
+			return;
+		}
+
+		const newRule = new RRule({
+			freq: parseInt(frequency, 10),
+			interval: rule?.options.interval ?? 1,
+			dtstart: rule?.options.dtstart,
+			until: rule?.options.until,
+			count: rule?.options.count ?? null,
+		});
+
+		setRule(newRule);
 	};
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -234,8 +306,9 @@ export const EditEvent = ({
 						</>
 					)}
 				</p>
+
 				<p>
-					<label htmlFor="allDay">All day event </label>
+					<label htmlFor="allDay">All day event</label>
 					<input
 						id="allDay"
 						checked={allDay}
@@ -243,76 +316,185 @@ export const EditEvent = ({
 						type="checkbox"
 					/>
 				</p>
-				<p>
-					<label htmlFor="recurring">Recurring Event </label>
-					<input
-						id="recurring"
-						checked={isRecurring}
-						onChange={(e) =>
-							setRule(e.target.checked ? new RRule() : undefined)
-						}
-						type="checkbox"
-					/>
-				</p>
 
-				{rule && (
-					<>
-						<p>Every</p>
+				<div id="recurring-mode">
+					<p>The event occurs</p>
 
-						<p>
-							Starts recurring
+					<select
+						value={rule?.options.freq ?? ""}
+						onChange={(e) => updateFrequency(e.target.value)}
+					>
+						<option value="">only once</option>
+						{FREQUENCIES.map(({ label, value }) => (
+							<option key={value} value={value}>
+								on a {label} basis
+							</option>
+						))}
+					</select>
+
+					{rule && (
+						<>
+							<p>and every</p>
+
 							<input
-								type="date"
-								id="startDate"
-								value={formatDate(rule.options.dtstart)}
+								type="number"
+								name="interval"
+								value={rule.options.interval}
 								onChange={(e) =>
 									updateRule(
-										() =>
-											(rule.options.dtstart = new Date(
-												e.target.value
-											))
+										(o) =>
+											(o.interval = e.target.validity
+												.valid
+												? parseInt(e.target.value, 10)
+												: 1)
 									)
 								}
+								min="1"
+								max={frequency!!.maxInterval}
+								required
 							/>
-							and stops recurring
+
+							<p>{frequency!!.label}s.</p>
+						</>
+					)}
+				</div>
+
+				{rule && ( // aka is recurring
+					<div id="recurring-spec">
+						<p>It starts from the</p>
+						<input
+							type="date"
+							value={formatDate(rule.options.dtstart)}
+							onChange={(e) =>
+								updateRule(
+									(o) =>
+										(o.dtstart = new Date(e.target.value))
+								)
+							}
+						/>
+
+						<p>and will be repeated</p>
+
+						<select
+							value={
+								rule.options.count === null ? "date" : "count"
+							}
+							onChange={(e) =>
+								updateRule(
+									(o) =>
+										(o.count =
+											e.target.value === "count"
+												? 1
+												: null)
+								)
+							}
+						>
+							<option value="count">
+								after a given amount of times
+							</option>
+							<option value="date">until date</option>
+						</select>
+
+						{rule.options.count === null && (
 							<input
+								name="until"
 								type="date"
-								id="endDate"
 								value={formatDate(rule.options.until)}
 								onChange={(e) =>
 									updateRule(
-										() =>
-											(rule.options.until = new Date(
-												e.target.value
-											))
+										(o) =>
+											(o.until = new Date(e.target.value))
 									)
 								}
 							/>
-						</p>
+						)}
+
+						{rule.options.count !== null && (
+							<input
+								name="count"
+								type="number"
+								value={rule.options.count}
+								min="1"
+								onChange={(e) =>
+									updateRule(
+										(o) =>
+											(o.count = o.count =
+												e.target.validity.valid
+													? parseInt(
+															e.target.value,
+															10
+													  )
+													: 1)
+									)
+								}
+								required
+							/>
+						)}
+
+						{rule.options.freq >= Frequency.MONTHLY && (
+							<>
+								<p>on these months</p>
+								<FancySelect
+									options={MONTHS}
+									selection={
+										rule.options.bymonth?.map(
+											(m) => MONTHS[m]
+										) ?? MONTHS
+									}
+									onChange={(e) =>
+										updateRule(
+											(o) =>
+												(o.bymonth = e.map(
+													(v) => v.value
+												))
+										)
+									}
+								></FancySelect>
+							</>
+						)}
+
+						{rule.options.freq >= Frequency.WEEKLY && (
+							<>
+								<p>on these days</p>
+								<FancySelect
+									options={DAYS}
+									selection={
+										rule.options.byweekday?.map(
+											(d) => DAYS[d]
+										) ?? DAYS
+									}
+									onChange={(e) =>
+										updateRule(
+											(o) =>
+												(o.byweekday = e.map(
+													(v) => v.value
+												))
+										)
+									}
+								></FancySelect>
+							</>
+						)}
 
 						{rule.isFullyConvertibleToText() && (
-							<p>
-								This event will be repeated {rule.toText()}
-								<br />
+							<p className="note">
+								This event will be repeated {rule.toText()}.
 							</p>
 						)}
 
 						{rule.after(new Date(), true) && (
-							<p>
+							<p className="note">
 								The next occurrence is the{" "}
 								{rule.after(new Date(), true).toString()}.
 							</p>
 						)}
-					</>
+					</div>
 				)}
 				<p>
 					<label htmlFor="task">Task Event </label>
 					<input
 						id="task"
 						checked={isTask}
-						onChange={(e) => {
-							setIsTask(e.target.checked);
-						}}
+						onChange={(e) => setIsTask(e.target.checked)}
 						type="checkbox"
 					/>
 				</p>

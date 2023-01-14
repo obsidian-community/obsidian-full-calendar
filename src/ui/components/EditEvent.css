@@ -1,0 +1,18 @@
+#recurring-mode, #recurring-spec {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .6em;
+}
+
+#recurring-mode p:not(:first-child), #recurring-spec p:not(:first-child) {
+}
+
+#recurring-mode p, #recurring-spec p {
+	margin-top: .5em;
+	margin-bottom: .5em;
+}
+
+.note {
+	margin-left: 1em;
+	font-style: italic;
+}
