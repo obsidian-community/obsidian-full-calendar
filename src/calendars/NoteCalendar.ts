@@ -113,10 +113,10 @@ export default class NoteCalendar extends EditableCalendar {
         return { file, lineNumber: undefined };
     }
 
-    async modifyEvent(
+    getNewLocation(
         location: EventPathLocation,
         event: OFCEvent
-    ): Promise<EventLocation> {
+    ): EventLocation {
         const { path, lineNumber } = location;
         if (lineNumber !== undefined) {
             throw new Error("Note calendar cannot handle inline events.");
@@ -128,19 +128,35 @@ export default class NoteCalendar extends EditableCalendar {
             );
         }
 
-        await this.app.rewrite(file, (page) =>
-            modifyFrontmatterString(page, event)
-        );
         const updatedPath = `${file.parent.path}/${filenameForEvent(event)}`;
-        if (file.path !== updatedPath) {
-            const newPath = updatedPath;
-            await this.app.rename(file, newPath);
+        return { file: { path: updatedPath }, lineNumber: undefined };
+    }
+
+    async modifyEvent(
+        location: EventPathLocation,
+        event: OFCEvent
+    ): Promise<EventLocation> {
+        const { path } = location;
+        const file = this.app.getFileByPath(path);
+        if (!file) {
+            throw new Error(
+                `File ${path} either doesn't exist or is a folder.`
+            );
         }
-        // TODO: Test to see if a file reference is still valid after a rename.
-        const newFile = this.app.getAbstractFileByPath(updatedPath);
+        const newLocation = this.getNewLocation(location, event);
+        if (file.path !== newLocation.file.path) {
+            await this.app.rename(file, newLocation.file.path);
+        }
+
+        const newFile = this.app.getAbstractFileByPath(newLocation.file.path);
         if (!newFile || !(newFile instanceof TFile)) {
             throw new Error("File cannot be found after rename.");
         }
+
+        await this.app.rewrite(file, (page) =>
+            modifyFrontmatterString(page, event)
+        );
+
         return { file: newFile, lineNumber: undefined };
     }
 

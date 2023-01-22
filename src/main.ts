@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
 import {
     CalendarView,
     FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
@@ -64,6 +64,34 @@ export default class FullCalendarPlugin extends Plugin {
             icloud: () => null,
             FOR_TEST_ONLY: () => null,
         });
+
+        this.registerEvent(
+            this.app.metadataCache.on("changed", (file) => {
+                console.log("FILE CHANGED", file.path);
+                this.cache?.fileUpdated(file);
+            })
+        );
+
+        this.registerEvent(
+            this.app.vault.on("rename", (file, oldPath) => {
+                if (file instanceof TFile) {
+                    console.log("FILE RENAMED", file.path);
+                    this.cache?.pathRemoved(oldPath);
+                }
+            })
+        );
+
+        this.registerEvent(
+            this.app.vault.on("delete", (file) => {
+                if (file instanceof TFile) {
+                    console.log("FILE DELETED", file.path);
+                    this.cache?.pathRemoved(file.path);
+                }
+            })
+        );
+
+        // @ts-ignore
+        window.cache = this.cache;
 
         this.registerView(
             FULL_CALENDAR_VIEW_TYPE,

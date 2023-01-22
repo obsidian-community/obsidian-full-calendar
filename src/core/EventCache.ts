@@ -4,14 +4,14 @@ import equal from "deep-equal";
 import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
-import { CalendarInfo, OFCEvent } from "../types";
+import { CalendarInfo, OFCEvent, validateEvent } from "../types";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
     (info: CalendarInfo) => Calendar | null
 >;
 
-export type CacheEntry = { event: OFCEvent; id: string };
+export type CacheEntry = { event: OFCEvent; id: string; calendarId: string };
 
 type UpdateViewCallback = (info: {
     toRemove: string[];
@@ -30,6 +30,10 @@ export const eventsAreDifferent = (
         return true;
     }
 
+    // validateEvent() will normalize the representation of default fields in events.
+    oldEvents = oldEvents.flatMap((e) => validateEvent(e) || []);
+    newEvents = newEvents.flatMap((e) => validateEvent(e) || []);
+
     const unmatchedEvents = oldEvents
         .map((e, i) => ({ oldEvent: e, newEvent: newEvents[i] }))
         .filter(({ oldEvent, newEvent }) => !equal(oldEvent, newEvent));
@@ -44,6 +48,7 @@ export type OFCEventSource = {
     events: CachedEvent[];
     editable: boolean;
     color: string;
+    id: string;
 };
 
 /**
@@ -103,6 +108,7 @@ export default class EventCache {
         this.init();
         this.initialized = false;
         this.calendarInfos = infos;
+        this.pkCounter = 0;
     }
 
     init() {
@@ -150,10 +156,17 @@ export default class EventCache {
                 editable: calendar instanceof EditableCalendar,
                 events: events.map(({ event, id }) => ({ event, id })), // make sure not to leak location data past the cache.
                 color: calendar.color,
+                id: calId,
             };
             result.push(source);
         }
         return result;
+    }
+
+    getEventsForFile(file: TFile): CacheEntry[] {
+        return this.store
+            .getEventsInFile(file)
+            .map(({ id, event, calendarId }) => ({ id, event, calendarId }));
     }
 
     on(eventType: "update", callback: UpdateViewCallback) {
@@ -201,7 +214,7 @@ export default class EventCache {
         return true;
     }
 
-    private getDetailsForEdit(eventId: string) {
+    getRelations(eventId: string) {
         const details = this.store.getEventDetails(eventId);
         if (!details) {
             throw new Error(`Event ID ${eventId} not present in event store.`);
@@ -225,31 +238,35 @@ export default class EventCache {
     }
 
     deleteEvent(eventId: string): Promise<void> {
-        const { calendar, location } = this.getDetailsForEdit(eventId);
+        const { calendar, location } = this.getRelations(eventId);
         this.store.delete(eventId);
         return calendar.deleteEvent(location);
     }
 
     async modifyEvent(eventId: string, newEvent: OFCEvent): Promise<boolean> {
-        const { calendar, location: oldLocation } =
-            this.getDetailsForEdit(eventId);
+        const { calendar, location: oldLocation } = this.getRelations(eventId);
         const { path, lineNumber } = oldLocation;
-
-        const newLocation = await calendar.modifyEvent(
-            { path, lineNumber },
-            newEvent
-        );
 
         this.store.delete(eventId);
         this.store.add({
             calendar,
-            location: newLocation,
+            location: calendar.getNewLocation({ path, lineNumber }, newEvent),
             id: eventId, // TODO: Can this re-use the existing eventId?
             event: newEvent,
         });
 
+        await calendar.modifyEvent({ path, lineNumber }, newEvent);
+        // fileUpdated() gets called HERE.
+
         // TODO: For external subscribers, fire off an event when modifying.
         return true;
+    }
+
+    pathRemoved(path: string) {
+        this.updateViews([...this.store.deleteEventsAtPath(path)], []);
+    }
+    fileRenamed(newFile: TFile, oldPath: string) {
+        this.store.renameFileForEvents(oldPath, newFile.path);
     }
 
     async fileUpdated(file: TFile): Promise<void> {
@@ -272,6 +289,7 @@ export default class EventCache {
             // reading the file from disk multiple times. Could be more effecient.
             const newEvents = await calendar.getEventsInFile(file);
 
+            // TODO: Events are not different, but the location has changed.
             const eventsHaveChanged = eventsAreDifferent(
                 oldEvents.map(({ event }) => event),
                 newEvents.map(([event, _]) => event)
@@ -287,6 +305,7 @@ export default class EventCache {
                 event,
                 id: event.id || this.generateId(),
                 location,
+                calendarId: calendar.id,
             }));
 
             // If events have changed in the calendar, then remove all the old events from the store and add in new ones.

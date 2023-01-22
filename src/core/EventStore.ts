@@ -8,7 +8,7 @@ interface Identifier {
 
 class Path implements Identifier {
     id: string;
-    constructor(file: TFile) {
+    constructor(file: { path: string }) {
         this.id = file.path;
     }
 }
@@ -66,6 +66,15 @@ class OneToMany<T extends Identifier, FK extends Identifier> {
         return this.foreign.get(key.id) || null;
     }
 
+    renameKey(oldKey: T, newKey: T) {
+        const related = this.related.get(oldKey.id);
+        if (!related) {
+            throw new Error(`Key does not exist in map: ${related}`);
+        }
+        this.related.delete(oldKey.id);
+        this.related.set(newKey.id, related);
+    }
+
     get numEntries(): number {
         return this.foreign.size;
     }
@@ -92,6 +101,7 @@ export type StoredEvent = {
     id: string;
     event: OFCEvent;
     location: EventPathLocation | null;
+    calendarId: string;
 };
 
 type AddEventProps = {
@@ -105,6 +115,8 @@ type EventDetails = Omit<AddEventProps, "location" | "calendar"> & {
     location: EventPathLocation | null;
     calendarId: string;
 };
+
+type FileObj = { path: string };
 
 /**
  * Class that stores events by their ID as the primary key, with secondary "indexes"
@@ -152,7 +164,13 @@ export default class EventStore {
                 lineNumber = this.lineNumbers.get(id);
             }
             const location = path ? { path, lineNumber } : null;
-            result.push({ id, event, location });
+            const calendarId = this.calendarIndex.getRelated(new EventID(id));
+            if (!calendarId) {
+                throw new Error(
+                    `Event with id ${id} does not have an associated calendar.`
+                );
+            }
+            result.push({ id, event, location, calendarId });
         });
         return result;
     }
@@ -164,10 +182,13 @@ export default class EventStore {
             );
         }
 
+        console.log("adding event", { id, event, location });
+
         this.store.set(id, event);
         this.calendarIndex.add(calendar, new EventID(id));
         if (location) {
             const { file, lineNumber } = location;
+            console.log("adding event in file:", file.path);
             this.pathIndex.add(new Path(file), new EventID(id));
             if (lineNumber) {
                 this.lineNumbers.set(id, lineNumber);
@@ -180,6 +201,7 @@ export default class EventStore {
         if (!event) {
             return null;
         }
+        console.log("deleting event", { id, event });
 
         this.calendarIndex.delete(new EventID(id));
         this.pathIndex.delete(new EventID(id));
@@ -192,15 +214,31 @@ export default class EventStore {
         return this.store.get(id) || null;
     }
 
-    getEventsInFile(file: TFile): StoredEvent[] {
+    getEventsInFile(file: FileObj): StoredEvent[] {
         return this.fetch(this.pathIndex.getBy(new Path(file)));
+    }
+
+    deleteEventsAtPath(path: string): Set<string> {
+        const eventIds = this.pathIndex.getBy(new Path({ path }));
+        eventIds.forEach((id) => this.delete(id));
+        return eventIds;
+    }
+
+    renameFileForEvents(oldPath: string, newPath: string) {
+        this.pathIndex.renameKey(
+            new Path({ path: oldPath }),
+            new Path({ path: newPath })
+        );
     }
 
     getEventsInCalendar(calendar: Calendar): StoredEvent[] {
         return this.fetch(this.calendarIndex.getBy(calendar));
     }
 
-    getEventsInFileAndCalendar(file: TFile, calendar: Calendar): StoredEvent[] {
+    getEventsInFileAndCalendar(
+        file: FileObj,
+        calendar: Calendar
+    ): StoredEvent[] {
         const inFile = this.pathIndex.getBy(new Path(file));
         const inCalendar = this.calendarIndex.getBy(calendar);
         return this.fetch([...inFile].filter((id) => inCalendar.has(id)));

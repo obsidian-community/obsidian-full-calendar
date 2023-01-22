@@ -135,7 +135,13 @@ describe("Note Calendar Tests", () => {
             expect(paths).toContainEqual(`${dirName}/${title}`);
         }
 
-        for (const [event, { file }] of res) {
+        for (const [
+            event,
+            {
+                file: { path },
+            },
+        ] of res) {
+            const file = obsidian.getFileByPath(path)!;
             const eventsFromFile = await calendar.getEventsInFile(file);
             expect(eventsFromFile.length).toBe(1);
             expect(eventsFromFile[0][0]).toEqual(event);

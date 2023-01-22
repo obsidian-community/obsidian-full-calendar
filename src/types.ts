@@ -207,6 +207,6 @@ export class FCError {
 }
 
 export type EventLocation = {
-    file: TFile;
+    file: { path: string };
     lineNumber: number | undefined;
 };

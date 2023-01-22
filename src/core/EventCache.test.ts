@@ -215,6 +215,7 @@ class TestEditable extends EditableCalendar {
     deleteEvent = jest.fn();
     move = jest.fn();
     modifyEvent = jest.fn();
+    getNewLocation = jest.fn();
 
     get type(): string {
         return "TEST_EDITABLE_EVENT";
@@ -612,7 +613,7 @@ describe("editable calendars", () => {
                     new Promise((resolve) => resolve(eventsInFile))
                 );
 
-                await cache.fileUpdated(file);
+                await cache.fileUpdated(file as TFile);
 
                 assertCacheContentCounts(cache, {
                     calendars: 1,

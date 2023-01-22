@@ -1,6 +1,13 @@
 import "./overrides.css";
-import { ItemView, Menu, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import { Calendar, EventApi, EventSourceInput } from "@fullcalendar/core";
+import {
+    ItemView,
+    MarkdownView,
+    Menu,
+    Notice,
+    TFile,
+    WorkspaceLeaf,
+} from "obsidian";
+import { Calendar, EventSourceInput } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
 import { EventModal } from "./modal";
@@ -10,27 +17,18 @@ import {
     fromEventApi,
     toEventInput,
 } from "../interop";
-import { IcsSource } from "../models/IcsSource";
-import { NoteSource } from "../models/NoteSource";
-import { RemoteSource } from "../models/RemoteSource";
 import { renderOnboarding } from "./onboard";
-import { CalendarEvent, EditableEvent, LocalEvent } from "../models/Event";
-import { NoteEvent } from "../models/NoteEvent";
+import { EditableEvent, LocalEvent } from "../models/Event";
 import { eventFromApi } from "../models";
 import { DateTime } from "luxon";
-import { DailyNoteSource } from "../models/DailyNoteSource";
-import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import { getColors } from "../models/util";
-import EventCache from "src/core/EventCache";
-import internal from "stream";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
 
 export class CalendarView extends ItemView {
-    calendar: Calendar | null;
+    fullCalendarView: Calendar | null;
     plugin: FullCalendarPlugin;
-    cacheCallback: (file: TFile) => void;
     inSidebar: boolean;
 
     constructor(
@@ -40,8 +38,7 @@ export class CalendarView extends ItemView {
     ) {
         super(leaf);
         this.plugin = plugin;
-        this.calendar = null;
-        this.cacheCallback = this.onCacheUpdate.bind(this);
+        this.fullCalendarView = null;
         this.inSidebar = inSidebar;
     }
 
@@ -55,10 +52,6 @@ export class CalendarView extends ItemView {
 
     getDisplayText() {
         return this.inSidebar ? "Full Calendar" : "Calendar";
-    }
-
-    async onCacheUpdate(file: TFile) {
-        await this.plugin.cache?.fileUpdated(file);
     }
 
     async onOpen() {
@@ -87,7 +80,8 @@ export class CalendarView extends ItemView {
         const sources: EventSourceInput[] = this.plugin.cache
             .getAllEvents()
             .map(
-                ({ events, editable, color }): EventSourceInput => ({
+                ({ events, editable, color, id }): EventSourceInput => ({
+                    id,
                     events: events.flatMap(
                         (e) => toEventInput(e.id, e.event) || []
                     ),
@@ -96,29 +90,43 @@ export class CalendarView extends ItemView {
                 })
             );
 
-        this.calendar = renderCalendar(calendarEl, sources, {
+        this.fullCalendarView = renderCalendar(calendarEl, sources, {
             forceNarrow: this.inSidebar,
             eventClick: async (info) => {
                 if (
                     info.jsEvent.getModifierState("Control") ||
                     info.jsEvent.getModifierState("Meta")
                 ) {
-                    const event = this.plugin.cache?.getEventById(
+                    const details = this.plugin.cache?.getRelations(
                         info.event.id
                     );
-                    if (!event) {
+                    if (!details) {
                         return;
                     }
+                    const {
+                        location: { path, lineNumber },
+                    } = details;
                     let leaf = this.app.workspace.getMostRecentLeaf();
-                    if (leaf) {
-                        // TODO: Uncomment and fix
-                        // event.openIn(leaf, this.app.workspace);
+                    const file = this.app.vault.getAbstractFileByPath(path);
+                    if (!(file instanceof TFile)) {
+                        return;
+                    }
+                    if (!leaf) {
+                        return;
+                    }
+                    if (leaf.getViewState().pinned) {
+                        leaf = this.app.workspace.getLeaf("tab");
+                    }
+                    await leaf.openFile(file);
+                    if (lineNumber && leaf.view instanceof MarkdownView) {
+                        leaf.view.editor.setCursor({ line: lineNumber, ch: 0 });
                     }
                 } else {
+                    // TODO: Edit existing event.
                     new EventModal(
                         this.app,
                         this.plugin,
-                        this.calendar
+                        this.fullCalendarView
                     ).editInModal(info.event);
                 }
             },
@@ -139,46 +147,37 @@ export class CalendarView extends ItemView {
                 let modal = new EventModal(
                     this.app,
                     this.plugin,
-                    this.calendar,
+                    this.fullCalendarView,
                     partialEvent
                 );
                 modal.open();
             },
             modifyEvent: async (newEvent, oldEvent) => {
                 try {
-                    const existingEvent = await eventFromApi(
-                        this.app.metadataCache,
-                        this.app.vault,
-                        this.plugin.settings,
-                        oldEvent
+                    const didModify = await this.plugin.cache?.modifyEvent(
+                        oldEvent.id,
+                        fromEventApi(newEvent)
                     );
-                    if (!existingEvent) {
-                        return false;
-                    }
-                    const frontmatter = fromEventApi(newEvent);
-                    await existingEvent.setData(frontmatter);
+                    return !!didModify;
                 } catch (e: any) {
+                    console.error(e);
                     new Notice(e.message);
                     return false;
                 }
-                return true;
             },
 
             eventMouseEnter: async (info) => {
-                const event = await eventFromApi(
-                    this.app.metadataCache,
-                    this.app.vault,
-                    this.plugin.settings,
-                    info.event
-                );
-                if (event instanceof LocalEvent) {
+                const location = this.plugin.cache?.getRelations(
+                    info.event.id
+                ).location;
+                if (location) {
                     this.app.workspace.trigger("hover-link", {
                         event: info.jsEvent,
                         source: PLUGIN_SLUG,
                         hoverParent: calendarEl,
                         targetEl: info.jsEvent.target,
-                        linktext: event.path,
-                        sourcePath: event.path,
+                        linktext: location.path,
+                        sourcePath: location.path,
                     });
                 }
             },
@@ -272,103 +271,43 @@ export class CalendarView extends ItemView {
             },
         });
         // @ts-ignore
-        window.calendar = this.calendar;
+        window.fc = this.fullCalendarView;
 
-        this.plugin.settings.calendarSources
-            .flatMap((s) => (s.type === "ical" ? [s] : []))
-            .map((s) => new IcsSource(s))
-            .map((s) => s.toApi())
-            .forEach((resultPromise) =>
-                resultPromise.then((result) => {
-                    if (result instanceof FCError) {
-                        new Notice(result.message);
-                    } else {
-                        this.calendar?.addEventSource(result);
-                    }
-                })
-            );
-
-        this.plugin.settings.calendarSources
-            .flatMap((s) =>
-                s.type === "caldav" || s.type === "icloud" ? [s] : []
-            )
-            .map((s) => new RemoteSource(s))
-            .map((s) => s.toApi())
-            .forEach((resultPromise) =>
-                resultPromise.then((result) => {
-                    if (result instanceof FCError) {
-                        new Notice(result.message);
-                    } else {
-                        this.calendar?.addEventSource(result);
-                    }
-                })
-            );
-        this.plugin.settings.calendarSources
-            .flatMap((s) => (s.type === "dailynote" ? [s] : []))
-            .map(
-                (s) =>
-                    new DailyNoteSource(
-                        this.app.vault,
-                        this.app.metadataCache,
-                        s
-                    )
-            )
-            .map((s) => s.toApi())
-            .forEach((resultPromise) =>
-                resultPromise.then((result) => {
-                    if (result instanceof FCError) {
-                        new Notice(result.message);
-                    } else {
-                        this.calendar?.addEventSource(result);
-                    }
-                })
-            );
-        this.registerEvent(
-            this.app.metadataCache.on("changed", this.cacheCallback)
-        );
-        this.registerEvent(
-            this.app.vault.on("delete", (file) => {
-                if (file instanceof TFile) {
-                    // HACK: Think of a way to make this generic for all types of local events.
-                    let id =
-                        NoteEvent.ID_PREFIX +
-                        CalendarEvent.ID_SEPARATOR +
-                        file.path;
-                    const event = this.calendar?.getEventById(id);
-                    if (event) {
-                        event.remove();
-                    }
+        this.plugin.cache.on("update", ({ toRemove, toAdd }) => {
+            console.log("cache updated!", { toRemove, toAdd });
+            toRemove.forEach((id) => {
+                const event = this.fullCalendarView?.getEventById(id);
+                if (event) {
+                    console.log("removing event", event.toPlainObject());
+                    event.remove();
+                } else {
+                    console.warn(
+                        `Event with id=${id} was slated to be removed but does not exist in the calendar.`
+                    );
                 }
-            })
-        );
-        this.registerEvent(
-            this.app.vault.on("rename", (file, oldPath) => {
-                // HACK: Think of a way to make this generic for all types of local events.
-                const oldEvent = this.calendar?.getEventById(
-                    NoteEvent.ID_PREFIX + CalendarEvent.ID_SEPARATOR + oldPath
+            });
+            toAdd.forEach(({ id, event, calendarId }) => {
+                console.log("adding event", { id, event });
+                this.fullCalendarView?.addEvent(
+                    {
+                        ...toEventInput(id, event),
+                    },
+                    calendarId
                 );
-                if (oldEvent) {
-                    oldEvent.remove();
-                }
-                // Rename doesn't change any of the metadata so we also need to trigger
-                // that same callback.
-                if (file instanceof TFile) {
-                    this.onCacheUpdate(file);
-                }
-            })
-        );
+            });
+        });
     }
 
     onResize(): void {
-        if (this.calendar) {
-            this.calendar.render();
+        if (this.fullCalendarView) {
+            this.fullCalendarView.render();
         }
     }
 
     async onClose() {
-        if (this.calendar) {
-            this.calendar.destroy();
-            this.calendar = null;
+        if (this.fullCalendarView) {
+            this.fullCalendarView.destroy();
+            this.fullCalendarView = null;
         }
     }
 }

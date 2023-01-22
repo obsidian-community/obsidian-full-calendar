@@ -37,4 +37,9 @@ export abstract class EditableCalendar extends Calendar {
         location: EventPathLocation,
         newEvent: OFCEvent
     ): Promise<EventLocation>;
+
+    abstract getNewLocation(
+        location: EventPathLocation,
+        newEvent: OFCEvent
+    ): EventLocation;
 }
