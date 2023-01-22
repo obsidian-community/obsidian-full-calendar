@@ -61,10 +61,20 @@ describe.each([true, false])(
             store.add({ calendar, location, id, event });
 
             expect(store.getEventsInCalendar(calendar)).toEqual([
-                { event, id, location: pathLoc(location) },
+                {
+                    event,
+                    id,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
             ]);
             expect(store.getEventsInFile(location.file)).toEqual([
-                { event, id, location: pathLoc(location) },
+                {
+                    event,
+                    id,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
             ]);
             expect(store.eventCount).toBe(1);
         });
@@ -119,7 +129,7 @@ describe.each([true, false])(
             store.add({ calendar, location: null, id, event });
 
             expect(store.getEventsInCalendar(calendar)).toEqual([
-                { event, id, location: null },
+                { event, id, location: null, calendarId: calendar.id },
             ]);
             expect(0).toBe(store.fileCount);
         });
@@ -158,12 +168,32 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(1);
 
             expect(store.getEventsInCalendar(calendar)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location) },
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar.id,
+                },
             ]);
             expect(store.getEventsInFile(location.file)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location) },
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar.id,
+                },
             ]);
         });
 
@@ -185,11 +215,26 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(1);
 
             expect(store.getEventsInCalendar(calendar)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location) },
-                { event: event2, id: id2, location: null },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
+                {
+                    event: event2,
+                    id: id2,
+                    location: null,
+                    calendarId: calendar.id,
+                },
             ]);
             expect(store.getEventsInFile(location.file)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
             ]);
         });
 
@@ -225,17 +270,37 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(2);
 
             expect(store.getEventsInCalendar(calendar1)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location1) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location1),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInFile(location1.file)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location1) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location1),
+                    calendarId: calendar1.id,
+                },
             ]);
 
             expect(store.getEventsInCalendar(calendar2)).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
             ]);
             expect(store.getEventsInFile(location2.file)).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
             ]);
         });
 
@@ -248,10 +313,20 @@ describe.each([true, false])(
             store.add({ calendar, location, id, event });
 
             expect(store.getEventsInCalendar(calendar)).toEqual([
-                { event, id, location: pathLoc(location) },
+                {
+                    event,
+                    id,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
             ]);
             expect(store.getEventsInFile(location.file)).toEqual([
-                { event, id, location: pathLoc(location) },
+                {
+                    event,
+                    id,
+                    location: pathLoc(location),
+                    calendarId: calendar.id,
+                },
             ]);
             expect(store.eventCount).toBe(1);
 
@@ -303,34 +378,79 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(2);
 
             expect(store.getEventsInCalendar(calendar1)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location1) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location1),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInFile(location1.file)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location1) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location1),
+                    calendarId: calendar1.id,
+                },
             ]);
 
             // TODO: There appears to be a race condition or some other kind of nondeterminism here.
             // When lineNumbers=true, id13/file12 sometime has a lineNumber of undefined rather than 0.
             // Try to run this test a bunch and figure out what the issue is.
             expect(store.getEventsInCalendar(calendar2)).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
             expect(store.getEventsInFile(location2.file)).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             expect(store.getEventsInFile(location3.file)).toEqual([
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             expect(toObject(store.eventsByCalendar)).toEqual({
                 [calendar1.id]: [
-                    { event: event1, id: id1, location: pathLoc(location1) },
+                    {
+                        event: event1,
+                        id: id1,
+                        location: pathLoc(location1),
+                        calendarId: calendar1.id,
+                    },
                 ],
                 [calendar2.id]: [
-                    { event: event2, id: id2, location: pathLoc(location2) },
-                    { event: event3, id: id3, location: pathLoc(location3) },
+                    {
+                        event: event2,
+                        id: id2,
+                        location: pathLoc(location2),
+                        calendarId: calendar2.id,
+                    },
+                    {
+                        event: event3,
+                        id: id3,
+                        location: pathLoc(location3),
+                        calendarId: calendar2.id,
+                    },
                 ],
             });
 
@@ -340,7 +460,12 @@ describe.each([true, false])(
             expect(
                 store.getEventsInFileAndCalendar(location2.file, calendar2)
             ).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
             ]);
         });
 
@@ -385,21 +510,51 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(2);
 
             expect(store.getEventsInCalendar(calendar1)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location1) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location1),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInCalendar(calendar2)).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             expect(store.getEventsInFile(location1.file)).toEqual([
-                { event: event1, id: id1, location: pathLoc(location1) },
+                {
+                    event: event1,
+                    id: id1,
+                    location: pathLoc(location1),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInFile(location2.file)).toEqual([
-                { event: event2, id: id2, location: pathLoc(location2) },
+                {
+                    event: event2,
+                    id: id2,
+                    location: pathLoc(location2),
+                    calendarId: calendar2.id,
+                },
             ]);
             expect(store.getEventsInFile(location3.file)).toEqual([
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             store.delete(id2);
@@ -414,13 +569,23 @@ describe.each([true, false])(
 
             expect(store.getEventsInCalendar(calendar1)).toEqual([]);
             expect(store.getEventsInCalendar(calendar2)).toEqual([
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             expect(store.getEventsInFile(location1.file)).toEqual([]);
             expect(store.getEventsInFile(location2.file)).toEqual([]);
             expect(store.getEventsInFile(location3.file)).toEqual([
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             const id4 = mockId();
@@ -437,18 +602,38 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(2);
 
             expect(store.getEventsInCalendar(calendar1)).toEqual([
-                { event: event4, id: id4, location: pathLoc(location4) },
+                {
+                    event: event4,
+                    id: id4,
+                    location: pathLoc(location4),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInCalendar(calendar2)).toEqual([
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             expect(store.getEventsInFile(location1.file)).toEqual([
-                { event: event4, id: id4, location: pathLoc(location4) },
+                {
+                    event: event4,
+                    id: id4,
+                    location: pathLoc(location4),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInFile(location2.file)).toEqual([]);
             expect(store.getEventsInFile(location3.file)).toEqual([
-                { event: event3, id: id3, location: pathLoc(location3) },
+                {
+                    event: event3,
+                    id: id3,
+                    location: pathLoc(location3),
+                    calendarId: calendar2.id,
+                },
             ]);
 
             store.delete(id3);
@@ -457,12 +642,22 @@ describe.each([true, false])(
             expect(store.calendarCount).toBe(1);
 
             expect(store.getEventsInCalendar(calendar1)).toEqual([
-                { event: event4, id: id4, location: pathLoc(location4) },
+                {
+                    event: event4,
+                    id: id4,
+                    location: pathLoc(location4),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInCalendar(calendar2)).toEqual([]);
 
             expect(store.getEventsInFile(location1.file)).toEqual([
-                { event: event4, id: id4, location: pathLoc(location4) },
+                {
+                    event: event4,
+                    id: id4,
+                    location: pathLoc(location4),
+                    calendarId: calendar1.id,
+                },
             ]);
             expect(store.getEventsInFile(location2.file)).toEqual([]);
             expect(store.getEventsInFile(location3.file)).toEqual([]);
