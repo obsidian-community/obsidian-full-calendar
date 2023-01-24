@@ -498,6 +498,9 @@ describe("editable calendars", () => {
             calendar.modifyEvent.mockReturnValueOnce(
                 new Promise((resolve) => resolve(newLocation))
             );
+            calendar.getNewLocation.mockReturnValueOnce(
+                new Promise((resolve) => resolve(newLocation))
+            );
 
             expect(
                 cache._storeForTest.getEventsInFile(oldEvent[1].file).length
