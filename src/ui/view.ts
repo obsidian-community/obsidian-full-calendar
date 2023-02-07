@@ -1,23 +1,15 @@
 import "./overrides.css";
-import {
-    ItemView,
-    MarkdownView,
-    Menu,
-    Notice,
-    TFile,
-    WorkspaceLeaf,
-} from "obsidian";
+import { ItemView, Menu, Notice, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
-import { FCError, PLUGIN_SLUG } from "../types";
+import { FCError, isTask, PLUGIN_SLUG } from "../types";
 import {
     dateEndpointsToFrontmatter,
     fromEventApi,
     toEventInput,
 } from "../interop";
 import { renderOnboarding } from "./onboard";
-import { EditableEvent, LocalEvent } from "../models/Event";
 import { eventFromApi } from "../models";
 import { DateTime } from "luxon";
 import { getColors } from "../models/util";
@@ -161,19 +153,21 @@ export class CalendarView extends ItemView {
             timeFormat24h: this.plugin.settings.timeFormat24h,
             openContextMenuForEvent: async (e, mouseEvent) => {
                 const menu = new Menu();
-                const event = await eventFromApi(
-                    this.app.metadataCache,
-                    this.app.vault,
-                    this.plugin.settings,
-                    e
-                );
-                if (event instanceof EditableEvent) {
-                    if (!event.isTask) {
+                if (!this.plugin.cache) {
+                    return;
+                }
+                const event = this.plugin.cache.getEventById(e.id);
+                if (!event) {
+                    return;
+                }
+
+                if (this.plugin.cache.isEventEditable(e.id)) {
+                    if (!isTask(event)) {
                         menu.addItem((item) =>
                             item
                                 .setTitle("Turn into task")
                                 .onClick(async () => {
-                                    await event.setIsTask(true);
+                                    await this.plugin.cache?.makeTask(e.id);
                                 })
                         );
                     } else {
@@ -181,25 +175,25 @@ export class CalendarView extends ItemView {
                             item
                                 .setTitle("Remove checkbox")
                                 .onClick(async () => {
-                                    await event.setIsTask(false);
+                                    await this.plugin.cache?.unmakeTask(e.id);
                                 })
                         );
                     }
-                }
-                if (event instanceof LocalEvent) {
                     menu.addSeparator();
                     menu.addItem((item) =>
                         item.setTitle("Go to note").onClick(() => {
-                            let leaf = this.app.workspace.getMostRecentLeaf();
-                            if (leaf) {
-                                event.openIn(leaf, this.app.workspace);
-                                new Notice(`Opening "${e.title}"`);
+                            if (!this.plugin.cache) {
+                                return;
                             }
+                            openFileForEvent(this.plugin.cache, this.app, e.id);
                         })
                     );
                     menu.addItem((item) =>
                         item.setTitle("Delete").onClick(async () => {
-                            await event.delete();
+                            if (!this.plugin.cache) {
+                                return;
+                            }
+                            await this.plugin.cache.deleteEvent(e.id);
                             new Notice(`Deleted event "${e.title}".`);
                         })
                     );

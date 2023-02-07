@@ -285,6 +285,23 @@ export default class EventCache {
         return this.store.getCalendarIdForEventId(id);
     }
 
+    async makeTask(id: string) {
+        console.log("turn event into task", id);
+    }
+
+    async unmakeTask(id: string) {
+        console.log("unset task status for event", id);
+    }
+
+    isEventEditable(id: string): boolean {
+        const calId = this.getCalendarIdForEventId(id);
+        if (!calId) {
+            return false;
+        }
+        const cal = this.getCalendarById(calId);
+        return cal instanceof EditableCalendar;
+    }
+
     async fileUpdated(file: TFile): Promise<void> {
         console.log("fileUpdated() called for file", file.path);
         const calendars = [...this.calendars.values()].flatMap((c) =>
