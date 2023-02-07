@@ -10,8 +10,6 @@ import {
     toEventInput,
 } from "../interop";
 import { renderOnboarding } from "./onboard";
-import { eventFromApi } from "../models";
-import { DateTime } from "luxon";
 import { getColors } from "../models/util";
 import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
