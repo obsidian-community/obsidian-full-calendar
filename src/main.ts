@@ -13,10 +13,10 @@ import {
     FullCalendarSettingTab,
 } from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
-import { EventModal } from "./ui/modal";
 import EventCache from "./core/EventCache";
 import NoteCalendar from "./calendars/NoteCalendar";
 import { ObsidianIO } from "./ObsidianAdapter";
+import { launchCreateModal } from "./ui/event_modal";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -67,7 +67,6 @@ export default class FullCalendarPlugin extends Plugin {
 
         this.registerEvent(
             this.app.metadataCache.on("changed", (file) => {
-                console.log("FILE CHANGED", file.path);
                 this.cache?.fileUpdated(file);
             })
         );
@@ -117,7 +116,7 @@ export default class FullCalendarPlugin extends Plugin {
             id: "full-calendar-new-event",
             name: "New Event",
             callback: () => {
-                new EventModal(this.app, this, null).open();
+                launchCreateModal(this, {});
             },
         });
 
@@ -166,7 +165,8 @@ export default class FullCalendarPlugin extends Plugin {
                     this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (view) {
                     const file = view.file;
-                    new EventModal(this.app, this, null).editInModal(file);
+                    // TODO: Upgrade node.
+                    // new EventModal(this.app, this, null).editInModal(file);
                 }
             },
         });

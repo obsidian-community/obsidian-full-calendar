@@ -1,5 +1,5 @@
 import { TFile } from "obsidian";
-import { EventLocation, OFCEvent } from "src/types";
+import { CalendarInfo, EventLocation, OFCEvent } from "src/types";
 
 export const ID_SEPARATOR = "::";
 
@@ -15,8 +15,9 @@ export abstract class Calendar {
         this.color = color;
     }
 
-    abstract get type(): string;
+    abstract get type(): CalendarInfo["type"];
     abstract get id(): string;
+    abstract get name(): string;
 
     /**
      * Return events along with their associated source files, if they exist.

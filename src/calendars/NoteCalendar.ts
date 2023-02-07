@@ -48,10 +48,15 @@ export default class NoteCalendar extends EditableCalendar {
         return this._directory;
     }
 
-    get type(): string {
-        return "NOTE";
+    get type(): "local" {
+        return "local";
     }
+
     get id(): string {
+        return this.directory;
+    }
+
+    get name(): string {
         return this.directory;
     }
 

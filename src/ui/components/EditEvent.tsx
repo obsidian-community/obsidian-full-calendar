@@ -82,7 +82,11 @@ const DaySelect = ({
 
 interface EditEventProps {
     submit: (frontmatter: OFCEvent, calendarIndex: number) => Promise<void>;
-    readonly calendars: CalendarInfo[];
+    readonly calendars: {
+        id: string;
+        name: string;
+        type: CalendarInfo["type"];
+    }[];
     defaultCalendarIndex: number;
     initialEvent?: Partial<OFCEvent>;
     open?: () => Promise<void>;
@@ -232,8 +236,9 @@ export const EditEvent = ({
                                         )
                                     }
                                 >
+                                    {console.log("calendars", cal.name, idx)}
                                     {cal.type === "local"
-                                        ? cal.directory
+                                        ? cal.name
                                         : "Daily Note"}
                                 </option>
                             ))}

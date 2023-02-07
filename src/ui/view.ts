@@ -10,7 +10,6 @@ import {
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
-import { EventModal } from "./modal";
 import { FCError, PLUGIN_SLUG } from "../types";
 import {
     dateEndpointsToFrontmatter,
@@ -22,6 +21,8 @@ import { EditableEvent, LocalEvent } from "../models/Event";
 import { eventFromApi } from "../models";
 import { DateTime } from "luxon";
 import { getColors } from "../models/util";
+import { openFileForEvent } from "./actions";
+import { launchCreateModal, launchEditModal } from "./event_modal";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -97,37 +98,16 @@ export class CalendarView extends ItemView {
                     info.jsEvent.getModifierState("Control") ||
                     info.jsEvent.getModifierState("Meta")
                 ) {
-                    const details = this.plugin.cache?.getRelations(
-                        info.event.id
-                    );
-                    if (!details) {
-                        return;
-                    }
-                    const {
-                        location: { path, lineNumber },
-                    } = details;
-                    let leaf = this.app.workspace.getMostRecentLeaf();
-                    const file = this.app.vault.getAbstractFileByPath(path);
-                    if (!(file instanceof TFile)) {
-                        return;
-                    }
-                    if (!leaf) {
-                        return;
-                    }
-                    if (leaf.getViewState().pinned) {
-                        leaf = this.app.workspace.getLeaf("tab");
-                    }
-                    await leaf.openFile(file);
-                    if (lineNumber && leaf.view instanceof MarkdownView) {
-                        leaf.view.editor.setCursor({ line: lineNumber, ch: 0 });
+                    if (this.plugin.cache) {
+                        await openFileForEvent(
+                            this.plugin.cache,
+                            this.app,
+                            info.event.id
+                        );
                     }
                 } else {
-                    // TODO: Edit existing event.
-                    new EventModal(
-                        this.app,
-                        this.plugin,
-                        this.fullCalendarView
-                    ).editInModal(info.event);
+                    console.log("clicking on event");
+                    launchEditModal(this.plugin, info.event.id);
                 }
             },
             select: async (start, end, allDay, viewType) => {
@@ -144,20 +124,15 @@ export class CalendarView extends ItemView {
                     end,
                     allDay
                 );
-                let modal = new EventModal(
-                    this.app,
-                    this.plugin,
-                    this.fullCalendarView,
-                    partialEvent
-                );
-                modal.open();
+                launchCreateModal(this.plugin, partialEvent);
             },
             modifyEvent: async (newEvent, oldEvent) => {
                 try {
-                    const didModify = await this.plugin.cache?.modifyEvent(
-                        oldEvent.id,
-                        fromEventApi(newEvent)
-                    );
+                    const didModify =
+                        await this.plugin.cache?.updateEventWithId(
+                            oldEvent.id,
+                            fromEventApi(newEvent)
+                        );
                     return !!didModify;
                 } catch (e: any) {
                     console.error(e);

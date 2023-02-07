@@ -28,6 +28,9 @@ const mockEvent = withCounter(
 );
 
 class TestReadonlyCalendar extends Calendar {
+    get name(): string {
+        return "test";
+    }
     private _id: string;
     events: OFCEvent[] = [];
     constructor(color: string, id: string, events: OFCEvent[]) {
@@ -35,8 +38,8 @@ class TestReadonlyCalendar extends Calendar {
         this._id = id;
         this.events = events;
     }
-    get type(): string {
-        return "TEST-READONLY";
+    get type(): "FOR_TEST_ONLY" {
+        return "FOR_TEST_ONLY";
     }
 
     get id(): string {
@@ -167,7 +170,7 @@ describe("event cache with readonly calendar", () => {
         [
             "modifyEvent",
             async (cache: EventCache, id: string) =>
-                await cache.modifyEvent(id, mockEvent()),
+                await cache.updateEventWithId(id, mockEvent()),
         ],
     ])("does not allow editing via %p", async (_, f) => {
         const event = mockEvent();
@@ -187,6 +190,9 @@ describe("event cache with readonly calendar", () => {
 });
 
 class TestEditable extends EditableCalendar {
+    get name(): string {
+        return "test";
+    }
     private _directory: string;
     events: EditableEventResponse[];
     shouldContainPath = true;
@@ -217,8 +223,8 @@ class TestEditable extends EditableCalendar {
     modifyEvent = jest.fn();
     getNewLocation = jest.fn();
 
-    get type(): string {
-        return "TEST_EDITABLE_EVENT";
+    get type(): "FOR_TEST_ONLY" {
+        return "FOR_TEST_ONLY";
     }
     get id(): string {
         return this.directory;
@@ -506,7 +512,7 @@ describe("editable calendars", () => {
                 cache._storeForTest.getEventsInFile(oldEvent[1].file).length
             ).toBe(1);
 
-            await cache.modifyEvent(id, newEvent);
+            await cache.updateEventWithId(id, newEvent);
 
             expect(calendar.modifyEvent.mock.calls.length).toBe(1);
             expect(calendar.modifyEvent.mock.calls[0]).toEqual([
@@ -542,7 +548,7 @@ describe("editable calendars", () => {
             });
 
             assertFailed(
-                () => cache.modifyEvent("unknown ID", mockEvent()),
+                () => cache.updateEventWithId("unknown ID", mockEvent()),
                 /not present in event store/
             );
 

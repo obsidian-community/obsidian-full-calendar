@@ -72,7 +72,7 @@ export default class EventCache {
     private calendarInitializers: CalendarInitializerMap;
 
     private store = new EventStore();
-    private calendars = new Map<string, Calendar>();
+    calendars = new Map<string, Calendar>();
 
     private pkCounter = 0;
     generateId(): string {
@@ -142,7 +142,7 @@ export default class EventCache {
     }
 
     /**
-     * Get all events from the cache in a FullCalendar-frienly format.
+     * Get all events from the cache in a FullCalendar-friendly format.
      * @returns EventSourceInputs for FullCalendar.
      */
     getAllEvents(): OFCEventSource[] {
@@ -205,12 +205,14 @@ export default class EventCache {
             );
         }
         const location = await calendar.createEvent(event);
-        this.store.add({
+        const id = this.store.add({
             calendar,
             location,
             id: event.id || this.generateId(),
             event,
         });
+
+        this.updateViews([], [{ event, id, calendarId: calendar.id }]);
         return true;
     }
 
@@ -237,28 +239,38 @@ export default class EventCache {
         return { calendar, location };
     }
 
-    deleteEvent(eventId: string): Promise<void> {
+    async deleteEvent(eventId: string): Promise<void> {
         const { calendar, location } = this.getRelations(eventId);
         this.store.delete(eventId);
-        return calendar.deleteEvent(location);
+        await calendar.deleteEvent(location);
+        this.updateViews([eventId], []);
     }
 
-    async modifyEvent(eventId: string, newEvent: OFCEvent): Promise<boolean> {
+    // TODO: rename this to reflect that it's updates coming from the view layer.
+    async updateEventWithId(
+        eventId: string,
+        newEvent: OFCEvent
+    ): Promise<boolean> {
         const { calendar, location: oldLocation } = this.getRelations(eventId);
         const { path, lineNumber } = oldLocation;
 
         this.store.delete(eventId);
         this.store.add({
             calendar,
+            // TODO: This will have to be async for inline events since the location requires reading a file.
             location: calendar.getNewLocation({ path, lineNumber }, newEvent),
             id: eventId, // TODO: Can this re-use the existing eventId?
             event: newEvent,
         });
 
+        // TODO: Maybe make the store updates a callback? Want this to be "transactional"
         await calendar.modifyEvent({ path, lineNumber }, newEvent);
         // fileUpdated() gets called HERE.
 
-        // TODO: For external subscribers, fire off an event when modifying.
+        this.updateViews(
+            [eventId],
+            [{ id: eventId, calendarId: calendar.id, event: newEvent }]
+        );
         return true;
     }
 
@@ -269,7 +281,12 @@ export default class EventCache {
         this.store.renameFileForEvents(oldPath, newFile.path);
     }
 
+    getCalendarIdForEventId(id: string): string | null {
+        return this.store.getCalendarIdForEventId(id);
+    }
+
     async fileUpdated(file: TFile): Promise<void> {
+        console.log("fileUpdated() called for file", file.path);
         const calendars = [...this.calendars.values()].flatMap((c) =>
             c instanceof EditableCalendar && c.containsPath(file.path) ? c : []
         );
@@ -288,6 +305,8 @@ export default class EventCache {
             // TODO: Relying on calendars for file I/O means that we're potentially
             // reading the file from disk multiple times. Could be more effecient.
             const newEvents = await calendar.getEventsInFile(file);
+
+            console.log("comparing events", oldEvents, newEvents);
 
             // TODO: Events are not different, but the location has changed.
             const eventsHaveChanged = eventsAreDifferent(

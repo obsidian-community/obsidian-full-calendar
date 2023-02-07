@@ -19,8 +19,8 @@ import { AddCalendarSource } from "./components/AddCalendarSource";
 import { RemoteSource } from "../models/RemoteSource";
 import * as ReactDOM from "react-dom";
 import { createElement } from "react";
-import { ReactModal } from "./modal";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import ReactModal from "./ReactModal";
 
 export interface FullCalendarSettings {
     calendarSources: CalendarInfo[];

@@ -175,7 +175,7 @@ export default class EventStore {
         return result;
     }
 
-    add({ calendar, location, id, event }: AddEventProps) {
+    add({ calendar, location, id, event }: AddEventProps): string {
         if (this.store.has(id)) {
             throw new Error(
                 "Event with given ID already exists in the EventStore."
@@ -194,6 +194,7 @@ export default class EventStore {
                 this.lineNumbers.set(id, lineNumber);
             }
         }
+        return id;
     }
 
     delete(id: string): OFCEvent | null {
