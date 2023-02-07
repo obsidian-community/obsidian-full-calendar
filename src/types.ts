@@ -210,6 +210,3 @@ export type EventLocation = {
     file: { path: string };
     lineNumber: number | undefined;
 };
-
-export const isTask = (e: OFCEvent) =>
-    e.type === "single" && e.completed !== undefined && e.completed !== null;

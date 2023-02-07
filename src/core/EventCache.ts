@@ -274,11 +274,27 @@ export default class EventCache {
         return true;
     }
 
+    /**
+     * Transform an event that's already in the event store.
+     * @param id ID of event to transform.
+     * @param process function to transform the event.
+     * @returns true if the update was successful.
+     */
+    processEvent(
+        id: string,
+        process: (e: OFCEvent) => OFCEvent
+    ): Promise<boolean> {
+        const event = this.store.getEventById(id);
+        if (!event) {
+            throw new Error("Event does not exist");
+        }
+        const newEvent = process(event);
+        console.log("process", newEvent, process);
+        return this.updateEventWithId(id, newEvent);
+    }
+
     pathRemoved(path: string) {
         this.updateViews([...this.store.deleteEventsAtPath(path)], []);
-    }
-    fileRenamed(newFile: TFile, oldPath: string) {
-        this.store.renameFileForEvents(oldPath, newFile.path);
     }
 
     getCalendarIdForEventId(id: string): string | null {

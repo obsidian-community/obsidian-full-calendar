@@ -3,7 +3,7 @@ import { ItemView, Menu, Notice, WorkspaceLeaf } from "obsidian";
 import { Calendar, EventSourceInput } from "@fullcalendar/core";
 import { renderCalendar } from "./calendar";
 import FullCalendarPlugin from "../main";
-import { FCError, isTask, PLUGIN_SLUG } from "../types";
+import { FCError, PLUGIN_SLUG } from "../types";
 import {
     dateEndpointsToFrontmatter,
     fromEventApi,
@@ -15,6 +15,7 @@ import { DateTime } from "luxon";
 import { getColors } from "../models/util";
 import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
+import { isTask, toggleTask, unmakeTask } from "src/tasks";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -167,7 +168,10 @@ export class CalendarView extends ItemView {
                             item
                                 .setTitle("Turn into task")
                                 .onClick(async () => {
-                                    await this.plugin.cache?.makeTask(e.id);
+                                    await this.plugin.cache?.processEvent(
+                                        e.id,
+                                        (e) => toggleTask(e, false)
+                                    );
                                 })
                         );
                     } else {
@@ -175,7 +179,10 @@ export class CalendarView extends ItemView {
                             item
                                 .setTitle("Remove checkbox")
                                 .onClick(async () => {
-                                    await this.plugin.cache?.unmakeTask(e.id);
+                                    await this.plugin.cache?.processEvent(
+                                        e.id,
+                                        unmakeTask
+                                    );
                                 })
                         );
                     }
@@ -208,28 +215,19 @@ export class CalendarView extends ItemView {
                 menu.showAtMouseEvent(mouseEvent);
             },
             toggleTask: async (e, isDone) => {
-                const event = await eventFromApi(
-                    this.app.metadataCache,
-                    this.app.vault,
-                    this.plugin.settings,
-                    e
-                );
+                const event = this.plugin.cache?.getEventById(e.id);
                 if (!event) {
                     return false;
                 }
-
-                const newData = event.data;
-                if (newData.type !== "single") {
+                if (event.type !== "single") {
                     return false;
                 }
-                if (isDone) {
-                    const completionDate = DateTime.now().toISO();
-                    newData.completed = completionDate;
-                } else {
-                    newData.completed = false;
-                }
+
                 try {
-                    event.setData(newData);
+                    await this.plugin.cache?.updateEventWithId(
+                        e.id,
+                        toggleTask(event, isDone)
+                    );
                 } catch (e) {
                     if (e instanceof FCError) {
                         new Notice(e.message);
