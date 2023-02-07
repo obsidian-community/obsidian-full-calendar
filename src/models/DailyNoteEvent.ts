@@ -15,9 +15,7 @@ import {
 } from "obsidian-daily-notes-interface";
 import {
     addToHeading,
-    getAllInlineEventsFromFile,
     getInlineEventFromLine,
-    getListsUnderHeading,
     modifyListItem,
     withFile,
 } from "src/serialization/inline";

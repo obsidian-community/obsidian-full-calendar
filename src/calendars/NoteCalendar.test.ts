@@ -2,8 +2,8 @@ import { join } from "path";
 import { TFile } from "obsidian";
 
 import { ObsidianInterface } from "src/ObsidianAdapter";
-import { MockApp, MockAppBuilder } from "../helpers/AppBuilder";
-import { FileBuilder } from "../helpers/FileBuilder";
+import { MockApp, MockAppBuilder } from "../../test_helpers/AppBuilder";
+import { FileBuilder } from "../../test_helpers/FileBuilder";
 import { OFCEvent } from "src/types";
 import NoteCalendar from "./NoteCalendar";
 
