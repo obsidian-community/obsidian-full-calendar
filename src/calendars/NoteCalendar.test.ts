@@ -244,10 +244,14 @@ describe("Note Calendar Tests", () => {
 
         const contents = await obsidian.read(firstFile);
 
-        const newLoc = await calendar.modifyEvent(
+        const mockFn = jest.fn();
+        await calendar.modifyEvent(
             { path: join("events", filename), lineNumber: undefined },
-            { ...event, endTime: "13:30" }
+            { ...event, endTime: "13:30" },
+            mockFn
         );
+        // TODO: make the third param a mock that we can inspect
+        const newLoc = mockFn.mock.calls[0][0];
         expect(newLoc.file.path).toBe(join("events", filename));
         expect(newLoc.lineNumber).toBeUndefined();
 

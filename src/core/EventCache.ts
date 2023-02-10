@@ -254,18 +254,19 @@ export default class EventCache {
         const { calendar, location: oldLocation } = this.getRelations(eventId);
         const { path, lineNumber } = oldLocation;
 
-        this.store.delete(eventId);
-        this.store.add({
-            calendar,
-            // TODO: This will have to be async for inline events since the location requires reading a file.
-            location: calendar.getNewLocation({ path, lineNumber }, newEvent),
-            id: eventId, // TODO: Can this re-use the existing eventId?
-            event: newEvent,
-        });
-
-        // TODO: Maybe make the store updates a callback? Want this to be "transactional"
-        await calendar.modifyEvent({ path, lineNumber }, newEvent);
-        // fileUpdated() gets called HERE.
+        await calendar.modifyEvent(
+            { path, lineNumber },
+            newEvent,
+            (newLocation) => {
+                this.store.delete(eventId);
+                this.store.add({
+                    calendar,
+                    location: newLocation,
+                    id: eventId, // TODO: Can this re-use the existing eventId?
+                    event: newEvent,
+                });
+            }
+        );
 
         this.updateViews(
             [eventId],

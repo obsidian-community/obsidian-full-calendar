@@ -139,8 +139,9 @@ export default class NoteCalendar extends EditableCalendar {
 
     async modifyEvent(
         location: EventPathLocation,
-        event: OFCEvent
-    ): Promise<EventLocation> {
+        event: OFCEvent,
+        updateLocation: (loc: EventLocation) => void
+    ): Promise<void> {
         const { path } = location;
         const file = this.app.getFileByPath(path);
         if (!file) {
@@ -158,11 +159,13 @@ export default class NoteCalendar extends EditableCalendar {
             throw new Error("File cannot be found after rename.");
         }
 
+        updateLocation({ file: newFile, lineNumber: undefined });
+
         await this.app.rewrite(file, (page) =>
             modifyFrontmatterString(page, event)
         );
 
-        return { file: newFile, lineNumber: undefined };
+        return;
     }
 
     async move(
