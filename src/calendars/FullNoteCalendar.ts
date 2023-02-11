@@ -5,12 +5,7 @@ import {
     modifyFrontmatterString,
     newFrontmatter,
 } from "../serialization/frontmatter";
-import {
-    OFCEvent,
-    EventLocation,
-    LocalCalendarSource,
-    validateEvent,
-} from "../types";
+import { OFCEvent, EventLocation, validateEvent } from "../types";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
 const basenameFromEvent = (event: OFCEvent): string => {
@@ -25,7 +20,7 @@ const basenameFromEvent = (event: OFCEvent): string => {
 
 const filenameForEvent = (event: OFCEvent) => `${basenameFromEvent(event)}.md`;
 
-export default class NoteCalendar extends EditableCalendar {
+export default class FullNoteCalendar extends EditableCalendar {
     app: ObsidianInterface;
     private _directory: string;
     private isRecursive: boolean;
@@ -176,7 +171,7 @@ export default class NoteCalendar extends EditableCalendar {
         if (lineNumber !== undefined) {
             throw new Error("Note calendar cannot handle inline events.");
         }
-        if (!(toCalendar instanceof NoteCalendar)) {
+        if (!(toCalendar instanceof FullNoteCalendar)) {
             throw new Error(
                 `Event cannot be moved to a note calendar from a calendar of type ${toCalendar.type}.`
             );

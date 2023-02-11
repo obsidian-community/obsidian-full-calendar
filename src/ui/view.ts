@@ -119,11 +119,10 @@ export class CalendarView extends ItemView {
             },
             modifyEvent: async (newEvent, oldEvent) => {
                 try {
-                    const didModify =
-                        await this.plugin.cache?.updateEventWithId(
-                            oldEvent.id,
-                            fromEventApi(newEvent)
-                        );
+                    const didModify = await this.plugin.cache.updateEventWithId(
+                        oldEvent.id,
+                        fromEventApi(newEvent)
+                    );
                     return !!didModify;
                 } catch (e: any) {
                     console.error(e);
@@ -133,7 +132,7 @@ export class CalendarView extends ItemView {
             },
 
             eventMouseEnter: async (info) => {
-                const location = this.plugin.cache?.getRelations(
+                const location = this.plugin.cache.getRelations(
                     info.event.id
                 ).location;
                 if (location) {
@@ -166,7 +165,7 @@ export class CalendarView extends ItemView {
                             item
                                 .setTitle("Turn into task")
                                 .onClick(async () => {
-                                    await this.plugin.cache?.processEvent(
+                                    await this.plugin.cache.processEvent(
                                         e.id,
                                         (e) => toggleTask(e, false)
                                     );
@@ -177,7 +176,7 @@ export class CalendarView extends ItemView {
                             item
                                 .setTitle("Remove checkbox")
                                 .onClick(async () => {
-                                    await this.plugin.cache?.processEvent(
+                                    await this.plugin.cache.processEvent(
                                         e.id,
                                         unmakeTask
                                     );
@@ -213,7 +212,7 @@ export class CalendarView extends ItemView {
                 menu.showAtMouseEvent(mouseEvent);
             },
             toggleTask: async (e, isDone) => {
-                const event = this.plugin.cache?.getEventById(e.id);
+                const event = this.plugin.cache.getEventById(e.id);
                 if (!event) {
                     return false;
                 }
@@ -222,7 +221,7 @@ export class CalendarView extends ItemView {
                 }
 
                 try {
-                    await this.plugin.cache?.updateEventWithId(
+                    await this.plugin.cache.updateEventWithId(
                         e.id,
                         toggleTask(event, isDone)
                     );

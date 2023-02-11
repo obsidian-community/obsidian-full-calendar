@@ -79,9 +79,8 @@ async function assertFailed(func: () => Promise<any>, message: RegExp) {
 }
 
 describe("event cache with readonly calendar", () => {
-    const makeCache = (events: OFCEvent[]) =>
-        new EventCache(
-            [{ type: "FOR_TEST_ONLY", color: "#000000", id: "test", events }],
+    const makeCache = (events: OFCEvent[]) => {
+        const cache = new EventCache(
             initializerMap((info) => {
                 if (info.type !== "FOR_TEST_ONLY") {
                     return null;
@@ -93,6 +92,12 @@ describe("event cache with readonly calendar", () => {
                 );
             })
         );
+        cache.reset([
+            { type: "FOR_TEST_ONLY", color: "#000000", id: "test", events },
+        ]);
+        return cache;
+    };
+
     it("populates a single event", async () => {
         const event = mockEvent();
         const cache = makeCache([event]);
@@ -256,9 +261,8 @@ const assertCacheContentCounts = (
 };
 
 describe("editable calendars", () => {
-    const makeCache = (events: EditableEventResponse[]) =>
-        new EventCache(
-            [{ type: "FOR_TEST_ONLY", id: "test", events: [], color: "black" }],
+    const makeCache = (events: EditableEventResponse[]) => {
+        const cache = new EventCache(
             initializerMap((info) => {
                 if (info.type !== "FOR_TEST_ONLY") {
                     return null;
@@ -266,6 +270,11 @@ describe("editable calendars", () => {
                 return new TestEditable(info.color, info.id, events);
             })
         );
+        cache.reset([
+            { type: "FOR_TEST_ONLY", id: "test", events: [], color: "black" },
+        ]);
+        return cache;
+    };
 
     const getCalendar = (cache: EventCache, id: string) => {
         const calendar = cache.getCalendarById(id);

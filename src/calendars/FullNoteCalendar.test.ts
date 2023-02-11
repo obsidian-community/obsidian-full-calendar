@@ -5,7 +5,7 @@ import { ObsidianInterface } from "src/ObsidianAdapter";
 import { MockApp, MockAppBuilder } from "../../test_helpers/AppBuilder";
 import { FileBuilder } from "../../test_helpers/FileBuilder";
 import { OFCEvent } from "src/types";
-import NoteCalendar from "./NoteCalendar";
+import FullNoteCalendar from "./FullNoteCalendar";
 
 async function assertFailed(func: () => Promise<any>, message: RegExp) {
     try {
@@ -114,7 +114,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new NoteCalendar(
+        const calendar = new FullNoteCalendar(
             obsidian,
             color,
             dirName,
@@ -151,7 +151,7 @@ describe("Note Calendar Tests", () => {
 
     it("creates an event", async () => {
         const obsidian = makeApp(MockAppBuilder.make().done());
-        const calendar = new NoteCalendar(
+        const calendar = new FullNoteCalendar(
             obsidian,
             color,
             dirName,
@@ -202,7 +202,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new NoteCalendar(
+        const calendar = new FullNoteCalendar(
             obsidian,
             color,
             dirName,
@@ -230,7 +230,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new NoteCalendar(
+        const calendar = new FullNoteCalendar(
             obsidian,
             color,
             dirName,

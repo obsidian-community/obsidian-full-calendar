@@ -9,9 +9,6 @@ export function launchCreateModal(
     plugin: FullCalendarPlugin,
     partialEvent: Partial<OFCEvent>
 ) {
-    if (!plugin.cache) {
-        return;
-    }
     const calendars = [...plugin.cache.calendars.entries()].map(([id, cal]) => {
         return {
             id,
@@ -31,7 +28,7 @@ export function launchCreateModal(
                     throw new Error("Cannot move event to a new calendar.");
                 }
                 const calendarId = calendars[calIdx].id;
-                await plugin.cache?.addEvent(calendarId, data);
+                await plugin.cache.addEvent(calendarId, data);
                 closeModal();
             },
         })
@@ -39,10 +36,6 @@ export function launchCreateModal(
 }
 
 export function launchEditModal(plugin: FullCalendarPlugin, eventId: string) {
-    if (!plugin.cache) {
-        throw new Error("Full Calendar cache is not initialized.");
-    }
-
     const eventToEdit = plugin.cache.getEventById(eventId);
     if (!eventToEdit) {
         throw new Error("Cannot edit event that doesn't exist.");
@@ -69,17 +62,14 @@ export function launchEditModal(plugin: FullCalendarPlugin, eventId: string) {
                 if (calendarIndex !== calIdx) {
                     throw new Error("Cannot move event to a new calendar.");
                 }
-                await plugin.cache?.updateEventWithId(eventId, data);
+                await plugin.cache.updateEventWithId(eventId, data);
                 closeModal();
             },
             open: async () => {
-                if (!plugin.cache) {
-                    throw new Error("Plugin does not have a cache.");
-                }
                 openFileForEvent(plugin.cache, plugin.app, eventId);
             },
             deleteEvent: async () => {
-                await plugin.cache?.deleteEvent(eventId);
+                await plugin.cache.deleteEvent(eventId);
             },
         })
     ).open();

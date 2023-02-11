@@ -14,13 +14,31 @@ import {
 } from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
 import EventCache from "./core/EventCache";
-import NoteCalendar from "./calendars/NoteCalendar";
+import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import { ObsidianIO } from "./ObsidianAdapter";
 import { launchCreateModal } from "./ui/event_modal";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
-    cache: EventCache | null = null;
+    cache: EventCache = new EventCache({
+        local: (info) => {
+            return info.type === "local"
+                ? new FullNoteCalendar(
+                      new ObsidianIO(this.app),
+                      info.color,
+                      info.directory,
+                      this.settings.recursiveLocal,
+                      true
+                  )
+                : null;
+        },
+        dailynote: () => null,
+        gcal: () => null,
+        ical: () => null,
+        caldav: () => null,
+        icloud: () => null,
+        FOR_TEST_ONLY: () => null,
+    });
 
     renderCalendar = renderCalendar;
     processFrontmatter = toEventInput;
@@ -43,31 +61,12 @@ export default class FullCalendarPlugin extends Plugin {
     }
     async onload() {
         await this.loadSettings();
-        const obs = new ObsidianIO(this.app);
 
-        this.cache = new EventCache(this.settings.calendarSources, {
-            local: (info) => {
-                return info.type === "local"
-                    ? new NoteCalendar(
-                          obs,
-                          info.color,
-                          info.directory,
-                          this.settings.recursiveLocal,
-                          true
-                      )
-                    : null;
-            },
-            dailynote: () => null,
-            gcal: () => null,
-            ical: () => null,
-            caldav: () => null,
-            icloud: () => null,
-            FOR_TEST_ONLY: () => null,
-        });
+        this.cache.reset(this.settings.calendarSources);
 
         this.registerEvent(
             this.app.metadataCache.on("changed", (file) => {
-                this.cache?.fileUpdated(file);
+                this.cache.fileUpdated(file);
             })
         );
 
@@ -75,7 +74,7 @@ export default class FullCalendarPlugin extends Plugin {
             this.app.vault.on("rename", (file, oldPath) => {
                 if (file instanceof TFile) {
                     console.log("FILE RENAMED", file.path);
-                    this.cache?.pathRemoved(oldPath);
+                    this.cache.pathRemoved(oldPath);
                 }
             })
         );
@@ -84,7 +83,7 @@ export default class FullCalendarPlugin extends Plugin {
             this.app.vault.on("delete", (file) => {
                 if (file instanceof TFile) {
                     console.log("FILE DELETED", file.path);
-                    this.cache?.pathRemoved(file.path);
+                    this.cache.pathRemoved(file.path);
                 }
             })
         );
@@ -124,7 +123,7 @@ export default class FullCalendarPlugin extends Plugin {
             id: "full-calendar-reset",
             name: "Reset Event Cache",
             callback: () => {
-                this.cache?.reset(this.settings.calendarSources);
+                this.cache.reset(this.settings.calendarSources);
                 this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
                 this.app.workspace.detachLeavesOfType(
                     FULL_CALENDAR_SIDEBAR_VIEW_TYPE

@@ -67,7 +67,7 @@ export type OFCEventSource = {
  * change on disk.
  */
 export default class EventCache {
-    private calendarInfos: CalendarInfo[];
+    private calendarInfos: CalendarInfo[] = [];
 
     private calendarInitializers: CalendarInitializerMap;
 
@@ -83,11 +83,7 @@ export default class EventCache {
 
     initialized = false;
 
-    constructor(
-        calendarInfos: CalendarInfo[],
-        calendarInitializers: CalendarInitializerMap
-    ) {
-        this.calendarInfos = calendarInfos;
+    constructor(calendarInitializers: CalendarInitializerMap) {
         this.calendarInitializers = calendarInitializers;
     }
 
