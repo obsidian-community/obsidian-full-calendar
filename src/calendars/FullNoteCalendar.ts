@@ -145,6 +145,9 @@ export default class FullNoteCalendar extends EditableCalendar {
             );
         }
         const newLocation = this.getNewLocation(location, event);
+
+        updateLocation(newLocation);
+
         if (file.path !== newLocation.file.path) {
             await this.app.rename(file, newLocation.file.path);
         }
@@ -153,8 +156,6 @@ export default class FullNoteCalendar extends EditableCalendar {
         if (!newFile || !(newFile instanceof TFile)) {
             throw new Error("File cannot be found after rename.");
         }
-
-        updateLocation({ file: newFile, lineNumber: undefined });
 
         await this.app.rewrite(file, (page) =>
             modifyFrontmatterString(page, event)

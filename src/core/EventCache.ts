@@ -249,6 +249,7 @@ export default class EventCache {
     ): Promise<boolean> {
         const { calendar, location: oldLocation } = this.getRelations(eventId);
         const { path, lineNumber } = oldLocation;
+        console.log("updating event with ID", eventId);
 
         await calendar.modifyEvent(
             { path, lineNumber },

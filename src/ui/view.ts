@@ -238,7 +238,7 @@ export class CalendarView extends ItemView {
         window.fc = this.fullCalendarView;
 
         this.plugin.cache.on("update", ({ toRemove, toAdd }) => {
-            console.log("cache updated!", { toRemove, toAdd });
+            console.log("updating view from cache...", { toRemove, toAdd });
             toRemove.forEach((id) => {
                 const event = this.fullCalendarView?.getEventById(id);
                 if (event) {
