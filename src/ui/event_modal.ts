@@ -1,4 +1,5 @@
 import * as React from "react";
+import { EditableCalendar } from "src/calendars/EditableCalendar";
 import FullCalendarPlugin from "src/main";
 import { OFCEvent } from "src/types";
 import { openFileForEvent } from "./actions";
@@ -9,25 +10,22 @@ export function launchCreateModal(
     plugin: FullCalendarPlugin,
     partialEvent: Partial<OFCEvent>
 ) {
-    const calendars = [...plugin.cache.calendars.entries()].map(([id, cal]) => {
-        return {
-            id,
-            type: cal.type,
-            name: cal.name,
-        };
-    });
-    const calIdx = 0;
+    const calendars = [...plugin.cache.calendars.entries()]
+        .filter(([_, cal]) => cal instanceof EditableCalendar)
+        .map(([id, cal]) => {
+            return {
+                id,
+                type: cal.type,
+                name: cal.name,
+            };
+        });
     new ReactModal(plugin.app, async (closeModal) =>
         React.createElement(EditEvent, {
             initialEvent: partialEvent,
             calendars,
-            defaultCalendarIndex: calIdx,
+            defaultCalendarIndex: 0,
             submit: async (data, calendarIndex) => {
-                // TODO: Move calendars if appropriate.
-                if (calendarIndex !== calIdx) {
-                    throw new Error("Cannot move event to a new calendar.");
-                }
-                const calendarId = calendars[calIdx].id;
+                const calendarId = calendars[calendarIndex].id;
                 await plugin.cache.addEvent(calendarId, data);
                 closeModal();
             },
@@ -42,13 +40,15 @@ export function launchEditModal(plugin: FullCalendarPlugin, eventId: string) {
     }
     const calId = plugin.cache.getCalendarIdForEventId(eventId);
 
-    const calendars = [...plugin.cache.calendars.entries()].map(([id, cal]) => {
-        return {
-            id,
-            type: cal.type,
-            name: cal.name,
-        };
-    });
+    const calendars = [...plugin.cache.calendars.entries()]
+        .filter(([_, cal]) => cal instanceof EditableCalendar)
+        .map(([id, cal]) => {
+            return {
+                id,
+                type: cal.type,
+                name: cal.name,
+            };
+        });
 
     const calIdx = calendars.findIndex(({ id }) => id === calId);
 
