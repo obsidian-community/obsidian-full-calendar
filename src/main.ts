@@ -17,21 +17,28 @@ import EventCache from "./core/EventCache";
 import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import { ObsidianIO } from "./ObsidianAdapter";
 import { launchCreateModal } from "./ui/event_modal";
+import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
     cache: EventCache = new EventCache({
-        local: (info) => {
-            return info.type === "local"
+        local: (info) =>
+            info.type === "local"
                 ? new FullNoteCalendar(
                       new ObsidianIO(this.app),
                       info.color,
                       info.directory,
                       this.settings.recursiveLocal
                   )
-                : null;
-        },
-        dailynote: () => null,
+                : null,
+        dailynote: (info) =>
+            info.type === "dailynote"
+                ? new DailyNoteCalendar(
+                      new ObsidianIO(this.app),
+                      info.color,
+                      info.heading
+                  )
+                : null,
         gcal: () => null,
         ical: () => null,
         caldav: () => null,

@@ -65,7 +65,7 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
         }
         const event: OFCEvent = {
             title: obj.title,
-            type: obj.type,
+            type: "single",
             date: obj.date,
             ...timeInfo,
         };

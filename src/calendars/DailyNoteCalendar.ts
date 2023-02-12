@@ -142,6 +142,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
         newEvent: OFCEvent,
         updateLocation: (loc: EventLocation) => void
     ): Promise<void> {
+        console.log("modified daily note event");
         if (newEvent.type === "recurring") {
             throw new Error(
                 "Recurring events in daily notes are not supported."
@@ -160,6 +161,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
             );
         }
         if (newEvent.date !== oldDate) {
+            console.log("daily note event moving to a new file.");
             // Event needs to be moved to a new file.
             // TODO: Factor this out with the createFile path.
             const m = moment(newEvent.date);
@@ -196,6 +198,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
                 return lines.join("\n");
             });
         } else {
+            console.log("daily note event staying in same file.");
             updateLocation({ file, lineNumber });
             await this.app.rewrite(file, (contents) => {
                 const lines = contents.split("\n");
@@ -207,18 +210,6 @@ export default class DailyNoteCalendar extends EditableCalendar {
                 return lines.join("\n");
             });
         }
-        return this.app.rewrite(file, (contents) => {
-            const lines = contents.split("\n");
-            const oldEvent = getInlineEventFromLine(lines[lineNumber], {
-                date: oldDate,
-            });
-            if (!oldEvent) {
-                throw new Error(
-                    `Could not find an event at line ${lineNumber} of file at path ${file.path}.`
-                );
-            }
-            return contents;
-        });
     }
 
     move(

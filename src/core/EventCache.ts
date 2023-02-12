@@ -26,13 +26,15 @@ export const eventsAreDifferent = (
     oldEvents.sort((a, b) => a.title.localeCompare(b.title));
     newEvents.sort((a, b) => a.title.localeCompare(b.title));
 
-    if (oldEvents.length !== newEvents.length) {
-        return true;
-    }
-
     // validateEvent() will normalize the representation of default fields in events.
     oldEvents = oldEvents.flatMap((e) => validateEvent(e) || []);
     newEvents = newEvents.flatMap((e) => validateEvent(e) || []);
+
+    console.log("comparing events", oldEvents, newEvents);
+
+    if (oldEvents.length !== newEvents.length) {
+        return true;
+    }
 
     const unmatchedEvents = oldEvents
         .map((e, i) => ({ oldEvent: e, newEvent: newEvents[i] }))
@@ -348,6 +350,9 @@ export default class EventCache {
 
             // If no events have changed from what's in the cache, then there's no need to update the event store.
             if (!eventsHaveChanged) {
+                console.log(
+                    "events have not changed, do not update store or view."
+                );
                 return;
             }
 
