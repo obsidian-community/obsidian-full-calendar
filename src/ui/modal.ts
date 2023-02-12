@@ -107,14 +107,14 @@ export class EventModal extends Modal {
                             if (source.type === "local") {
                                 const directory = source.directory;
                                 if (this.file) {
-                                    NoteEvent.upgrade(
+                                    await NoteEvent.upgrade(
                                         this.app.metadataCache,
                                         this.app.vault,
                                         this.file,
                                         data
                                     );
                                 } else {
-                                    NoteEvent.create(
+                                    await NoteEvent.create(
                                         this.app.metadataCache,
                                         this.app.vault,
                                         directory,
@@ -122,7 +122,7 @@ export class EventModal extends Modal {
                                     );
                                 }
                             } else if (source.type === "dailynote") {
-                                DailyNoteEvent.create(
+                                await DailyNoteEvent.create(
                                     this.app.metadataCache,
                                     this.app.vault,
                                     source.heading,

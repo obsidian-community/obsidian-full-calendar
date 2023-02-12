@@ -116,7 +116,7 @@ export class DailyNoteEvent extends LocalEvent {
         data: OFCEvent
     ): Promise<void | null> {
         if (data.type === "recurring") {
-            return null;
+            throw new FCError("Cannot create recurring events in daily notes.");
         }
         const m = moment(data.date);
         // @ts-ignore
