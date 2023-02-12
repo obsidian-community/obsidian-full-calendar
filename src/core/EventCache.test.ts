@@ -42,7 +42,7 @@ class TestReadonlyCalendar extends Calendar {
         return "FOR_TEST_ONLY";
     }
 
-    get id(): string {
+    get identifier(): string {
         return this._id;
     }
 
@@ -231,7 +231,7 @@ class TestEditable extends EditableCalendar {
     get type(): "FOR_TEST_ONLY" {
         return "FOR_TEST_ONLY";
     }
-    get id(): string {
+    get identifier(): string {
         return this.directory;
     }
 }

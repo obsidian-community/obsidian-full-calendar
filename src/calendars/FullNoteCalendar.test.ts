@@ -36,6 +36,7 @@ const makeApp = (app: MockApp): ObsidianInterface => ({
     rewrite: jest.fn(),
     rename: jest.fn(),
     delete: jest.fn(),
+    process: jest.fn(),
 });
 
 const dirName = "events";
@@ -114,13 +115,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new FullNoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
         const res = await calendar.getEvents();
         expect(res.length).toBe(inputs.length);
         const events = res.map((e) => e[0]);
@@ -151,13 +146,7 @@ describe("Note Calendar Tests", () => {
 
     it("creates an event", async () => {
         const obsidian = makeApp(MockAppBuilder.make().done());
-        const calendar = new FullNoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
         const event: OFCEvent = {
             title: "Test Event",
             date: "2022-01-01",
@@ -202,13 +191,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new FullNoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
         await assertFailed(() => calendar.createEvent(event), /already exists/);
     });
 
@@ -230,13 +213,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new FullNoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
 
         const firstFile = obsidian.getAbstractFileByPath(
             join("events", filename)

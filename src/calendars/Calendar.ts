@@ -16,7 +16,10 @@ export abstract class Calendar {
     }
 
     abstract get type(): CalendarInfo["type"];
-    abstract get id(): string;
+    abstract get identifier(): string;
+    get id(): string {
+        return `${this.type}::${this.identifier}`;
+    }
     abstract get name(): string;
 
     /**

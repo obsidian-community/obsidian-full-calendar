@@ -24,20 +24,17 @@ export default class FullNoteCalendar extends EditableCalendar {
     app: ObsidianInterface;
     private _directory: string;
     private isRecursive: boolean;
-    private systemTrash: boolean;
 
     constructor(
         app: ObsidianInterface,
         color: string,
         directory: string,
-        isRecursive: boolean,
-        systemTrash: boolean
+        isRecursive: boolean
     ) {
         super(color);
         this.app = app;
         this._directory = directory;
         this.isRecursive = isRecursive;
-        this.systemTrash = systemTrash;
     }
     get directory(): string {
         return this._directory;
@@ -47,7 +44,7 @@ export default class FullNoteCalendar extends EditableCalendar {
         return "local";
     }
 
-    get id(): string {
+    get identifier(): string {
         return this.directory;
     }
 
@@ -200,7 +197,7 @@ export default class FullNoteCalendar extends EditableCalendar {
         if (!file) {
             throw new Error(`File ${path} not found.`);
         }
-        return this.app.delete(file, this.systemTrash);
+        return this.app.delete(file);
     }
 
     async upgradeNote(file: TFile, event: OFCEvent) {

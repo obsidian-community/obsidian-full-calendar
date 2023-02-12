@@ -27,8 +27,7 @@ export default class FullCalendarPlugin extends Plugin {
                       new ObsidianIO(this.app),
                       info.color,
                       info.directory,
-                      this.settings.recursiveLocal,
-                      true
+                      this.settings.recursiveLocal
                   )
                 : null;
         },
