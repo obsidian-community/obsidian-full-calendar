@@ -131,12 +131,12 @@ export class DailyNoteEvent extends LocalEvent {
             ?.headings?.find((h) => h.heading == heading);
 
         let contents = await vault.read(file);
-        contents = addToHeading(contents, {
+        const { page } = addToHeading(contents, {
             heading: headingCache,
             item: data,
             headingText: heading,
         });
-        await vault.modify(file, contents);
+        await vault.modify(file, page);
     }
 
     async setData(newData: OFCEvent): Promise<void> {
@@ -189,11 +189,11 @@ export class DailyNoteEvent extends LocalEvent {
             );
         }
 
-        await withFile(
-            this.vault,
-            file,
-            addToHeading
-        )({ heading, item: this.data, headingText: this.heading });
+        // await withFile(
+        //     this.vault,
+        //     file,
+        //     addToHeading
+        // )({ heading, item: this.data, headingText: this.heading });
         this.directory = file.parent.path;
         this.filename = file.name;
         // TODO: Set the LineNumber.

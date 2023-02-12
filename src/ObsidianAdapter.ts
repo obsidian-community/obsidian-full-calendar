@@ -59,6 +59,24 @@ export interface ObsidianInterface {
         file: TFile,
         rewriteFunc: (contents: string) => string
     ): Promise<void>;
+    rewrite(
+        file: TFile,
+        rewriteFunc: (contents: string) => Promise<string>
+    ): Promise<void>;
+    /**
+     * Rewrite the given file and return some auxilliary info to the caller.
+     *
+     * @param file file to rewrite
+     * @param rewriteFunc callback function that performs the rewrite.
+     */
+    rewrite<T>(
+        file: TFile,
+        rewriteFunc: (contents: string) => [string, T]
+    ): Promise<T>;
+    rewrite<T>(
+        file: TFile,
+        rewriteFunc: (contents: string) => Promise<[string, T]>
+    ): Promise<T>;
 
     /**
      * Rename a file.
@@ -100,13 +118,26 @@ export class ObsidianIO implements ObsidianInterface {
         return this.fileManager.renameFile(file, newPath);
     }
 
-    async rewrite(
+    async rewrite<T>(
         file: TFile,
-        rewriteFunc: (contents: string) => string
-    ): Promise<void> {
+        rewriteFunc: (
+            contents: string
+        ) => string | [string, T] | Promise<string> | Promise<[string, T]>
+    ): Promise<T | void> {
         const page = await this.vault.read(file);
-        const newPage = rewriteFunc(page);
-        await this.vault.modify(file, newPage);
+        let result = rewriteFunc(page);
+
+        if (result instanceof Promise) {
+            result = await result;
+        }
+
+        if (Array.isArray(result)) {
+            await this.vault.modify(file, result[0]);
+            return result[1];
+        } else {
+            await this.vault.modify(file, result);
+            return;
+        }
     }
 
     create(path: string, contents: string): Promise<TFile> {

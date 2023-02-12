@@ -212,6 +212,22 @@ export const modifyListItem = (
     return lines.join("\n");
 };
 
+export const modifyListItemOne = (
+    line: string,
+    data: SingleEventData
+): string | null => {
+    const listMatch = line.match(listRegex);
+    if (!listMatch) {
+        console.warn(
+            "Tried modifying a list item with a position that wasn't a list item",
+            { line }
+        );
+        return null;
+    }
+
+    return makeListItem(data, listMatch[1]);
+};
+
 /**
  * Add a list item to a given heading.
  * If the heading is undefined, then append the heading to the end of the file.
@@ -224,17 +240,18 @@ type AddToHeadingProps = {
 export const addToHeading = (
     page: string,
     { heading, item, headingText }: AddToHeadingProps
-): string => {
+): { page: string; lineNumber: number } => {
     let lines = page.split("\n");
 
     const listItem = makeListItem(item);
     if (heading) {
         const headingLine = heading.position.start.line;
-        lines.splice(headingLine + 1, 0, listItem);
+        const lineNumber = headingLine + 1;
+        lines.splice(lineNumber, 0, listItem);
+        return { page: lines.join("\n"), lineNumber };
     } else {
         lines.push(`## ${headingText}`);
         lines.push(listItem);
+        return { page: lines.join("\n"), lineNumber: lines.length - 1 };
     }
-
-    return lines.join("\n");
 };
