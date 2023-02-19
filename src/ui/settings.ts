@@ -205,6 +205,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 dropdown.setValue(this.plugin.settings.initialView.mobile);
                 dropdown.onChange(async (initialView) => {
                     this.plugin.settings.initialView.mobile = initialView;
+                    await this.plugin.saveSettings();
                 });
             });
 
