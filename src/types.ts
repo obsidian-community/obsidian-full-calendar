@@ -105,6 +105,7 @@ type CalendarSourceCommon = {
 export type LocalCalendarSource = {
     type: "local";
     directory: string;
+    template?: string;
 } & CalendarSourceCommon;
 
 /**

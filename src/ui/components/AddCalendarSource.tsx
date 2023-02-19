@@ -110,6 +110,32 @@ function UrlInput<T extends Partial<CalendarInfo>>({
         </div>
     );
 }
+function TemplateInput<T extends Partial<CalendarInfo>>({
+    source,
+    changeListener,
+}: BasicProps<T>) {
+    let sourceWithUrl = source as SourceWith<T, { template?: string }>;
+    return (
+        <div className="setting-item">
+            <div className="setting-item-info">
+                <div className="setting-item-name">Template</div>
+                <div className="setting-item-description">
+                    Template for newly created notes
+                </div>
+            </div>
+            <div className="setting-item-control">
+                <input
+                    type="text"
+                    value={sourceWithUrl.template ?? ""}
+                    onChange={changeListener((x) => ({
+                        ...sourceWithUrl,
+                        template: x,
+                    }))}
+                />
+            </div>
+        </div>
+    );
+}
 
 function UsernameInput<T extends Partial<CalendarInfo>>({
     source,
@@ -270,6 +296,12 @@ export const AddCalendarSource = ({
                         source={setting}
                         changeListener={makeChangeListener}
                         directories={directories}
+                    />
+                )}
+                {source.type === "local" && (
+                    <TemplateInput
+                        source={setting}
+                        changeListener={makeChangeListener}
                     />
                 )}
                 {source.type === "dailynote" && (

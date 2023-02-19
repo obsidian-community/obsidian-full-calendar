@@ -35,13 +35,24 @@ export class NoteEvent extends LocalEvent {
         cache: MetadataCache,
         vault: Vault,
         directory: string,
+        template: string | undefined,
         data: OFCEvent
     ): Promise<NoteEvent> {
         const filename = `${directory}/${basenameFromEvent(data)}.md`;
         if (vault.getAbstractFileByPath(filename)) {
             throw new FCError(`File with name '${filename}' already exists`);
         }
-        const file = await vault.create(filename, "");
+        let content = "";
+        if (template) {
+            const file = app.vault.getAbstractFileByPath(template + ".md");
+            if (!(file instanceof TFile)) {
+                throw new FCError(
+                    `Template file with name '${template}' does not exist`
+                );
+            }
+            content = await app.vault.read(file);
+        }
+        const file = await vault.create(filename, content);
         await modifyFrontmatter(vault, file, data);
 
         return new NoteEvent(cache, vault, data, {

@@ -118,6 +118,7 @@ export class EventModal extends Modal {
                                         this.app.metadataCache,
                                         this.app.vault,
                                         directory,
+                                        source.template,
                                         data
                                     );
                                 }

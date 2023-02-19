@@ -74,6 +74,27 @@ function UrlSetting<T extends Partial<CalendarInfo>>({
     );
 }
 
+function TemplateSetting<T extends Partial<CalendarInfo>>({
+    source,
+}: BasicProps<T>) {
+    let sourceWithUrl = source as SourceWith<T, { template?: string }>;
+    return (
+        <div className="setting-item-control">
+            <input
+                disabled
+                type="text"
+                placeholder="Note template"
+                value={sourceWithUrl.template ?? ""}
+                style={{
+                    width: "100%",
+                    marginLeft: 4,
+                    marginRight: 4,
+                }}
+            />
+        </div>
+    );
+}
+
 function NameSetting<T extends Partial<CalendarInfo>>({
     source,
 }: BasicProps<T>) {
@@ -140,6 +161,7 @@ export const CalendarSettingRow = ({
             ) : (
                 <UrlSetting source={setting} />
             )}
+            {setting.type === "local" && <TemplateSetting source={setting} />}
             {isCalDAV && <NameSetting source={setting} />}
             {isCalDAV && <Username source={setting} />}
             <input
