@@ -44,7 +44,9 @@ export class CalendarView extends ItemView {
     }
 
     getViewType() {
-        return FULL_CALENDAR_VIEW_TYPE;
+        return this.inSidebar
+            ? FULL_CALENDAR_SIDEBAR_VIEW_TYPE
+            : FULL_CALENDAR_VIEW_TYPE;
     }
 
     getDisplayText() {
