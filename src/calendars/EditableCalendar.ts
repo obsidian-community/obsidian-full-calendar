@@ -28,12 +28,8 @@ export abstract class EditableCalendar extends Calendar {
 
     abstract deleteEvent(location: EventPathLocation): Promise<void>;
 
-    // TODO: figure out a better API for moving events between calendars.
-    abstract move(
-        from: EventPathLocation,
-        to: EditableCalendar
-    ): Promise<EventLocation>;
-
+    // TODO: Document how to call updateLocation() before doing any IO to ensure we don't
+    // end up with duplicate events.
     abstract modifyEvent(
         location: EventPathLocation,
         newEvent: OFCEvent,

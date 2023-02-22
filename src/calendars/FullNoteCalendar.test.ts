@@ -125,7 +125,14 @@ describe("Note Calendar Tests", () => {
             res.every((elt) => elt[1].lineNumber === undefined)
         ).toBeTruthy();
 
-        for (const { event, title } of inputs) {
+        for (const { event, title } of inputs.map((i) => ({
+            title: i.title,
+            event: {
+                ...i.event,
+                completed: undefined,
+                type: "single",
+            },
+        }))) {
             expect(events).toContainEqual(event);
             expect(paths).toContainEqual(`${dirName}/${title}`);
         }

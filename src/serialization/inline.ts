@@ -188,31 +188,7 @@ const makeListItem = (
     } ${title} ${generateInlineAttributes(attrs)}`;
 };
 
-type ModifyListItemProps = {
-    lineNumber: number;
-    data: SingleEventData;
-};
 export const modifyListItem = (
-    page: string,
-    { lineNumber, data }: ModifyListItemProps
-): string | null => {
-    let lines = page.split("\n");
-    let line = lines[lineNumber];
-
-    const listMatch = line.match(listRegex);
-    if (!listMatch) {
-        console.warn(
-            "Tried modifying a list item with a position that wasn't a list item",
-            { lineNumber, line }
-        );
-        return null;
-    }
-
-    lines[lineNumber] = makeListItem(data, listMatch[1]);
-    return lines.join("\n");
-};
-
-export const modifyListItemOne = (
     line: string,
     data: SingleEventData
 ): string | null => {
@@ -232,6 +208,7 @@ export const modifyListItemOne = (
  * Add a list item to a given heading.
  * If the heading is undefined, then append the heading to the end of the file.
  */
+// TODO: refactor this to not do the weird props thing
 type AddToHeadingProps = {
     heading: HeadingCache | undefined;
     item: SingleEventData;

@@ -15,7 +15,7 @@ import {
     getAllInlineEventsFromFile,
     getInlineEventFromLine,
     getListsUnderHeading,
-    modifyListItemOne,
+    modifyListItem,
 } from "src/serialization/inline";
 import { OFCEvent, EventLocation, CalendarInfo } from "src/types";
 import { EventResponse } from "./Calendar";
@@ -202,7 +202,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
             updateLocation({ file, lineNumber });
             await this.app.rewrite(file, (contents) => {
                 const lines = contents.split("\n");
-                const newLine = modifyListItemOne(lines[lineNumber], newEvent);
+                const newLine = modifyListItem(lines[lineNumber], newEvent);
                 if (!newLine) {
                     throw new Error("Did not successfully update line.");
                 }
