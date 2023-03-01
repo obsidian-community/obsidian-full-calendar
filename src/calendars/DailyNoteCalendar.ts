@@ -140,7 +140,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
     async modifyEvent(
         loc: EventPathLocation,
         newEvent: OFCEvent,
-        beforeEventIsMoved: (loc: EventLocation) => void
+        updateCacheWithLocation: (loc: EventLocation) => void
     ): Promise<void> {
         // console.log("modified daily note event");
         if (newEvent.type === "recurring") {
@@ -183,23 +183,28 @@ export default class DailyNoteCalendar extends EditableCalendar {
                     `Could not find heading ${this.heading} in daily note ${file.path}.`
                 );
             }
+
             await this.app.rewrite(file, async (oldFileContents) => {
+                // Open the old file and remove the event.
                 let lines = oldFileContents.split("\n");
                 lines.splice(lineNumber, 1);
                 await this.app.rewrite(newFile, (newFileContents) => {
+                    // Before writing that change back to disk, open the new file and add the event.
                     const { page, lineNumber } = addToHeading(newFileContents, {
                         heading: headingInfo,
                         item: newEvent,
                         headingText: this.heading,
                     });
-                    beforeEventIsMoved({ file: newFile, lineNumber });
+                    // Before any file I/O, call the beforeEventIsMoved callback to ensure
+                    // the cache is properly updated with the new location.
+                    updateCacheWithLocation({ file: newFile, lineNumber });
                     return page;
                 });
                 return lines.join("\n");
             });
         } else {
             // console.log("daily note event staying in same file.");
-            beforeEventIsMoved({ file, lineNumber });
+            updateCacheWithLocation({ file, lineNumber });
             await this.app.rewrite(file, (contents) => {
                 const lines = contents.split("\n");
                 const newLine = modifyListItem(lines[lineNumber], newEvent);

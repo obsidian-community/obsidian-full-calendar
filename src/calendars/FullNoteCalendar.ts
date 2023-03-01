@@ -132,7 +132,7 @@ export default class FullNoteCalendar extends EditableCalendar {
     async modifyEvent(
         location: EventPathLocation,
         event: OFCEvent,
-        beforeEventIsMoved: (loc: EventLocation) => void
+        updateCacheWithLocation: (loc: EventLocation) => void
     ): Promise<void> {
         const { path } = location;
         const file = this.app.getFileByPath(path);
@@ -143,7 +143,7 @@ export default class FullNoteCalendar extends EditableCalendar {
         }
         const newLocation = this.getNewLocation(location, event);
 
-        beforeEventIsMoved(newLocation);
+        updateCacheWithLocation(newLocation);
 
         await this.app.rewrite(file, (page) =>
             modifyFrontmatterString(page, event)

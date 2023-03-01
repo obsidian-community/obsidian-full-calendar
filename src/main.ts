@@ -170,7 +170,7 @@ export default class FullCalendarPlugin extends Plugin {
                     this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (view) {
                     const file = view.file;
-                    // TODO: Upgrade node.
+                    // TODO: Upgrade note.
                     // new EventModal(this.app, this, null).editInModal(file);
                 }
             },

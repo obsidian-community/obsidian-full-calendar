@@ -1,4 +1,3 @@
-import { TFile } from "obsidian";
 import { Calendar } from "../calendars/Calendar";
 import { EventLocation, OFCEvent } from "../types";
 
@@ -20,6 +19,9 @@ class EventID implements Identifier {
     }
 }
 
+/**
+ * Class modeling a one-to-many relationship.
+ */
 class OneToMany<T extends Identifier, FK extends Identifier> {
     private foreign: Map<string, string> = new Map();
     private related: Map<string, Set<string>> = new Map();
@@ -139,18 +141,32 @@ export default class EventStore {
         this.lineNumbers.clear();
     }
 
+    /**
+     * Number of files that contain events in the store.
+     */
     get fileCount() {
         return this.pathIndex.relatedCount;
     }
 
+    /**
+     * Number of calendars with events in the store.
+     */
     get calendarCount() {
         return this.calendarIndex.relatedCount;
     }
 
+    /**
+     * Number of events in the store.
+     */
     get eventCount() {
         return this.store.size;
     }
 
+    /**
+     * Given a list of event IDs, return all information the store contains on those events.
+     * @param ids IDs of events to retrieve information about
+     * @returns List of event information contained in the cache.
+     */
     private fetch(ids: string[] | Set<string>): StoredEvent[] {
         const result: StoredEvent[] = [];
         ids.forEach((id) => {
@@ -175,6 +191,11 @@ export default class EventStore {
         return result;
     }
 
+    /**
+     * Add a new event to the store with given associations.
+     * @param param0
+     * @returns ID for event in the store.
+     */
     add({ calendar, location, id, event }: AddEventProps): string {
         if (this.store.has(id)) {
             throw new Error(
@@ -197,6 +218,11 @@ export default class EventStore {
         return id;
     }
 
+    /**
+     * Delete an event in the store.
+     * @param id ID of event to delete.
+     * @returns The event if it was in the store, null otherwise.
+     */
     delete(id: string): OFCEvent | null {
         const event = this.store.get(id);
         if (!event) {
@@ -223,13 +249,6 @@ export default class EventStore {
         const eventIds = this.pathIndex.getBy(new Path({ path }));
         eventIds.forEach((id) => this.delete(id));
         return eventIds;
-    }
-
-    renameFileForEvents(oldPath: string, newPath: string) {
-        this.pathIndex.renameKey(
-            new Path({ path: oldPath }),
-            new Path({ path: newPath })
-        );
     }
 
     getEventsInCalendar(calendar: Calendar): StoredEvent[] {

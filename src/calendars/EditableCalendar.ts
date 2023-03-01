@@ -6,7 +6,12 @@ import { Calendar } from "./Calendar";
 export type EditableEventResponse = [OFCEvent, EventLocation];
 
 /**
- * Abstract class representing the interface for a Calendar.
+ * Abstract class representing the interface for an Calendar whose source-of-truth
+ * is the Obsidian Vault.
+ *
+ * EditableCalendar instances handle all file I/O, typically through an ObsidianInterface.
+ * The EventCache will call methods on an EditableCalendar to make updates to the Vault from user action, as well
+ * as to parse events from files when the files are updated outside of Full Calendar.
  */
 export abstract class EditableCalendar extends Calendar {
     constructor(color: string) {
@@ -51,11 +56,13 @@ export abstract class EditableCalendar extends Calendar {
      *
      * @param location Location of event
      * @param newEvent New event details
-     * @param beforeMove Callback that is called with the event's new location directly before an event is moved on disk.
+     * @param updateCacheWithLocation This callback updates the cache with the new location
+     *        of the event. In order to avoid race conditions with file I/O, make sure this
+     *        is called before any files are changed on disk.
      */
     abstract modifyEvent(
         location: EventPathLocation,
         newEvent: OFCEvent,
-        beforeEventIsMoved: (loc: EventLocation) => void // TODO: Better name for this param
+        updateCacheWithLocation: (loc: EventLocation) => void
     ): Promise<void>;
 }
