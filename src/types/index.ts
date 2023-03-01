@@ -1,5 +1,4 @@
-import { TFile } from "obsidian";
-
+import { validateEvent as val } from "./validation";
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter
@@ -33,65 +32,6 @@ export type RecurringEventData = {
 } & CommonEventData;
 
 export type OFCEvent = SingleEventData | RecurringEventData;
-
-/*
- * Validates that an incoming object from a JS object (presumably parsed from a note's frontmatter)
- * is a valid event, and returns that event if so. If any required fields are missing, then returns null.
- */
-// TODO: Replace with Zod validator (https://github.com/colinhacks/zod)
-export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
-    if (obj === undefined) {
-        return null;
-    }
-
-    if (!obj.title) {
-        return null;
-    }
-
-    if (!obj.allDay && !obj.startTime) {
-        return null;
-    }
-
-    const timeInfo: RangeTimeData | AllDayData = obj.allDay
-        ? { allDay: true }
-        : {
-              startTime: obj.startTime,
-              endTime: obj.endTime,
-          };
-
-    if (obj.type === undefined || obj.type === "single") {
-        if (!obj.date) {
-            return null;
-        }
-        const event: OFCEvent = {
-            title: obj.title,
-            type: "single",
-            date: obj.date,
-            ...timeInfo,
-        };
-        if (obj.completed !== undefined || obj.completed !== null) {
-            event.completed = obj.completed;
-        }
-        if (obj.endDate) {
-            event.endDate = obj.endDate;
-        }
-        return event;
-    } else if (obj.type === "recurring") {
-        if (obj.daysOfWeek === undefined) {
-            return null;
-        }
-        return {
-            title: obj.title,
-            type: "recurring",
-            daysOfWeek: obj.daysOfWeek,
-            startRecur: obj.startRecur,
-            endRecur: obj.endRecur,
-            ...timeInfo,
-        };
-    }
-
-    return null;
-}
 
 // Settings
 
@@ -210,3 +150,5 @@ export type EventLocation = {
     file: { path: string };
     lineNumber: number | undefined;
 };
+
+export const validateEvent = val;

@@ -13,6 +13,10 @@ import EventCache, {
 } from "./EventCache";
 import { EventPathLocation } from "./EventStore";
 
+jest.mock("../types/validation", () => ({
+    validateEvent: (e: any) => e,
+}));
+
 const withCounter = <T>(f: (x: string) => T, label?: string) => {
     const counter = () => {
         let count = 0;
@@ -106,9 +110,10 @@ describe("event cache with readonly calendar", () => {
         await cache.populate();
         expect(cache.initialized).toBeTruthy();
 
-        const calendar = cache.getCalendarById("test");
+        const calId = "FOR_TEST_ONLY::test";
+        const calendar = cache.getCalendarById(calId);
         expect(calendar).toBeTruthy();
-        expect(calendar?.id).toBe("test");
+        expect(calendar?.id).toBe(calId);
         const sources = cache.getAllEvents();
         expect(sources.length).toBe(1);
         expect(extractEvents(sources[0])).toEqual([event]);
@@ -165,7 +170,7 @@ describe("event cache with readonly calendar", () => {
         [
             "addEvent",
             async (cache: EventCache, id: string) =>
-                await cache.addEvent("test", mockEvent()),
+                await cache.addEvent("FOR_TEST_ONLY::test", mockEvent()),
         ],
         [
             "deleteEvent",
@@ -276,8 +281,10 @@ describe("editable calendars", () => {
         return cache;
     };
 
+    const getId = (id: string) => `FOR_TEST_ONLY::${id}`;
+
     const getCalendar = (cache: EventCache, id: string) => {
-        const calendar = cache.getCalendarById(id);
+        const calendar = cache.getCalendarById(getId(id));
         expect(calendar).toBeTruthy();
         expect(calendar).toBeInstanceOf(TestEditable);
         return calendar as TestEditable;
@@ -314,7 +321,7 @@ describe("editable calendars", () => {
             calendar.createEvent.mockReturnValueOnce(
                 new Promise((resolve) => resolve(loc))
             );
-            expect(await cache.addEvent("test", event)).toBeTruthy();
+            expect(await cache.addEvent(getId("test"), event)).toBeTruthy();
             expect(calendar.createEvent.mock.calls.length).toBe(1);
             expect(calendar.createEvent.mock.calls[0]).toEqual([event]);
 
@@ -338,7 +345,7 @@ describe("editable calendars", () => {
             calendar.createEvent.mockReturnValueOnce(
                 new Promise((resolve) => resolve(loc))
             );
-            expect(await cache.addEvent("test", event2)).toBeTruthy();
+            expect(await cache.addEvent(getId("test"), event2)).toBeTruthy();
             expect(calendar.createEvent.mock.calls.length).toBe(1);
             expect(calendar.createEvent.mock.calls[0]).toEqual([event2]);
 
@@ -362,7 +369,7 @@ describe("editable calendars", () => {
             calendar.createEvent.mockReturnValueOnce(
                 new Promise((resolve) => resolve(loc))
             );
-            expect(await cache.addEvent("test", event2)).toBeTruthy();
+            expect(await cache.addEvent(getId("test"), event2)).toBeTruthy();
             expect(calendar.createEvent.mock.calls.length).toBe(1);
             expect(calendar.createEvent.mock.calls[0]).toEqual([event2]);
 
@@ -392,9 +399,15 @@ describe("editable calendars", () => {
                     new Promise((resolve) => resolve(mockLocation()))
                 );
 
-            expect(await cache.addEvent("test", mockEvent())).toBeTruthy();
-            expect(await cache.addEvent("test", mockEvent())).toBeTruthy();
-            expect(await cache.addEvent("test", mockEvent())).toBeTruthy();
+            expect(
+                await cache.addEvent(getId("test"), mockEvent())
+            ).toBeTruthy();
+            expect(
+                await cache.addEvent(getId("test"), mockEvent())
+            ).toBeTruthy();
+            expect(
+                await cache.addEvent(getId("test"), mockEvent())
+            ).toBeTruthy();
 
             expect(calendar.createEvent.mock.calls.length).toBe(3);
 
@@ -524,10 +537,9 @@ describe("editable calendars", () => {
             await cache.updateEventWithId(id, newEvent);
 
             expect(calendar.modifyEvent.mock.calls.length).toBe(1);
-            expect(calendar.modifyEvent.mock.calls[0]).toEqual([
-                pathResult(oldEvent[1]),
-                newEvent,
-            ]);
+            const [loc, evt, _callback] = calendar.modifyEvent.mock.calls[0];
+            _callback(newLocation);
+            expect([loc, evt]).toEqual([pathResult(oldEvent[1]), newEvent]);
 
             assertCacheContentCounts(cache, {
                 calendars: 1,

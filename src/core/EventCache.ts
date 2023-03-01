@@ -101,12 +101,12 @@ export default class EventCache {
      * Flush the cache and initialize calendars from the initializer map.
      */
     reset(infos: CalendarInfo[]): void {
-        this.store.clear();
-        this.calendars.clear();
-        this.init();
         this.initialized = false;
         this.calendarInfos = infos;
         this.pkCounter = 0;
+        this.store.clear();
+        this.calendars.clear();
+        this.init();
     }
 
     init() {
@@ -251,7 +251,7 @@ export default class EventCache {
     ): Promise<boolean> {
         const { calendar, location: oldLocation } = this.getRelations(eventId);
         const { path, lineNumber } = oldLocation;
-        console.log("updating event with ID", eventId);
+        // console.log("updating event with ID", eventId);
 
         await calendar.modifyEvent(
             { path, lineNumber },
@@ -289,7 +289,7 @@ export default class EventCache {
             throw new Error("Event does not exist");
         }
         const newEvent = process(event);
-        console.log("process", newEvent, process);
+        // console.log("process", newEvent, process);
         return this.updateEventWithId(id, newEvent);
     }
 
@@ -302,11 +302,11 @@ export default class EventCache {
     }
 
     async makeTask(id: string) {
-        console.log("turn event into task", id);
+        // console.log("turn event into task", id);
     }
 
     async unmakeTask(id: string) {
-        console.log("unset task status for event", id);
+        // console.log("unset task status for event", id);
     }
 
     isEventEditable(id: string): boolean {

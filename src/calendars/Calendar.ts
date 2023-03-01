@@ -1,4 +1,3 @@
-import { TFile } from "obsidian";
 import { CalendarInfo, EventLocation, OFCEvent } from "src/types";
 
 export const ID_SEPARATOR = "::";
@@ -18,7 +17,7 @@ export abstract class Calendar {
     abstract get type(): CalendarInfo["type"];
     abstract get identifier(): string;
     get id(): string {
-        return `${this.type}::${this.identifier}`;
+        return `${this.type}${ID_SEPARATOR}${this.identifier}`;
     }
     abstract get name(): string;
 

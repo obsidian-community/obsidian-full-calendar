@@ -97,7 +97,7 @@ export class CalendarView extends ItemView {
                         );
                     }
                 } else {
-                    console.log("clicking on event");
+                    // console.log("clicking on event");
                     launchEditModal(this.plugin, info.event.id);
                 }
             },
@@ -238,11 +238,11 @@ export class CalendarView extends ItemView {
         window.fc = this.fullCalendarView;
 
         this.plugin.cache.on("update", ({ toRemove, toAdd }) => {
-            console.log("updating view from cache...", { toRemove, toAdd });
+            // console.log("updating view from cache...", { toRemove, toAdd });
             toRemove.forEach((id) => {
                 const event = this.fullCalendarView?.getEventById(id);
                 if (event) {
-                    console.log("removing event", event.toPlainObject());
+                    // console.log("removing event", event.toPlainObject());
                     event.remove();
                 } else {
                     console.warn(
@@ -251,7 +251,7 @@ export class CalendarView extends ItemView {
                 }
             });
             toAdd.forEach(({ id, event, calendarId }) => {
-                console.log("adding event", { id, event });
+                // console.log("adding event", { id, event });
                 this.fullCalendarView?.addEvent(
                     {
                         ...toEventInput(id, event),

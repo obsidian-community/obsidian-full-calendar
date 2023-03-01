@@ -236,7 +236,6 @@ export const EditEvent = ({
                                         )
                                     }
                                 >
-                                    {console.log("calendars", cal.name, idx)}
                                     {cal.type === "local"
                                         ? cal.name
                                         : "Daily Note"}

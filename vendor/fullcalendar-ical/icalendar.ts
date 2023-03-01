@@ -1,9 +1,9 @@
 import {
-	createPlugin,
-	EventSourceDef,
-	EventInput,
-	DateRange,
-	addDays,
+    createPlugin,
+    EventSourceDef,
+    EventInput,
+    DateRange,
+    addDays,
 } from "@fullcalendar/common";
 // @ts-ignore
 import * as ICAL from "ical.js";
@@ -13,21 +13,21 @@ type Success = (rawFeed: string, xhr: XMLHttpRequest) => void;
 type Failure = (error: string, xhr: XMLHttpRequest) => void;
 
 interface ICalFeedMeta {
-	url: string;
-	format: "ics"; // for EventSourceApi
-	internalState?: InternalState; // HACK. TODO: use classes in future
+    url: string;
+    format: "ics"; // for EventSourceApi
+    internalState?: InternalState; // HACK. TODO: use classes in future
 }
 
 interface InternalState {
-	completed: boolean;
-	callbacks: ((
-		errorMessage: string,
-		iCalExpander: IcalExpander,
-		xhr: XMLHttpRequest
-	) => void)[];
-	errorMessage: string;
-	iCalExpander: IcalExpander;
-	xhr: XMLHttpRequest | null;
+    completed: boolean;
+    callbacks: ((
+        errorMessage: string,
+        iCalExpander: IcalExpander,
+        xhr: XMLHttpRequest
+    ) => void)[];
+    errorMessage: string;
+    iCalExpander: IcalExpander;
+    xhr: XMLHttpRequest | null;
 }
 
 // let eventSourceDef: EventSourceDef<ICalFeedMeta> = {
@@ -133,75 +133,76 @@ interface InternalState {
 // }
 
 export function makeICalExpander(text: string): IcalExpander {
-	return new IcalExpander({
-		ics: text,
-		skipInvalidDates: true,
-	});
+    return new IcalExpander({
+        ics: text,
+        skipInvalidDates: true,
+    });
 }
 
 export function expandICalEvents(
-	iCalExpander: IcalExpander,
-	range: DateRange
+    iCalExpander: IcalExpander,
+    range: DateRange
 ): EventInput[] {
-	// expand the range. because our `range` is timeZone-agnostic UTC
-	// or maybe because ical.js always produces dates in local time? i forget
-	let rangeStart = addDays(range.start, -1);
-	let rangeEnd = addDays(range.end, 1);
+    // expand the range. because our `range` is timeZone-agnostic UTC
+    // or maybe because ical.js always produces dates in local time? i forget
+    let rangeStart = addDays(range.start, -1);
+    let rangeEnd = addDays(range.end, 1);
 
-	let iCalRes = iCalExpander.between(rangeStart, rangeEnd); // end inclusive. will give extra results
-	let expanded: EventInput[] = [];
+    let iCalRes = iCalExpander.between(rangeStart, rangeEnd); // end inclusive. will give extra results
+    let expanded: EventInput[] = [];
 
-	// TODO: instead of using startDate/endDate.toString to communicate allDay,
-	// we can query startDate/endDate.isDate. More efficient to avoid formatting/reparsing.
+    // TODO: instead of using startDate/endDate.toString to communicate allDay,
+    // we can query startDate/endDate.isDate. More efficient to avoid formatting/reparsing.
 
-	// single events
-	for (let iCalEvent of iCalRes.events) {
-		expanded.push({
-			...buildNonDateProps(iCalEvent),
-			start: iCalEvent.startDate.toString(),
-			end:
-				specifiesEnd(iCalEvent) && iCalEvent.endDate
-					? iCalEvent.endDate.toString()
-					: null,
-		});
-	}
+    // single events
+    for (let iCalEvent of iCalRes.events) {
+        expanded.push({
+            ...buildNonDateProps(iCalEvent),
+            start: iCalEvent.startDate.toString(),
+            // @ts-ignore
+            end:
+                specifiesEnd(iCalEvent) && iCalEvent.endDate
+                    ? iCalEvent.endDate.toString()
+                    : null,
+        });
+    }
 
-	// recurring event instances
-	for (let iCalOccurence of iCalRes.occurrences) {
-		let iCalEvent = iCalOccurence.item;
-		expanded.push({
-			...buildNonDateProps(iCalEvent),
-			start: iCalOccurence.startDate.toString(),
-			end:
-				specifiesEnd(iCalEvent) && iCalOccurence.endDate
-					? iCalOccurence.endDate.toString()
-					: null,
-		});
-	}
+    // recurring event instances
+    for (let iCalOccurence of iCalRes.occurrences) {
+        let iCalEvent = iCalOccurence.item;
+        expanded.push({
+            ...buildNonDateProps(iCalEvent),
+            start: iCalOccurence.startDate.toString(),
+            end:
+                specifiesEnd(iCalEvent) && iCalOccurence.endDate
+                    ? iCalOccurence.endDate.toString()
+                    : null,
+        });
+    }
 
-	return expanded;
+    return expanded;
 }
 
 function buildNonDateProps(iCalEvent: ICAL.Event): EventInput {
-	return {
-		title: iCalEvent.summary,
-		url: extractEventUrl(iCalEvent),
-		extendedProps: {
-			location: iCalEvent.location,
-			organizer: iCalEvent.organizer,
-			description: iCalEvent.description,
-		},
-	};
+    return {
+        title: iCalEvent.summary,
+        url: extractEventUrl(iCalEvent),
+        extendedProps: {
+            location: iCalEvent.location,
+            organizer: (iCalEvent as any).organizer,
+            description: iCalEvent.description,
+        },
+    };
 }
 
 function extractEventUrl(iCalEvent: ICAL.Event): string {
-	let urlProp = iCalEvent.component.getFirstProperty("url");
-	return urlProp ? urlProp.getFirstValue() : "";
+    let urlProp = iCalEvent.component.getFirstProperty("url");
+    return urlProp ? urlProp.getFirstValue() : "";
 }
 
 function specifiesEnd(iCalEvent: ICAL.Event) {
-	return (
-		Boolean(iCalEvent.component.getFirstProperty("dtend")) ||
-		Boolean(iCalEvent.component.getFirstProperty("duration"))
-	);
+    return (
+        Boolean(iCalEvent.component.getFirstProperty("dtend")) ||
+        Boolean(iCalEvent.component.getFirstProperty("duration"))
+    );
 }
