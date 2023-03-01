@@ -132,7 +132,7 @@ export default class FullNoteCalendar extends EditableCalendar {
     async modifyEvent(
         location: EventPathLocation,
         event: OFCEvent,
-        updateLocation: (loc: EventLocation) => void
+        beforeEventIsMoved: (loc: EventLocation) => void
     ): Promise<void> {
         const { path } = location;
         const file = this.app.getFileByPath(path);
@@ -143,20 +143,14 @@ export default class FullNoteCalendar extends EditableCalendar {
         }
         const newLocation = this.getNewLocation(location, event);
 
-        updateLocation(newLocation);
-
-        if (file.path !== newLocation.file.path) {
-            await this.app.rename(file, newLocation.file.path);
-        }
-
-        const newFile = this.app.getAbstractFileByPath(newLocation.file.path);
-        if (!newFile || !(newFile instanceof TFile)) {
-            throw new Error("File cannot be found after rename.");
-        }
+        beforeEventIsMoved(newLocation);
 
         await this.app.rewrite(file, (page) =>
             modifyFrontmatterString(page, event)
         );
+        if (file.path !== newLocation.file.path) {
+            await this.app.rename(file, newLocation.file.path);
+        }
 
         return;
     }

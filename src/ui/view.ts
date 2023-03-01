@@ -14,6 +14,7 @@ import { getColors } from "../models/util";
 import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
 import { isTask, toggleTask, unmakeTask } from "src/tasks";
+import { UpdateViewCallback } from "src/core/EventCache";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -22,6 +23,7 @@ export class CalendarView extends ItemView {
     fullCalendarView: Calendar | null;
     plugin: FullCalendarPlugin;
     inSidebar: boolean;
+    callback: UpdateViewCallback | null = null;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -132,7 +134,7 @@ export class CalendarView extends ItemView {
             },
 
             eventMouseEnter: async (info) => {
-                const location = this.plugin.cache.getRelations(
+                const location = this.plugin.cache.getInfoForEditableEvent(
                     info.event.id
                 ).location;
                 if (location) {
@@ -237,29 +239,32 @@ export class CalendarView extends ItemView {
         // @ts-ignore
         window.fc = this.fullCalendarView;
 
-        this.plugin.cache.on("update", ({ toRemove, toAdd }) => {
-            // console.log("updating view from cache...", { toRemove, toAdd });
-            toRemove.forEach((id) => {
-                const event = this.fullCalendarView?.getEventById(id);
-                if (event) {
-                    // console.log("removing event", event.toPlainObject());
-                    event.remove();
-                } else {
-                    console.warn(
-                        `Event with id=${id} was slated to be removed but does not exist in the calendar.`
+        this.callback = this.plugin.cache.on(
+            "update",
+            ({ toRemove, toAdd }) => {
+                // console.log("updating view from cache...", { toRemove, toAdd });
+                toRemove.forEach((id) => {
+                    const event = this.fullCalendarView?.getEventById(id);
+                    if (event) {
+                        // console.log("removing event", event.toPlainObject());
+                        event.remove();
+                    } else {
+                        console.warn(
+                            `Event with id=${id} was slated to be removed but does not exist in the calendar.`
+                        );
+                    }
+                });
+                toAdd.forEach(({ id, event, calendarId }) => {
+                    // console.log("adding event", { id, event });
+                    this.fullCalendarView?.addEvent(
+                        {
+                            ...toEventInput(id, event),
+                        },
+                        calendarId
                     );
-                }
-            });
-            toAdd.forEach(({ id, event, calendarId }) => {
-                // console.log("adding event", { id, event });
-                this.fullCalendarView?.addEvent(
-                    {
-                        ...toEventInput(id, event),
-                    },
-                    calendarId
-                );
-            });
-        });
+                });
+            }
+        );
     }
 
     onResize(): void {
@@ -272,6 +277,10 @@ export class CalendarView extends ItemView {
         if (this.fullCalendarView) {
             this.fullCalendarView.destroy();
             this.fullCalendarView = null;
+        }
+        if (this.callback) {
+            this.plugin.cache.off("update", this.callback);
+            this.callback = null;
         }
     }
 }

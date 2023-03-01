@@ -454,9 +454,9 @@ describe.each([true, false])(
                 ],
             });
 
-            expect(store.getCalendarIdForEventId(id1)).toBe(calendar1.id);
-            expect(store.getCalendarIdForEventId(id2)).toBe(calendar2.id);
-            expect(store.getCalendarIdForEventId(id3)).toBe(calendar2.id);
+            expect(store.getEventDetails(id1)?.calendarId).toBe(calendar1.id);
+            expect(store.getEventDetails(id2)?.calendarId).toBe(calendar2.id);
+            expect(store.getEventDetails(id3)?.calendarId).toBe(calendar2.id);
             expect(
                 store.getEventsInFileAndCalendar(location2.file, calendar2)
             ).toEqual([

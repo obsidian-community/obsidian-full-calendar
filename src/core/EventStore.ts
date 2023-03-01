@@ -245,14 +245,6 @@ export default class EventStore {
         return this.fetch([...inFile].filter((id) => inCalendar.has(id)));
     }
 
-    getCalendarIdForEventId(id: string): string | null {
-        return this.calendarIndex.getRelated(new EventID(id));
-    }
-
-    getFilePathForEventId(id: string): string | null {
-        return this.pathIndex.getRelated(new EventID(id));
-    }
-
     get eventsByCalendar(): Map<string, StoredEvent[]> {
         const result = new Map();
         for (const [k, vs] of this.calendarIndex.groupByRelated) {
@@ -263,12 +255,12 @@ export default class EventStore {
 
     getEventDetails(eventId: string): EventDetails | null {
         const event = this.getEventById(eventId);
-        const calendarId = this.getCalendarIdForEventId(eventId);
+        const calendarId = this.calendarIndex.getRelated(new EventID(eventId));
         if (!event || !calendarId) {
             return null;
         }
 
-        const path = this.getFilePathForEventId(eventId);
+        const path = this.pathIndex.getRelated(new EventID(eventId));
         const lineNumber = this.lineNumbers.get(eventId);
         const location = path ? { path, lineNumber } : null;
         return { id: eventId, event, calendarId, location };

@@ -13,7 +13,7 @@ export async function openFileForEvent(
     { workspace, vault }: { workspace: Workspace; vault: Vault },
     id: string
 ) {
-    const details = cache.getRelations(id);
+    const details = cache.getInfoForEditableEvent(id);
     if (!details) {
         throw new Error("Event does not have local representation.");
     }

@@ -140,7 +140,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
     async modifyEvent(
         loc: EventPathLocation,
         newEvent: OFCEvent,
-        updateLocation: (loc: EventLocation) => void
+        beforeEventIsMoved: (loc: EventLocation) => void
     ): Promise<void> {
         // console.log("modified daily note event");
         if (newEvent.type === "recurring") {
@@ -192,14 +192,14 @@ export default class DailyNoteCalendar extends EditableCalendar {
                         item: newEvent,
                         headingText: this.heading,
                     });
-                    updateLocation({ file: newFile, lineNumber });
+                    beforeEventIsMoved({ file: newFile, lineNumber });
                     return page;
                 });
                 return lines.join("\n");
             });
         } else {
             // console.log("daily note event staying in same file.");
-            updateLocation({ file, lineNumber });
+            beforeEventIsMoved({ file, lineNumber });
             await this.app.rewrite(file, (contents) => {
                 const lines = contents.split("\n");
                 const newLine = modifyListItem(lines[lineNumber], newEvent);

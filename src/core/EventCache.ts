@@ -13,7 +13,7 @@ export type CalendarInitializerMap = Record<
 
 export type CacheEntry = { event: OFCEvent; id: string; calendarId: string };
 
-type UpdateViewCallback = (info: {
+export type UpdateViewCallback = (info: {
     toRemove: string[];
     toAdd: CacheEntry[];
 }) => void;
@@ -45,7 +45,6 @@ export const eventsAreDifferent = (
 
 export type CachedEvent = Pick<StoredEvent, "event" | "id">;
 
-// TODO: Going to need to handle event callbacks somehow.
 export type OFCEventSource = {
     events: CachedEvent[];
     editable: boolean;
@@ -87,14 +86,6 @@ export default class EventCache {
 
     constructor(calendarInitializers: CalendarInitializerMap) {
         this.calendarInitializers = calendarInitializers;
-    }
-
-    getEventById(s: string): OFCEvent | null {
-        return this.store.getEventById(s);
-    }
-
-    getCalendarById(c: string): Calendar | undefined {
-        return this.calendars.get(c);
     }
 
     /**
@@ -148,6 +139,9 @@ export default class EventCache {
         for (const [calId, events] of this.store.eventsByCalendar.entries()) {
             const calendar = this.calendars.get(calId);
             if (!calendar) {
+                console.warn(
+                    `Calendar with ID ${calId} exists in the store but not in the cache.`
+                );
                 continue;
             }
             const source: OFCEventSource = {
@@ -161,60 +155,35 @@ export default class EventCache {
         return result;
     }
 
-    getEventsForFile(file: TFile): CacheEntry[] {
-        return this.store
-            .getEventsInFile(file)
-            .map(({ id, event, calendarId }) => ({ id, event, calendarId }));
+    /**
+     * Check if an event is part of an editable calendar.
+     * @param id ID of event to check
+     * @returns
+     */
+    isEventEditable(id: string): boolean {
+        const calId = this.store.getEventDetails(id)?.calendarId;
+        if (!calId) {
+            return false;
+        }
+        const cal = this.getCalendarById(calId);
+        return cal instanceof EditableCalendar;
     }
 
-    on(eventType: "update", callback: UpdateViewCallback) {
-        switch (eventType) {
-            case "update":
-                this.updateViewCallbacks.push(callback);
-        }
+    getEventById(s: string): OFCEvent | null {
+        return this.store.getEventById(s);
     }
 
-    off(eventType: "update", callback: UpdateViewCallback) {
-        switch (eventType) {
-            case "update":
-                this.updateViewCallbacks.filter((it) => it !== callback);
-        }
+    getCalendarById(c: string): Calendar | undefined {
+        return this.calendars.get(c);
     }
 
-    private updateViews(toRemove: string[], toAdd: CacheEntry[]) {
-        const payload = {
-            toRemove,
-            toAdd,
-        };
-
-        for (const callback of this.updateViewCallbacks) {
-            callback(payload);
-        }
-    }
-
-    async addEvent(calendarId: string, event: OFCEvent): Promise<boolean> {
-        const calendar = this.calendars.get(calendarId);
-        if (!calendar) {
-            throw new Error(`Calendar ID ${calendarId} is not registered.`);
-        }
-        if (!(calendar instanceof EditableCalendar)) {
-            throw new Error(
-                `Event cannot be added to non-editable calendar of type ${calendar.type}`
-            );
-        }
-        const location = await calendar.createEvent(event);
-        const id = this.store.add({
-            calendar,
-            location,
-            id: event.id || this.generateId(),
-            event,
-        });
-
-        this.updateViews([], [{ event, id, calendarId: calendar.id }]);
-        return true;
-    }
-
-    getRelations(eventId: string) {
+    /**
+     * Get calendar and location information for a given event in an editable calendar.
+     * Throws an error if event is not found or if it does not have a location in the Vault.
+     * @param eventId ID of event in question.
+     * @returns Calendar and location for an event.
+     */
+    getInfoForEditableEvent(eventId: string) {
         const details = this.store.getEventDetails(eventId);
         if (!details) {
             throw new Error(`Event ID ${eventId} not present in event store.`);
@@ -237,19 +206,109 @@ export default class EventCache {
         return { calendar, location };
     }
 
+    ///
+    // View Callback functions
+    ///
+
+    /**
+     * Register a callback for a view.
+     * @param eventType event type (currently just "update")
+     * @param callback
+     * @returns reference to callback for de-registration.
+     */
+    on(eventType: "update", callback: UpdateViewCallback) {
+        switch (eventType) {
+            case "update":
+                this.updateViewCallbacks.push(callback);
+                break;
+        }
+        return callback;
+    }
+
+    /**
+     * De-register a callback for a view.
+     * @param eventType event type
+     * @param callback callback to remove
+     */
+    off(eventType: "update", callback: UpdateViewCallback) {
+        switch (eventType) {
+            case "update":
+                this.updateViewCallbacks.filter((it) => it !== callback);
+                break;
+        }
+    }
+
+    /**
+     * Push updates to all subscribers.
+     * @param toRemove IDs of events to remove from the view.
+     * @param toAdd Events to add to the view.
+     */
+    private updateViews(toRemove: string[], toAdd: CacheEntry[]) {
+        const payload = {
+            toRemove,
+            toAdd,
+        };
+
+        for (const callback of this.updateViewCallbacks) {
+            callback(payload);
+        }
+    }
+
+    ///
+    // Functions to update the cache from the view layer.
+    ///
+
+    /**
+     * Add an event to a given calendar.
+     * @param calendarId ID of calendar to add event to.
+     * @param event Event details
+     * @returns Returns true if successful, false otherwise.
+     */
+    async addEvent(calendarId: string, event: OFCEvent): Promise<boolean> {
+        const calendar = this.calendars.get(calendarId);
+        if (!calendar) {
+            throw new Error(`Calendar ID ${calendarId} is not registered.`);
+        }
+        if (!(calendar instanceof EditableCalendar)) {
+            throw new Error(
+                `Event cannot be added to non-editable calendar of type ${calendar.type}`
+            );
+        }
+        const location = await calendar.createEvent(event);
+        const id = this.store.add({
+            calendar,
+            location,
+            id: event.id || this.generateId(),
+            event,
+        });
+
+        this.updateViews([], [{ event, id, calendarId: calendar.id }]);
+        return true;
+    }
+
+    /**
+     * Delete an event by its ID.
+     * @param eventId ID of event to be deleted.
+     */
     async deleteEvent(eventId: string): Promise<void> {
-        const { calendar, location } = this.getRelations(eventId);
+        const { calendar, location } = this.getInfoForEditableEvent(eventId);
         this.store.delete(eventId);
         await calendar.deleteEvent(location);
         this.updateViews([eventId], []);
     }
 
-    // TODO: rename this to reflect that it's updates coming from the view layer.
+    /**
+     * Update an event with a given ID.
+     * @param eventId ID of event to update.
+     * @param newEvent new event contents
+     * @returns true if update was successful, false otherwise.
+     */
     async updateEventWithId(
         eventId: string,
         newEvent: OFCEvent
     ): Promise<boolean> {
-        const { calendar, location: oldLocation } = this.getRelations(eventId);
+        const { calendar, location: oldLocation } =
+            this.getInfoForEditableEvent(eventId);
         const { path, lineNumber } = oldLocation;
         // console.log("updating event with ID", eventId);
 
@@ -276,6 +335,10 @@ export default class EventCache {
 
     /**
      * Transform an event that's already in the event store.
+     *
+     * A more "type-safe" wrapper around updateEventWithId(),
+     * use this function if the caller is only modifying few
+     * known properties of an event.
      * @param id ID of event to transform.
      * @param process function to transform the event.
      * @returns true if the update was successful.
@@ -293,36 +356,33 @@ export default class EventCache {
         return this.updateEventWithId(id, newEvent);
     }
 
-    pathRemoved(path: string) {
+    ///
+    // Filesystem hooks
+    ///
+
+    /**
+     * Delete all events located at a given path and notify subscribers.
+     * @param path path of file that has been deleted
+     */
+    deleteEventsAtPath(path: string) {
         this.updateViews([...this.store.deleteEventsAtPath(path)], []);
     }
 
-    getCalendarIdForEventId(id: string): string | null {
-        return this.store.getCalendarIdForEventId(id);
-    }
-
-    async makeTask(id: string) {
-        // console.log("turn event into task", id);
-    }
-
-    async unmakeTask(id: string) {
-        // console.log("unset task status for event", id);
-    }
-
-    isEventEditable(id: string): boolean {
-        const calId = this.getCalendarIdForEventId(id);
-        if (!calId) {
-            return false;
-        }
-        const cal = this.getCalendarById(calId);
-        return cal instanceof EditableCalendar;
-    }
-
+    /**
+     * Main hook into the filesystem.
+     * This callback should be called whenever a file has been updated or created.
+     * @param file File which has been updated
+     * @returns nothing
+     */
     async fileUpdated(file: TFile): Promise<void> {
         console.log("fileUpdated() called for file", file.path);
+
+        // Get all calendars that contain events stored in this file.
         const calendars = [...this.calendars.values()].flatMap((c) =>
             c instanceof EditableCalendar && c.containsPath(file.path) ? c : []
         );
+
+        // If no calendars exist, return early.
         if (calendars.length === 0) {
             return;
         }
@@ -341,12 +401,11 @@ export default class EventCache {
 
             console.log("comparing events", oldEvents, newEvents);
 
-            // TODO: Events are not different, but the location has changed.
+            // TODO: It's possible events are not different, but the location has changed.
             const eventsHaveChanged = eventsAreDifferent(
                 oldEvents.map(({ event }) => event),
                 newEvents.map(([event, _]) => event)
             );
-            // TODO: Make sure locations have also not changed.
 
             // If no events have changed from what's in the cache, then there's no need to update the event store.
             if (!eventsHaveChanged) {
