@@ -98,6 +98,7 @@ export class RemoteSource extends EventSource {
                     ];
                 }
 
+                // TODO: Calendar.calendarData might have the ICS string???
                 let events = await dav.listCalendarObjects(calendar, {
                     xhr: xhr,
                 });

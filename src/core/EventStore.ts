@@ -237,18 +237,24 @@ export default class EventStore {
         return event;
     }
 
+    deleteEventsAtPath(path: string): Set<string> {
+        const eventIds = this.pathIndex.getBy(new Path({ path }));
+        eventIds.forEach((id) => this.delete(id));
+        return eventIds;
+    }
+
+    deleteEventsInCalendar(calendar: Calendar): Set<string> {
+        const eventIds = this.calendarIndex.getBy(calendar);
+        eventIds.forEach((id) => this.delete(id));
+        return eventIds;
+    }
+
     getEventById(id: string): OFCEvent | null {
         return this.store.get(id) || null;
     }
 
     getEventsInFile(file: FileObj): StoredEvent[] {
         return this.fetch(this.pathIndex.getBy(new Path(file)));
-    }
-
-    deleteEventsAtPath(path: string): Set<string> {
-        const eventIds = this.pathIndex.getBy(new Path({ path }));
-        eventIds.forEach((id) => this.delete(id));
-        return eventIds;
     }
 
     getEventsInCalendar(calendar: Calendar): StoredEvent[] {

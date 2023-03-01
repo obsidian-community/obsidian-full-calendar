@@ -5,6 +5,7 @@ import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
+import ICSCalendar from "src/calendars/ICSCalendar";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
@@ -128,6 +129,7 @@ export default class EventCache {
             );
         }
         this.initialized = true;
+        this.revalidateRemoteCalendars();
     }
 
     /**
@@ -320,7 +322,7 @@ export default class EventCache {
                 this.store.add({
                     calendar,
                     location: newLocation,
-                    id: eventId, // TODO: Can this re-use the existing eventId?
+                    id: eventId,
                     event: newEvent,
                 });
             }
@@ -441,6 +443,41 @@ export default class EventCache {
         }
 
         this.updateViews(idsToRemove, eventsToAdd);
+    }
+
+    /**
+     * Revalidate calendars asynchronously. This is not a blocking function: as soon as new data
+     * is available for any remote calendar, its data will be updated in the cache and any subscribing views.
+     */
+    revalidateRemoteCalendars() {
+        const remoteCalendars = [...this.calendars.values()].flatMap(
+            (c) => (c instanceof ICSCalendar ? c : []) // TODO: change from ICSCalendar to RemoteCalendar after adding CalDAVCalendar.
+        );
+        for (const calendar of remoteCalendars) {
+            calendar
+                .revalidate()
+                .then(() => calendar.getEvents())
+                .then((events) => {
+                    const deletedEvents = [
+                        ...this.store.deleteEventsInCalendar(calendar),
+                    ];
+                    const newEvents = events.map(([event, location]) => ({
+                        event,
+                        id: event.id || this.generateId(),
+                        location,
+                        calendarId: calendar.id,
+                    }));
+                    newEvents.forEach(({ event, id, location }) => {
+                        this.store.add({
+                            calendar,
+                            location,
+                            id,
+                            event,
+                        });
+                    });
+                    this.updateViews(deletedEvents, newEvents);
+                });
+        }
     }
 
     get _storeForTest() {
