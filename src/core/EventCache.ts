@@ -3,9 +3,9 @@ import equal from "deep-equal";
 
 import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
+import ICSCalendar from "src/calendars/ICSCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
-import ICSCalendar from "src/calendars/ICSCalendar";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
@@ -398,7 +398,8 @@ export default class EventCache {
                 calendar
             );
             // TODO: Relying on calendars for file I/O means that we're potentially
-            // reading the file from disk multiple times. Could be more effecient.
+            // reading the file from disk multiple times. Could be more effecient if
+            // we break the abstraction layer here.
             const newEvents = await calendar.getEventsInFile(file);
 
             console.log("comparing events", oldEvents, newEvents);
@@ -451,7 +452,7 @@ export default class EventCache {
      */
     revalidateRemoteCalendars() {
         const remoteCalendars = [...this.calendars.values()].flatMap(
-            (c) => (c instanceof ICSCalendar ? c : []) // TODO: change from ICSCalendar to RemoteCalendar after adding CalDAVCalendar.
+            (c) => (c instanceof ICSCalendar ? c : []) // TODO: change this from ICSCalendar to RemoteCalendar after adding CalDAVCalendar.
         );
         for (const calendar of remoteCalendars) {
             calendar
