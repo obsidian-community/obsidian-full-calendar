@@ -18,6 +18,7 @@ import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import { ObsidianIO } from "./ObsidianAdapter";
 import { launchCreateModal } from "./ui/event_modal";
 import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
+import ICSCalendar from "./calendars/ICSCalendar";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -39,8 +40,9 @@ export default class FullCalendarPlugin extends Plugin {
                       info.heading
                   )
                 : null,
+        ical: (info) =>
+            info.type === "ical" ? new ICSCalendar(info.color, info.url) : null,
         gcal: () => null,
-        ical: () => null,
         caldav: () => null,
         icloud: () => null,
         FOR_TEST_ONLY: () => null,

@@ -41,12 +41,15 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
         if (obj.endDate) {
             event.endDate = obj.endDate;
         }
+        if (obj.id) {
+            event.id = obj.id;
+        }
         return event;
     } else if (obj.type === "recurring") {
         if (obj.daysOfWeek === undefined) {
             return null;
         }
-        return {
+        const event: OFCEvent = {
             title: obj.title,
             type: "recurring",
             daysOfWeek: obj.daysOfWeek,
@@ -54,6 +57,10 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
             endRecur: obj.endRecur,
             ...timeInfo,
         };
+        if (obj.id) {
+            event.id = obj.id;
+        }
+        return event;
     } else if (obj.type === "rrule") {
         if (!obj.rrule) {
             return null;
@@ -61,6 +68,7 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
         if (!obj.startDate) {
             return null;
         }
+
         const event: OFCEvent = {
             type: "rrule",
             title: obj.title,
@@ -68,6 +76,9 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
             startDate: obj.startDate,
             ...timeInfo,
         };
+        if (obj.id) {
+            event.id = obj.id;
+        }
         return event;
     }
 

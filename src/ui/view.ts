@@ -83,6 +83,7 @@ export class CalendarView extends ItemView {
                     ...getColors(color),
                 })
             );
+        // TODO: Add calendars that don't have any events to FC.
 
         this.fullCalendarView = renderCalendar(calendarEl, sources, {
             forceNarrow: this.inSidebar,
@@ -255,7 +256,7 @@ export class CalendarView extends ItemView {
                     }
                 });
                 toAdd.forEach(({ id, event, calendarId }) => {
-                    // console.log("adding event", { id, event });
+                    console.log("adding event", { id, event });
                     this.fullCalendarView?.addEvent(
                         {
                             ...toEventInput(id, event),
