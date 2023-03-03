@@ -3,7 +3,7 @@ import equal from "deep-equal";
 
 import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
-import ICSCalendar from "src/calendars/ICSCalendar";
+import ICSCalendar from "../calendars/ICSCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
 
