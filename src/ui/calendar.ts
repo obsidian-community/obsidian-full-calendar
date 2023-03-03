@@ -10,6 +10,7 @@ import {
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import rrulePlugin from "@fullcalendar/rrule";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import googleCalendarPlugin from "@fullcalendar/google-calendar";
@@ -79,6 +80,7 @@ export function renderCalendar(
             // Remote sources
             googleCalendarPlugin,
             iCalendarPlugin,
+            rrulePlugin,
         ],
         googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
         initialView:

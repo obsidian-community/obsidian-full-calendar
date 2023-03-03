@@ -130,7 +130,7 @@ export function toEventInput(
                 dtstart: DateTime.fromISO(frontmatter.startDate, {
                     zone: "UTC",
                 }).toJSDate(),
-            }),
+            }).toString(),
         };
         if (frontmatter.allDay) {
             event.allDay = true;
@@ -140,6 +140,7 @@ export function toEventInput(
                 ? normalizeTimeString(frontmatter.endTime)
                 : undefined;
         }
+        console.log("rrule event", event);
     } else if (frontmatter.type === "single") {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(

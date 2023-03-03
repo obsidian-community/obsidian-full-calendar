@@ -88,20 +88,24 @@ export class CalendarView extends ItemView {
         this.fullCalendarView = renderCalendar(calendarEl, sources, {
             forceNarrow: this.inSidebar,
             eventClick: async (info) => {
-                if (
-                    info.jsEvent.getModifierState("Control") ||
-                    info.jsEvent.getModifierState("Meta")
-                ) {
-                    if (this.plugin.cache) {
+                try {
+                    if (
+                        info.jsEvent.getModifierState("Control") ||
+                        info.jsEvent.getModifierState("Meta")
+                    ) {
                         await openFileForEvent(
                             this.plugin.cache,
                             this.app,
                             info.event.id
                         );
+                    } else {
+                        launchEditModal(this.plugin, info.event.id);
                     }
-                } else {
-                    // console.log("clicking on event");
-                    launchEditModal(this.plugin, info.event.id);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        console.error(e);
+                        new Notice(e.message);
+                    }
                 }
             },
             select: async (start, end, allDay, viewType) => {
@@ -118,7 +122,14 @@ export class CalendarView extends ItemView {
                     end,
                     allDay
                 );
-                launchCreateModal(this.plugin, partialEvent);
+                try {
+                    launchCreateModal(this.plugin, partialEvent);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        console.error(e);
+                        new Notice(e.message);
+                    }
+                }
             },
             modifyEvent: async (newEvent, oldEvent) => {
                 try {
@@ -135,19 +146,21 @@ export class CalendarView extends ItemView {
             },
 
             eventMouseEnter: async (info) => {
-                const location = this.plugin.cache.getInfoForEditableEvent(
-                    info.event.id
-                ).location;
-                if (location) {
-                    this.app.workspace.trigger("hover-link", {
-                        event: info.jsEvent,
-                        source: PLUGIN_SLUG,
-                        hoverParent: calendarEl,
-                        targetEl: info.jsEvent.target,
-                        linktext: location.path,
-                        sourcePath: location.path,
-                    });
-                }
+                try {
+                    const location = this.plugin.cache.getInfoForEditableEvent(
+                        info.event.id
+                    ).location;
+                    if (location) {
+                        this.app.workspace.trigger("hover-link", {
+                            event: info.jsEvent,
+                            source: PLUGIN_SLUG,
+                            hoverParent: calendarEl,
+                            targetEl: info.jsEvent.target,
+                            linktext: location.path,
+                            sourcePath: location.path,
+                        });
+                    }
+                } catch (e) {}
             },
             firstDay: this.plugin.settings.firstDay,
             initialView: this.plugin.settings.initialView,

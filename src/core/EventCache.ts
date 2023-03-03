@@ -138,21 +138,15 @@ export default class EventCache {
      */
     getAllEvents(): OFCEventSource[] {
         const result: OFCEventSource[] = [];
-        for (const [calId, events] of this.store.eventsByCalendar.entries()) {
-            const calendar = this.calendars.get(calId);
-            if (!calendar) {
-                console.warn(
-                    `Calendar with ID ${calId} exists in the store but not in the cache.`
-                );
-                continue;
-            }
-            const source: OFCEventSource = {
+        const eventsByCalendar = this.store.eventsByCalendar;
+        for (const [calId, calendar] of this.calendars.entries()) {
+            const events = eventsByCalendar.get(calId) || [];
+            result.push({
                 editable: calendar instanceof EditableCalendar,
                 events: events.map(({ event, id }) => ({ event, id })), // make sure not to leak location data past the cache.
                 color: calendar.color,
                 id: calId,
-            };
-            result.push(source);
+            });
         }
         return result;
     }
@@ -196,9 +190,7 @@ export default class EventCache {
             throw new Error(`Calendar ID ${calendarId} is not registered.`);
         }
         if (!(calendar instanceof EditableCalendar)) {
-            throw new Error(
-                `Event cannot be added to non-editable calendar of type ${calendar.type}`
-            );
+            throw new Error(`Cannot modify event of type ${calendar.type}.`);
         }
         if (!location) {
             throw new Error(
