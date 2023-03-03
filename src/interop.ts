@@ -2,6 +2,7 @@ import { EventApi, EventInput } from "@fullcalendar/core";
 import { OFCEvent } from "./types";
 
 import { DateTime, Duration } from "luxon";
+import { rrulestr } from "rrule";
 
 /*
  * Functions for converting between the types used by the FullCalendar view plugin and types used internally by Obsidian Full Calendar.
@@ -121,6 +122,24 @@ export function toEventInput(
                     : undefined,
             };
         }
+    } else if (frontmatter.type === "rrule") {
+        event = {
+            id,
+            title: frontmatter.title,
+            rrule: rrulestr(frontmatter.rrule, {
+                dtstart: DateTime.fromISO(frontmatter.startDate, {
+                    zone: "UTC",
+                }).toJSDate(),
+            }),
+        };
+        if (frontmatter.allDay) {
+            event.allDay = true;
+        } else if (frontmatter.endTime) {
+            event.startTime = normalizeTimeString(frontmatter.startTime);
+            event.endTime = frontmatter.endTime
+                ? normalizeTimeString(frontmatter.endTime)
+                : undefined;
+        }
     } else if (frontmatter.type === "single") {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(
@@ -165,8 +184,6 @@ export function toEventInput(
                 },
             };
         }
-    } else if (frontmatter.type === "rrule") {
-        // TODO: RRule
     }
 
     return event;
