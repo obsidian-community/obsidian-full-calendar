@@ -40,7 +40,7 @@ PRODID:-//Google Inc//Google Calendar 70.9054//EN
 VERSION:2.0
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:example@example.com
+X-WR-CALNAME:Obsidian Test Calendar
 X-WR-TIMEZONE:America/New_York
 BEGIN:VTIMEZONE
 TZID:America/New_York
@@ -61,73 +61,128 @@ RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-DTSTART:20230217T000000Z
-DTEND:20230217T030000Z
-DTSTAMP:20230226T143339Z
-UID:asdfasdaas@google.com
-CREATED:20230216T160858Z
+DTSTART;VALUE=DATE:20220302
+DTEND;VALUE=DATE:20220303
+DTSTAMP:20230302T233513Z
+UID:5r09pnnlktaqivstai5vlbqb1h@google.com
+CREATED:20220226T211158Z
 DESCRIPTION:
-LAST-MODIFIED:20230216T160858Z
+LAST-MODIFIED:20220226T214634Z
 LOCATION:
 SEQUENCE:0
 STATUS:CONFIRMED
-SUMMARY:Birthday party
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-DTSTART:20230227T230000Z
-DTEND:20230228T010000Z
-DTSTAMP:20230226T143339Z
-UID:blahasdfasdf@google.com
-CREATED:20230216T012242Z
-DESCRIPTION:
-LAST-MODIFIED:20230216T012242Z
-LOCATION:
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Event somewhere
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20230715
-DTEND;VALUE=DATE:20230719
-DTSTAMP:20230226T143339Z
-ORGANIZER;CN=unknownorganizer@calendar.google.com:mailto:unknownorganizer@calendar.google.com
-UID:adsfasdfsa76dfa7sydf7sf7sdfsdghd87sf87
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=example@example.com;X-NUM-GUESTS=0:mailto:example@example.com
-CLASS:PRIVATE
-CREATED:20230215T044514Z
-DESCRIPTION:blah
-LOCATION:Paris, France
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Vacation
+SUMMARY:All day event
 TRANSP:TRANSPARENT
 END:VEVENT
-END:VCALENDAR 1`] = `
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20220301T110000
+DTEND;TZID=America/New_York:20220301T123000
+RRULE:FREQ=WEEKLY;WKST=SU;BYDAY=TH,TU
+DTSTAMP:20230302T233513Z
+UID:5tt2avr2th0h65homv3b6jeqof@google.com
+CREATED:20220226T211144Z
+DESCRIPTION:
+LAST-MODIFIED:20220226T214627Z
+LOCATION:
+SEQUENCE:1
+STATUS:CONFIRMED
+SUMMARY:Recurring event
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20220228T164500Z
+DTEND:20220228T194500Z
+DTSTAMP:20230302T233513Z
+UID:40mdbe6fvc1rmd60n6r0c3go7e@google.com
+X-GOOGLE-CONFERENCE:https://meet.google.com/riu-josb-pdb
+CREATED:20220226T210517Z
+DESCRIPTION:This is an example <i>event.</i>
+
+Join with Google Meet: http
+    s://meet.google.com/riu-josb-pdb
+Or dial: (US) +1 609-726-6186 PIN: 156393
+    865#
+More phone numbers: https://tel.meet/riu-josb-pdb?pin=1416269198709&h
+    s=7
+
+Learn more about Meet at: https://support.google.com/a/users/answer/
+    9282720
+LAST-MODIFIED:20220226T214608Z
+LOCATION:
+SEQUENCE:1
+STATUS:CONFIRMED
+SUMMARY:Hello, iCal!
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20220219T190000Z
+DTEND:20220219T230000Z
+DTSTAMP:20230302T233513Z
+UID:44hekcaaf0or7547vhqa772mqj@google.com
+CREATED:20220220T002201Z
+DESCRIPTION:
+LAST-MODIFIED:20220220T002201Z
+LOCATION:
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Work on GCal Sync
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20220216
+DTEND;VALUE=DATE:20220217
+DTSTAMP:20230302T233513Z
+UID:7ooluqb717vabebvc9gkc38c9l@google.com
+CREATED:20220220T002146Z
+DESCRIPTION:
+LAST-MODIFIED:20220220T002146Z
+LOCATION:
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Announce Beta
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR
+         1`] = `
 [
   {
+    "allDay": true,
     "completed": undefined,
-    "date": "2023-02-16",
-    "endTime": "22:00",
-    "startTime": "19:00",
-    "title": "Birthday party",
+    "date": "2022-03-02",
+    "endDate": "2022-03-03",
+    "title": "All day event",
+    "type": "single",
+  },
+  {
+    "endTime": "12:30",
+    "rrule": "RRULE:FREQ=WEEKLY;BYDAY=TH,TU;WKST=SU",
+    "startDate": "2022-03-01",
+    "startTime": "11:00",
+    "title": "Recurring event",
+    "type": "rrule",
+  },
+  {
+    "completed": undefined,
+    "date": "2022-02-28",
+    "endTime": "12:45",
+    "startTime": "09:45",
+    "title": "Hello, iCal!",
     "type": "single",
   },
   {
     "completed": undefined,
-    "date": "2023-02-27",
-    "endTime": "20:00",
-    "startTime": "18:00",
-    "title": "Event somewhere",
+    "date": "2022-02-19",
+    "endTime": "16:00",
+    "startTime": "12:00",
+    "title": "Work on GCal Sync",
     "type": "single",
   },
   {
     "allDay": true,
     "completed": undefined,
-    "date": "2023-07-15",
-    "endDate": "2023-07-19",
-    "title": "Vacation",
+    "date": "2022-02-16",
+    "endDate": "2022-02-17",
+    "title": "Announce Beta",
     "type": "single",
   },
 ]

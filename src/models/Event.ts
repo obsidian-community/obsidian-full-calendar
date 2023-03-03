@@ -17,7 +17,9 @@ export function basenameFromEvent(event: OFCEvent): string {
             return `${event.date} ${event.title}`;
         case "recurring":
             // TODO: Remove `)` from the end of recurring events.
-            return `(Every ${event.daysOfWeek.join(",")}) ${event.title})`;
+            return `(Every ${event.daysOfWeek.join(",")}) ${event.title}`;
+        case "rrule":
+            return `(Recurring) ${event.title}`;
     }
 }
 

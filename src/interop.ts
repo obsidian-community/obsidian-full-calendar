@@ -121,7 +121,7 @@ export function toEventInput(
                     : undefined,
             };
         }
-    } else {
+    } else if (frontmatter.type === "single") {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(
                 frontmatter.date,
@@ -165,6 +165,8 @@ export function toEventInput(
                 },
             };
         }
+    } else if (frontmatter.type === "rrule") {
+        // TODO: RRule
     }
 
     return event;

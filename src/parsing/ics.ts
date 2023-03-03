@@ -1,9 +1,10 @@
 import ical from "ical.js";
 import { OFCEvent, validateEvent } from "../types";
 import { DateTime } from "luxon";
+import { rrulestr } from "rrule";
 
 function getDate(t: ical.Time): string {
-    return DateTime.fromJSDate(t.toJSDate()).toISODate();
+    return DateTime.fromJSDate(t.toJSDate(), { zone: "UTC" }).toISODate();
 }
 
 function getTime(t: ical.Time): string {
@@ -32,7 +33,24 @@ function specifiesEnd(iCalEvent: ical.Event) {
 
 function icsToOFC(input: ical.Event): OFCEvent {
     if (input.isRecurring()) {
-        throw new Error("Recurring events not supported for ICS calendars");
+        const rrule = rrulestr(
+            input.component.getFirstProperty("rrule").getFirstValue().toString()
+        );
+        const allDay = input.startDate.isDate;
+        return {
+            type: "rrule",
+            title: input.summary,
+            id: input.uid,
+            rrule: rrule.toString(),
+            startDate: getDate(input.startDate),
+            ...(allDay
+                ? { allDay: true }
+                : {
+                      allDay: false,
+                      startTime: getTime(input.startDate),
+                      endTime: getTime(input.endDate),
+                  }),
+        };
     } else {
         const date = getDate(input.startDate);
         const endDate =

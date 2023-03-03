@@ -54,6 +54,21 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
             endRecur: obj.endRecur,
             ...timeInfo,
         };
+    } else if (obj.type === "rrule") {
+        if (!obj.rrule) {
+            return null;
+        }
+        if (!obj.startDate) {
+            return null;
+        }
+        const event: OFCEvent = {
+            type: "rrule",
+            title: obj.title,
+            rrule: obj.rrule,
+            startDate: obj.startDate,
+            ...timeInfo,
+        };
+        return event;
     }
 
     return null;

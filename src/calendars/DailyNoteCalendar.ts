@@ -52,6 +52,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
     }
 
     async getEventsInFile(file: TFile): Promise<EditableEventResponse[]> {
+        // @ts-ignore
         const date = getDateFromFile(file, "day")?.format(DATE_FORMAT);
         if (!date) {
             return [];
@@ -72,20 +73,20 @@ export default class DailyNoteCalendar extends EditableCalendar {
 
     async getEvents(): Promise<EventResponse[]> {
         const notes = getAllDailyNotes();
-        const files = Object.values(notes);
+        const files = Object.values(notes) as TFile[];
         return (
             await Promise.all(files.map((f) => this.getEventsInFile(f)))
         ).flat();
     }
 
     async createEvent(event: OFCEvent): Promise<EventLocation> {
-        if (event.type == "recurring") {
+        if (event.type !== "single") {
             throw new Error("Cannot create a recurring event in a daily note.");
         }
         const m = moment(event.date);
-        let file = getDailyNote(m, getAllDailyNotes());
+        let file = getDailyNote(m, getAllDailyNotes()) as TFile;
         if (!file) {
-            file = await createDailyNote(m);
+            file = (await createDailyNote(m)) as TFile;
         }
         // Since we're relying on Obsidian's markdown parsing for header and list info
         // wait until the cache is populated before continuing, since this might be
@@ -143,7 +144,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
         updateCacheWithLocation: (loc: EventLocation) => void
     ): Promise<void> {
         // console.log("modified daily note event");
-        if (newEvent.type === "recurring") {
+        if (newEvent.type !== "single") {
             throw new Error(
                 "Recurring events in daily notes are not supported."
             );
@@ -154,7 +155,9 @@ export default class DailyNoteCalendar extends EditableCalendar {
             );
         }
         const { file, lineNumber } = this.getConcreteLocation(loc);
-        const oldDate = getDateFromFile(file, "day")?.format(DATE_FORMAT);
+        const oldDate = getDateFromFile(file as any, "day")?.format(
+            DATE_FORMAT
+        );
         if (!oldDate) {
             throw new Error(
                 `Could not get date from file at path ${file.path}`
@@ -165,9 +168,9 @@ export default class DailyNoteCalendar extends EditableCalendar {
             // Event needs to be moved to a new file.
             // TODO: Factor this out with the createFile path.
             const m = moment(newEvent.date);
-            let newFile = getDailyNote(m, getAllDailyNotes());
+            let newFile = getDailyNote(m, getAllDailyNotes()) as TFile;
             if (!newFile) {
-                newFile = await createDailyNote(m);
+                newFile = (await createDailyNote(m)) as TFile;
             }
             await this.app.read(newFile);
 

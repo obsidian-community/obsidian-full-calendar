@@ -1,4 +1,5 @@
 import { validateEvent as val } from "./validation";
+import { rrulestr } from "rrule";
 export const PLUGIN_SLUG = "full-calendar-plugin";
 
 // Frontmatter
@@ -31,7 +32,13 @@ export type RecurringEventData = {
     endRecur?: string;
 } & CommonEventData;
 
-export type OFCEvent = SingleEventData | RecurringEventData;
+export type RRuleEventData = {
+    type: "rrule";
+    startDate: string;
+    rrule: string;
+} & CommonEventData;
+
+export type OFCEvent = SingleEventData | RecurringEventData | RRuleEventData;
 
 // Settings
 

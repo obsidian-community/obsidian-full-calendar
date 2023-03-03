@@ -1,4 +1,5 @@
 import { TFile, TFolder } from "obsidian";
+import { rrulestr } from "rrule";
 import { EventPathLocation } from "../core/EventStore";
 import { ObsidianInterface } from "../ObsidianAdapter";
 import {
@@ -15,6 +16,8 @@ const basenameFromEvent = (event: OFCEvent): string => {
             return `${event.date} ${event.title}`;
         case "recurring":
             return `(Every ${event.daysOfWeek.join(",")}) ${event.title}`;
+        case "rrule":
+            return `(${rrulestr(event.rrule).toText()}) ${event.title}`;
     }
 };
 
