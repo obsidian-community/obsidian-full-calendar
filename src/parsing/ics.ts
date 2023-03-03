@@ -11,7 +11,7 @@ function getTime(t: ical.Time): string {
     if (t.isDate) {
         return "00:00";
     }
-    return DateTime.fromJSDate(t.toJSDate()).toISOTime({
+    return DateTime.fromJSDate(t.toJSDate(), { zone: "UTC" }).toISOTime({
         includeOffset: false,
         includePrefix: false,
         suppressMilliseconds: true,
