@@ -4,14 +4,14 @@ import { DateTime } from "luxon";
 import { rrulestr } from "rrule";
 
 function getDate(t: ical.Time): string {
-    return DateTime.fromJSDate(t.toJSDate(), { zone: "UTC" }).toISODate();
+    return DateTime.fromSeconds(t.toUnixTime(), { zone: "UTC" }).toISODate();
 }
 
 function getTime(t: ical.Time): string {
     if (t.isDate) {
         return "00:00";
     }
-    return DateTime.fromJSDate(t.toJSDate(), { zone: "UTC" }).toISOTime({
+    return DateTime.fromSeconds(t.toUnixTime(), { zone: "UTC" }).toISOTime({
         includeOffset: false,
         includePrefix: false,
         suppressMilliseconds: true,

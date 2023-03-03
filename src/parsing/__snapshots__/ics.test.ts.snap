@@ -154,10 +154,10 @@ END:VCALENDAR
     "type": "single",
   },
   {
-    "endTime": "19:30",
+    "endTime": "12:30",
     "rrule": "RRULE:FREQ=WEEKLY;BYDAY=TH,TU;WKST=SU",
     "startDate": "2022-03-01",
-    "startTime": "18:00",
+    "startTime": "11:00",
     "title": "Recurring event",
     "type": "rrule",
   },
