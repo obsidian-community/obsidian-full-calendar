@@ -231,7 +231,7 @@ export default class EventCache {
     off(eventType: "update", callback: UpdateViewCallback) {
         switch (eventType) {
             case "update":
-                this.updateViewCallbacks.filter((it) => it !== callback);
+                this.updateViewCallbacks.remove(callback);
                 break;
         }
     }
