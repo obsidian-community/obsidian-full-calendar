@@ -123,24 +123,45 @@ export function toEventInput(
             };
         }
     } else if (frontmatter.type === "rrule") {
-        event = {
-            id,
-            title: frontmatter.title,
-            rrule: rrulestr(frontmatter.rrule, {
-                dtstart: DateTime.fromISO(frontmatter.startDate, {
-                    zone: "UTC",
-                }).toJSDate(),
-            }).toString(),
-        };
         if (frontmatter.allDay) {
-            event.allDay = true;
-        } else if (frontmatter.endTime) {
-            event.startTime = normalizeTimeString(frontmatter.startTime);
-            event.endTime = frontmatter.endTime
-                ? normalizeTimeString(frontmatter.endTime)
-                : undefined;
+            event = {
+                id,
+                title: frontmatter.title,
+                rrule: rrulestr(frontmatter.rrule, {
+                    dtstart: DateTime.fromISO(frontmatter.startDate).toJSDate(),
+                }).toString(),
+                allDay: true,
+            };
+        } else {
+            const dtstart = combineDateTimeStrings(
+                frontmatter.startDate,
+                frontmatter.startTime
+            );
+
+            if (!dtstart) {
+                return null;
+            }
+            event = {
+                id,
+                title: frontmatter.title,
+                rrule: rrulestr(frontmatter.rrule, {
+                    dtstart: DateTime.fromISO(dtstart).toJSDate(),
+                }).toString(),
+            };
+
+            const startTime = parseTime(frontmatter.startTime);
+            if (startTime && frontmatter.endTime) {
+                const endTime = parseTime(frontmatter.endTime);
+                const duration = endTime?.minus(startTime);
+                if (duration) {
+                    event.duration = duration.toISOTime({
+                        includePrefix: false,
+                        suppressMilliseconds: true,
+                        suppressSeconds: true,
+                    });
+                }
+            }
         }
-        console.log("rrule event", event);
     } else if (frontmatter.type === "single") {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(

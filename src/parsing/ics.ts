@@ -42,13 +42,21 @@ function icsToOFC(input: ical.Event): OFCEvent {
             title: input.summary,
             id: input.uid,
             rrule: rrule.toString(),
-            startDate: getDate(input.startDate),
+            startDate: getDate(
+                input.startDate.convertToZone(ical.Timezone.utcTimezone)
+            ),
             ...(allDay
                 ? { allDay: true }
                 : {
                       allDay: false,
-                      startTime: getTime(input.startDate),
-                      endTime: getTime(input.endDate),
+                      startTime: getTime(
+                          input.startDate.convertToZone(
+                              ical.Timezone.utcTimezone
+                          )
+                      ),
+                      endTime: getTime(
+                          input.endDate.convertToZone(ical.Timezone.utcTimezone)
+                      ),
                   }),
         };
     } else {
@@ -78,6 +86,11 @@ function icsToOFC(input: ical.Event): OFCEvent {
 export function getEventsFromICS(text: string): OFCEvent[] {
     const jCalData = ical.parse(text);
     const component = new ical.Component(jCalData);
+
+    // TODO: Timezone support
+    // const tzc = component.getAllSubcomponents("vtimezone");
+    // const tz = new ical.Timezone(tzc[0]);
+
     const events: ical.Event[] = component
         .getAllSubcomponents("vevent")
         .map((vevent) => new ical.Event(vevent))
