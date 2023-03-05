@@ -77,6 +77,9 @@ export default class EventCache {
     calendars = new Map<string, Calendar>();
 
     private pkCounter = 0;
+
+    private revalidating = false;
+
     generateId(): string {
         return `${this.pkCounter++}`;
     }
@@ -190,7 +193,8 @@ export default class EventCache {
             throw new Error(`Calendar ID ${calendarId} is not registered.`);
         }
         if (!(calendar instanceof EditableCalendar)) {
-            throw new Error(`Cannot modify event of type ${calendar.type}.`);
+            console.warn("Cannot modify event of type " + calendar.type);
+            throw new Error(`Read-only events cannot be modified.`);
         }
         if (!location) {
             throw new Error(
@@ -264,9 +268,10 @@ export default class EventCache {
             throw new Error(`Calendar ID ${calendarId} is not registered.`);
         }
         if (!(calendar instanceof EditableCalendar)) {
-            throw new Error(
+            console.error(
                 `Event cannot be added to non-editable calendar of type ${calendar.type}`
             );
+            throw new Error(`Cannot add event to a read-only calendar`);
         }
         const location = await calendar.createEvent(event);
         const id = this.store.add({
@@ -443,11 +448,17 @@ export default class EventCache {
      * is available for any remote calendar, its data will be updated in the cache and any subscribing views.
      */
     revalidateRemoteCalendars() {
+        if (this.revalidating) {
+            console.warn("Revalidation already in progress.");
+            return;
+        }
+        this.revalidating = true;
+        console.warn("Revalidating remote calendars...");
         const remoteCalendars = [...this.calendars.values()].flatMap(
             (c) => (c instanceof ICSCalendar ? c : []) // TODO: change this from ICSCalendar to RemoteCalendar after adding CalDAVCalendar.
         );
-        for (const calendar of remoteCalendars) {
-            calendar
+        const promises = remoteCalendars.map((calendar) => {
+            return calendar
                 .revalidate()
                 .then(() => calendar.getEvents())
                 .then((events) => {
@@ -470,7 +481,17 @@ export default class EventCache {
                     });
                     this.updateViews(deletedEvents, newEvents);
                 });
-        }
+        });
+        Promise.allSettled(promises).then((results) => {
+            this.revalidating = false;
+            results.forEach((r) => {
+                if (r.status === "rejected") {
+                    console.error(
+                        `Revalidation failed with reason: ${r.reason}`
+                    );
+                }
+            });
+        });
     }
 
     get _storeForTest() {

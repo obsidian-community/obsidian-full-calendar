@@ -192,7 +192,7 @@ describe("event cache with readonly calendar", () => {
         expect(sources.length).toBe(1);
         const eventId = sources[0].events[0].id;
 
-        assertFailed(async () => await f(cache, eventId), /type/);
+        assertFailed(async () => await f(cache, eventId), /read-only/i);
     });
 });
 

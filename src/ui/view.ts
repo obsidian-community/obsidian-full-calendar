@@ -103,7 +103,7 @@ export class CalendarView extends ItemView {
                     }
                 } catch (e) {
                     if (e instanceof Error) {
-                        console.error(e);
+                        console.warn(e);
                         new Notice(e.message);
                     }
                 }
@@ -252,6 +252,10 @@ export class CalendarView extends ItemView {
         });
         // @ts-ignore
         window.fc = this.fullCalendarView;
+
+        this.registerDomEvent(this.containerEl, "mouseenter", () => {
+            this.plugin.cache.revalidateRemoteCalendars();
+        });
 
         this.callback = this.plugin.cache.on(
             "update",
