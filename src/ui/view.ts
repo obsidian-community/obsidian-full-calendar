@@ -269,7 +269,7 @@ export class CalendarView extends ItemView {
                     }
                 });
                 toAdd.forEach(({ id, event, calendarId }) => {
-                    console.log("adding event", { id, event });
+                    // console.log("adding event", { id, event });
                     this.fullCalendarView?.addEvent(
                         {
                             ...toEventInput(id, event),

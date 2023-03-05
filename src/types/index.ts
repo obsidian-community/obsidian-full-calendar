@@ -36,6 +36,7 @@ export type RRuleEventData = {
     type: "rrule";
     startDate: string;
     rrule: string;
+    skipDates: string[];
 } & CommonEventData;
 
 export type OFCEvent = SingleEventData | RecurringEventData | RRuleEventData;

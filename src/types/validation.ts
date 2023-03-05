@@ -73,6 +73,7 @@ export function validateEvent(obj?: Record<string, any>): OFCEvent | null {
             type: "rrule",
             title: obj.title,
             rrule: obj.rrule,
+            skipDates: obj.skipDates,
             startDate: obj.startDate,
             ...timeInfo,
         };

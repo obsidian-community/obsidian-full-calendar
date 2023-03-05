@@ -369,7 +369,7 @@ export default class EventCache {
      * @returns nothing
      */
     async fileUpdated(file: TFile): Promise<void> {
-        console.log("fileUpdated() called for file", file.path);
+        // console.log("fileUpdated() called for file", file.path);
 
         // Get all calendars that contain events stored in this file.
         const calendars = [...this.calendars.values()].flatMap((c) =>
@@ -394,7 +394,7 @@ export default class EventCache {
             // we break the abstraction layer here.
             const newEvents = await calendar.getEventsInFile(file);
 
-            console.log("comparing events", oldEvents, newEvents);
+            // console.log("comparing events", oldEvents, newEvents);
 
             // TODO: It's possible events are not different, but the location has changed.
             const eventsHaveChanged = eventsAreDifferent(
@@ -404,9 +404,9 @@ export default class EventCache {
 
             // If no events have changed from what's in the cache, then there's no need to update the event store.
             if (!eventsHaveChanged) {
-                console.log(
-                    "events have not changed, do not update store or view."
-                );
+                // console.log(
+                //     "events have not changed, do not update store or view."
+                // );
                 return;
             }
 

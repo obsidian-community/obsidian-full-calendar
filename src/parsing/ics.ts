@@ -37,11 +37,20 @@ function icsToOFC(input: ical.Event): OFCEvent {
             input.component.getFirstProperty("rrule").getFirstValue().toString()
         );
         const allDay = input.startDate.isDate;
+        const exdates = input.component
+            .getAllProperties("exdate")
+            .map((exdateProp) => {
+                const exdate = exdateProp.getFirstValue();
+                // NOTE: We only store the date from an exdate and recreate the full datetime exdate later,
+                // so recurring events with exclusions that happen more than once per day are not supported.
+                return getDate(exdate);
+            });
         return {
             type: "rrule",
             title: input.summary,
             id: input.uid,
             rrule: rrule.toString(),
+            skipDates: exdates,
             startDate: getDate(
                 input.startDate.convertToZone(ical.Timezone.utcTimezone)
             ),

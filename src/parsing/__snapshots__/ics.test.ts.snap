@@ -159,6 +159,7 @@ END:VCALENDAR
     "endTime": "12:30",
     "id": "5tt2avr2th0h65homv3b6jeqof@google.com",
     "rrule": "RRULE:FREQ=WEEKLY;BYDAY=TH,TU;WKST=SU",
+    "skipDates": [],
     "startDate": "2022-03-01",
     "startTime": "11:00",
     "title": "Recurring event",
