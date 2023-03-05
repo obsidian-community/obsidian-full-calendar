@@ -1,10 +1,12 @@
 import { request } from "obsidian";
 import { CalendarInfo } from "src/types";
-import { Calendar, EventResponse } from "./Calendar";
+import { EventResponse } from "./Calendar";
 import { getEventsFromICS } from "../parsing/ics";
+import RemoteCalendar from "./RemoteCalendar";
+
 const WEBCAL = "webcal";
 
-export default class ICSCalendar extends Calendar {
+export default class ICSCalendar extends RemoteCalendar {
     private url: string;
     private response: string | null = null;
 

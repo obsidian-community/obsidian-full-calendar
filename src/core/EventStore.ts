@@ -135,10 +135,12 @@ export default class EventStore {
     private lineNumbers: Map<string, number> = new Map();
 
     clear() {
+        const ids = [...this.store.keys()];
         this.store.clear();
         this.calendarIndex.clear();
         this.pathIndex.clear();
         this.lineNumbers.clear();
+        return ids;
     }
 
     /**

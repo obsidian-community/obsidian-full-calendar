@@ -5,7 +5,7 @@ export const ID_SEPARATOR = "::";
 export type EventResponse = [OFCEvent, EventLocation | null];
 
 /**
- * Abstract class representing the interface for a Calendar.
+ * Abstract class representing the basic interface for a read-only Calendar.
  */
 export abstract class Calendar {
     color: string;

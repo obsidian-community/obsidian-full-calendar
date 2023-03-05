@@ -1,11 +1,11 @@
-import { TFile } from "obsidian";
+import { Notice, TFile } from "obsidian";
 import equal from "deep-equal";
 
 import { Calendar } from "../calendars/Calendar";
 import { EditableCalendar } from "../calendars/EditableCalendar";
-import ICSCalendar from "../calendars/ICSCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
+import RemoteCalendar from "src/calendars/RemoteCalendar";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
@@ -99,7 +99,7 @@ export default class EventCache {
         this.initialized = false;
         this.calendarInfos = infos;
         this.pkCounter = 0;
-        this.store.clear();
+        this.updateViews(this.store.clear(), []);
         this.calendars.clear();
         this.init();
     }
@@ -193,7 +193,7 @@ export default class EventCache {
             throw new Error(`Calendar ID ${calendarId} is not registered.`);
         }
         if (!(calendar instanceof EditableCalendar)) {
-            console.warn("Cannot modify event of type " + calendar.type);
+            // console.warn("Cannot modify event of type " + calendar.type);
             throw new Error(`Read-only events cannot be modified.`);
         }
         if (!location) {
@@ -454,8 +454,8 @@ export default class EventCache {
         }
         this.revalidating = true;
         console.warn("Revalidating remote calendars...");
-        const remoteCalendars = [...this.calendars.values()].flatMap(
-            (c) => (c instanceof ICSCalendar ? c : []) // TODO: change this from ICSCalendar to RemoteCalendar after adding CalDAVCalendar.
+        const remoteCalendars = [...this.calendars.values()].flatMap((c) =>
+            c instanceof RemoteCalendar ? c : []
         );
         const promises = remoteCalendars.map((calendar) => {
             return calendar
@@ -484,13 +484,17 @@ export default class EventCache {
         });
         Promise.allSettled(promises).then((results) => {
             this.revalidating = false;
-            results.forEach((r) => {
-                if (r.status === "rejected") {
-                    console.error(
-                        `Revalidation failed with reason: ${r.reason}`
-                    );
-                }
-            });
+            const errors = results.flatMap((result) =>
+                result.status === "rejected" ? result.reason : []
+            );
+            if (errors.length > 0) {
+                new Notice(
+                    "A remote calendar failed to load. Check the console for more details."
+                );
+                errors.forEach((reason) => {
+                    console.error(`Revalidation failed with reason: ${reason}`);
+                });
+            }
         });
     }
 

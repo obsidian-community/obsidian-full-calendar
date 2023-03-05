@@ -5,7 +5,6 @@ import {
     FULL_CALENDAR_VIEW_TYPE,
 } from "./ui/view";
 import { renderCalendar } from "./ui/calendar";
-
 import { toEventInput } from "./interop";
 import {
     DEFAULT_SETTINGS,
@@ -14,9 +13,9 @@ import {
 } from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
 import EventCache from "./core/EventCache";
-import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import { ObsidianIO } from "./ObsidianAdapter";
 import { launchCreateModal } from "./ui/event_modal";
+import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
 import ICSCalendar from "./calendars/ICSCalendar";
 
