@@ -144,7 +144,6 @@ export function toEventInput(
         if (dtstart === null) {
             return null;
         }
-
         // NOTE: how exdates are handled does not support events which recur more than once per day.
         const exdate = frontmatter.skipDates
             .map((d) => {
@@ -153,6 +152,7 @@ export function toEventInput(
                 // Therefore, just concatenate the date for this exdate and the start time for the event together.
                 const date = DateTime.fromISO(d).toISODate();
                 const time = dtstart.toJSDate().toISOString().split("T")[1];
+
                 return `${date}T${time}`;
             })
             .flatMap((d) => (d ? d : []));
