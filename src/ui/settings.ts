@@ -16,11 +16,11 @@ import {
 } from "../types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
-import { RemoteSource } from "../models/RemoteSource";
 import * as ReactDOM from "react-dom";
 import { createElement } from "react";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import ReactModal from "./ReactModal";
+import { importCalendars } from "src/parsing/caldav/import";
 
 export interface FullCalendarSettings {
     calendarSources: CalendarInfo[];
@@ -142,15 +142,22 @@ export function addCalendarButton(
                                 source.type === "caldav" ||
                                 source.type === "icloud"
                             ) {
-                                let sources = await new RemoteSource(
-                                    source
-                                ).importCalendars();
-                                if (sources instanceof FCError) {
-                                    new Notice(sources.message);
-                                } else {
+                                try {
+                                    let sources = await importCalendars(
+                                        {
+                                            type: "basic",
+                                            username: source.username,
+                                            password: source.password,
+                                        },
+                                        source.url
+                                    );
                                     sources.forEach((source) =>
                                         submitCallback(source)
                                     );
+                                } catch (e) {
+                                    if (e instanceof Error) {
+                                        new Notice(e.message);
+                                    }
                                 }
                             } else {
                                 submitCallback(source);

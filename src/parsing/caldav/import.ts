@@ -1,12 +1,6 @@
 import Color from "color";
 import dav, { transport } from "dav";
-import { CalDAVSource } from "src/types";
-
-export type Authentication = {
-    type: "basic";
-    username: string;
-    password: string;
-};
+import { Authentication, CalDAVSource } from "src/types";
 
 export async function importCalendars(
     auth: Authentication,

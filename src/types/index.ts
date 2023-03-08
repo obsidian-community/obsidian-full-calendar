@@ -160,3 +160,9 @@ export type EventLocation = {
 };
 
 export const validateEvent = val;
+
+export type Authentication = {
+    type: "basic";
+    username: string;
+    password: string;
+};

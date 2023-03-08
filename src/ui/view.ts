@@ -10,7 +10,6 @@ import {
     toEventInput,
 } from "../interop";
 import { renderOnboarding } from "./onboard";
-import { getColors } from "../models/util";
 import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
 import { isTask, toggleTask, unmakeTask } from "src/tasks";
@@ -18,6 +17,38 @@ import { UpdateViewCallback } from "src/core/EventCache";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
+
+export function getCalendarColors(color: string | null | undefined): {
+    color: string;
+    textColor: string;
+} {
+    let textVar = getComputedStyle(document.body).getPropertyValue(
+        "--text-on-accent"
+    );
+    if (color) {
+        const m = color
+            .slice(1)
+            .match(color.length == 7 ? /(\S{2})/g : /(\S{1})/g);
+        if (m) {
+            const r = parseInt(m[0], 16),
+                g = parseInt(m[1], 16),
+                b = parseInt(m[2], 16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            if (brightness > 150) {
+                textVar = "black";
+            }
+        }
+    }
+
+    return {
+        color:
+            color ||
+            getComputedStyle(document.body).getPropertyValue(
+                "--interactive-accent"
+            ),
+        textColor: textVar,
+    };
+}
 
 export class CalendarView extends ItemView {
     fullCalendarView: Calendar | null;
@@ -80,7 +111,7 @@ export class CalendarView extends ItemView {
                         (e) => toEventInput(e.id, e.event) || []
                     ),
                     editable,
-                    ...getColors(color),
+                    ...getCalendarColors(color),
                 })
             );
         // TODO: Add calendars that don't have any events to FC.

@@ -18,6 +18,7 @@ import { launchCreateModal } from "./ui/event_modal";
 import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
 import ICSCalendar from "./calendars/ICSCalendar";
+import CalDAVCalendar from "./calendars/CalDAVCalendar";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -42,7 +43,20 @@ export default class FullCalendarPlugin extends Plugin {
         ical: (info) =>
             info.type === "ical" ? new ICSCalendar(info.color, info.url) : null,
         gcal: () => null,
-        caldav: () => null,
+        caldav: (info) =>
+            info.type === "caldav"
+                ? new CalDAVCalendar(
+                      info.color,
+                      info.name,
+                      {
+                          type: "basic",
+                          username: info.username,
+                          password: info.password,
+                      },
+                      info.url,
+                      info.homeUrl
+                  )
+                : null,
         icloud: () => null,
         FOR_TEST_ONLY: () => null,
     });
