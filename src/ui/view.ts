@@ -14,6 +14,7 @@ import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
 import { isTask, toggleTask, unmakeTask } from "src/tasks";
 import { UpdateViewCallback } from "src/core/EventCache";
+import { debugLog } from "src/debug";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -293,11 +294,11 @@ export class CalendarView extends ItemView {
         this.callback = this.plugin.cache.on(
             "update",
             ({ toRemove, toAdd }) => {
-                // console.log("updating view from cache...", { toRemove, toAdd });
+                debugLog("updating view from cache...", { toRemove, toAdd });
                 toRemove.forEach((id) => {
                     const event = this.fullCalendarView?.getEventById(id);
                     if (event) {
-                        // console.log("removing event", event.toPlainObject());
+                        debugLog("removing event", event.toPlainObject());
                         event.remove();
                     } else {
                         console.warn(
@@ -306,7 +307,7 @@ export class CalendarView extends ItemView {
                     }
                 });
                 toAdd.forEach(({ id, event, calendarId }) => {
-                    // console.log("adding event", { id, event });
+                    debugLog("adding event", { id, event });
                     this.fullCalendarView?.addEvent(
                         {
                             ...toEventInput(id, event),

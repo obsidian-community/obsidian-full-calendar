@@ -6,6 +6,7 @@ import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
 import RemoteCalendar from "../calendars/RemoteCalendar";
+import { debugLog } from "src/debug";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
@@ -18,6 +19,11 @@ export type UpdateViewCallback = (info: {
     toRemove: string[];
     toAdd: CacheEntry[];
 }) => void;
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+
+const MILLICONDS_BETWEEN_REVALIDATIONS = 5 * MINUTE;
 
 // TODO: Write tests for this function.
 export const eventsAreDifferent = (
@@ -87,6 +93,8 @@ export default class EventCache {
     private updateViewCallbacks: UpdateViewCallback[] = [];
 
     initialized = false;
+
+    lastRevalidation: number = 0;
 
     constructor(calendarInitializers: CalendarInitializerMap) {
         this.calendarInitializers = calendarInitializers;
@@ -309,7 +317,7 @@ export default class EventCache {
         const { calendar, location: oldLocation } =
             this.getInfoForEditableEvent(eventId);
         const { path, lineNumber } = oldLocation;
-        // console.log("updating event with ID", eventId);
+        debugLog("updating event with ID", eventId);
 
         await calendar.modifyEvent(
             { path, lineNumber },
@@ -351,7 +359,7 @@ export default class EventCache {
             throw new Error("Event does not exist");
         }
         const newEvent = process(event);
-        // console.log("process", newEvent, process);
+        debugLog("process", newEvent, process);
         return this.updateEventWithId(id, newEvent);
     }
 
@@ -374,7 +382,7 @@ export default class EventCache {
      * @returns nothing
      */
     async fileUpdated(file: TFile): Promise<void> {
-        // console.log("fileUpdated() called for file", file.path);
+        debugLog("fileUpdated() called for file", file.path);
 
         // Get all calendars that contain events stored in this file.
         const calendars = [...this.calendars.values()].flatMap((c) =>
@@ -399,7 +407,7 @@ export default class EventCache {
             // we break the abstraction layer here.
             const newEvents = await calendar.getEventsInFile(file);
 
-            // console.log("comparing events", oldEvents, newEvents);
+            debugLog("comparing events", oldEvents, newEvents);
 
             // TODO: It's possible events are not different, but the location has changed.
             const eventsHaveChanged = eventsAreDifferent(
@@ -409,9 +417,9 @@ export default class EventCache {
 
             // If no events have changed from what's in the cache, then there's no need to update the event store.
             if (!eventsHaveChanged) {
-                // console.log(
-                //     "events have not changed, do not update store or view."
-                // );
+                debugLog(
+                    "events have not changed, do not update store or view."
+                );
                 return;
             }
 
@@ -447,11 +455,21 @@ export default class EventCache {
      * Revalidate calendars asynchronously. This is not a blocking function: as soon as new data
      * is available for any remote calendar, its data will be updated in the cache and any subscribing views.
      */
-    revalidateRemoteCalendars() {
+    revalidateRemoteCalendars(force = false) {
         if (this.revalidating) {
             console.warn("Revalidation already in progress.");
             return;
         }
+        debugLog("debug log!", { hello: 1 });
+        const now = Date.now();
+
+        if (
+            force ||
+            now - this.lastRevalidation < MILLICONDS_BETWEEN_REVALIDATIONS
+        ) {
+            return;
+        }
+
         this.revalidating = true;
         console.warn("Revalidating remote calendars...");
         const remoteCalendars = [...this.calendars.values()].flatMap((c) =>
@@ -484,6 +502,7 @@ export default class EventCache {
         });
         Promise.allSettled(promises).then((results) => {
             this.revalidating = false;
+            this.lastRevalidation = Date.now();
             const errors = results.flatMap((result) =>
                 result.status === "rejected" ? result.reason : []
             );

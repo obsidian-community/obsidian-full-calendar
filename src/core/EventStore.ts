@@ -1,3 +1,4 @@
+import { debugLog } from "src/debug";
 import { Calendar } from "../calendars/Calendar";
 import { EventLocation, OFCEvent } from "../types";
 
@@ -205,13 +206,13 @@ export default class EventStore {
             );
         }
 
-        // console.log("adding event", { id, event, location });
+        debugLog("adding event", { id, event, location });
 
         this.store.set(id, event);
         this.calendarIndex.add(calendar, new EventID(id));
         if (location) {
             const { file, lineNumber } = location;
-            // console.log("adding event in file:", file.path);
+            debugLog("adding event in file:", file.path);
             this.pathIndex.add(new Path(file), new EventID(id));
             if (lineNumber) {
                 this.lineNumbers.set(id, lineNumber);
@@ -230,7 +231,7 @@ export default class EventStore {
         if (!event) {
             return null;
         }
-        // console.log("deleting event", { id, event });
+        debugLog("deleting event", { id, event });
 
         this.calendarIndex.delete(new EventID(id));
         this.pathIndex.delete(new EventID(id));
