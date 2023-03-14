@@ -56,7 +56,8 @@ export default class FullNoteCalendar extends EditableCalendar {
     }
 
     async getEventsInFile(file: TFile): Promise<EditableEventResponse[]> {
-        let event = validateEvent(this.app.getMetadata(file)?.frontmatter);
+        const metadata = this.app.getMetadata(file);
+        let event = validateEvent(metadata?.frontmatter);
         if (!event) {
             return [];
         }
@@ -148,12 +149,12 @@ export default class FullNoteCalendar extends EditableCalendar {
 
         updateCacheWithLocation(newLocation);
 
-        await this.app.rewrite(file, (page) =>
-            modifyFrontmatterString(page, event)
-        );
         if (file.path !== newLocation.file.path) {
             await this.app.rename(file, newLocation.file.path);
         }
+        await this.app.rewrite(file, (page) =>
+            modifyFrontmatterString(page, event)
+        );
 
         return;
     }

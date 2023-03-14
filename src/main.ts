@@ -19,7 +19,6 @@ import FullNoteCalendar from "./calendars/FullNoteCalendar";
 import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
 import ICSCalendar from "./calendars/ICSCalendar";
 import CalDAVCalendar from "./calendars/CalDAVCalendar";
-import { debugLog } from "./debug";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
@@ -95,7 +94,7 @@ export default class FullCalendarPlugin extends Plugin {
         this.registerEvent(
             this.app.vault.on("rename", (file, oldPath) => {
                 if (file instanceof TFile) {
-                    debugLog("FILE RENAMED", file.path);
+                    console.debug("FILE RENAMED", file.path);
                     this.cache.deleteEventsAtPath(oldPath);
                 }
             })
@@ -104,7 +103,7 @@ export default class FullCalendarPlugin extends Plugin {
         this.registerEvent(
             this.app.vault.on("delete", (file) => {
                 if (file instanceof TFile) {
-                    debugLog("FILE DELETED", file.path);
+                    console.debug("FILE DELETED", file.path);
                     this.cache.deleteEventsAtPath(file.path);
                 }
             })

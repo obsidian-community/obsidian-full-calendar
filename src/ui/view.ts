@@ -14,7 +14,6 @@ import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
 import { isTask, toggleTask, unmakeTask } from "src/tasks";
 import { UpdateViewCallback } from "src/core/EventCache";
-import { debugLog } from "src/debug";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
@@ -294,11 +293,14 @@ export class CalendarView extends ItemView {
         this.callback = this.plugin.cache.on(
             "update",
             ({ toRemove, toAdd }) => {
-                debugLog("updating view from cache...", { toRemove, toAdd });
+                console.debug("updating view from cache...", {
+                    toRemove,
+                    toAdd,
+                });
                 toRemove.forEach((id) => {
                     const event = this.fullCalendarView?.getEventById(id);
                     if (event) {
-                        debugLog("removing event", event.toPlainObject());
+                        console.debug("removing event", event.toPlainObject());
                         event.remove();
                     } else {
                         console.warn(
@@ -307,13 +309,18 @@ export class CalendarView extends ItemView {
                     }
                 });
                 toAdd.forEach(({ id, event, calendarId }) => {
-                    debugLog("adding event", { id, event });
-                    this.fullCalendarView?.addEvent(
-                        {
-                            ...toEventInput(id, event),
-                        },
+                    const eventInput = toEventInput(id, event);
+                    console.debug("adding event", {
+                        id,
+                        event,
+                        eventInput,
+                        calendarId,
+                    });
+                    const addedEvent = this.fullCalendarView?.addEvent(
+                        eventInput!,
                         calendarId
                     );
+                    console.debug("event that was added", addedEvent);
                 });
             }
         );

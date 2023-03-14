@@ -6,7 +6,6 @@ import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
 import RemoteCalendar from "../calendars/RemoteCalendar";
-import { debugLog } from "src/debug";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
@@ -46,6 +45,10 @@ export const eventsAreDifferent = (
     const unmatchedEvents = oldEvents
         .map((e, i) => ({ oldEvent: e, newEvent: newEvents[i] }))
         .filter(({ oldEvent, newEvent }) => !equal(oldEvent, newEvent));
+
+    if (unmatchedEvents.length > 0) {
+        console.debug("unmached events when comparing", unmatchedEvents);
+    }
 
     return unmatchedEvents.length > 0;
 };
@@ -317,7 +320,7 @@ export default class EventCache {
         const { calendar, location: oldLocation } =
             this.getInfoForEditableEvent(eventId);
         const { path, lineNumber } = oldLocation;
-        debugLog("updating event with ID", eventId);
+        console.debug("updating event with ID", eventId);
 
         await calendar.modifyEvent(
             { path, lineNumber },
@@ -359,7 +362,7 @@ export default class EventCache {
             throw new Error("Event does not exist");
         }
         const newEvent = process(event);
-        debugLog("process", newEvent, process);
+        console.debug("process", newEvent, process);
         return this.updateEventWithId(id, newEvent);
     }
 
@@ -382,7 +385,7 @@ export default class EventCache {
      * @returns nothing
      */
     async fileUpdated(file: TFile): Promise<void> {
-        debugLog("fileUpdated() called for file", file.path);
+        console.debug("fileUpdated() called for file", file.path);
 
         // Get all calendars that contain events stored in this file.
         const calendars = [...this.calendars.values()].flatMap((c) =>
@@ -405,23 +408,30 @@ export default class EventCache {
             // TODO: Relying on calendars for file I/O means that we're potentially
             // reading the file from disk multiple times. Could be more effecient if
             // we break the abstraction layer here.
+            console.debug("get events in file", file.path);
             const newEvents = await calendar.getEventsInFile(file);
 
-            debugLog("comparing events", oldEvents, newEvents);
-
+            const oldEventsMapped = oldEvents.map(({ event }) => event);
+            const newEventsMapped = newEvents.map(([event, _]) => event);
+            console.debug("comparing events", file.path, oldEvents, newEvents);
             // TODO: It's possible events are not different, but the location has changed.
             const eventsHaveChanged = eventsAreDifferent(
-                oldEvents.map(({ event }) => event),
-                newEvents.map(([event, _]) => event)
+                oldEventsMapped,
+                newEventsMapped
             );
 
             // If no events have changed from what's in the cache, then there's no need to update the event store.
             if (!eventsHaveChanged) {
-                debugLog(
+                console.debug(
                     "events have not changed, do not update store or view."
                 );
                 return;
             }
+            console.debug(
+                "events have changed, updating store and views...",
+                oldEvents,
+                newEvents
+            );
 
             const newEventsWithIds = newEvents.map(([event, location]) => ({
                 event,
@@ -460,7 +470,6 @@ export default class EventCache {
             console.warn("Revalidation already in progress.");
             return;
         }
-        debugLog("debug log!", { hello: 1 });
         const now = Date.now();
 
         if (

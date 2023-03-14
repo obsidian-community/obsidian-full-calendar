@@ -9,7 +9,6 @@ import {
     getDateFromFile,
 } from "obsidian-daily-notes-interface";
 import { EventPathLocation } from "src/core/EventStore";
-import { debugLog } from "src/debug";
 import { ObsidianInterface } from "src/ObsidianAdapter";
 import {
     addToHeading,
@@ -144,7 +143,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
         newEvent: OFCEvent,
         updateCacheWithLocation: (loc: EventLocation) => void
     ): Promise<void> {
-        debugLog("modified daily note event");
+        console.debug("modified daily note event");
         if (newEvent.type !== "single") {
             throw new Error(
                 "Recurring events in daily notes are not supported."
@@ -165,7 +164,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
             );
         }
         if (newEvent.date !== oldDate) {
-            debugLog("daily note event moving to a new file.");
+            console.debug("daily note event moving to a new file.");
             // Event needs to be moved to a new file.
             // TODO: Factor this out with the createFile path.
             const m = moment(newEvent.date);
@@ -207,7 +206,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
                 return lines.join("\n");
             });
         } else {
-            debugLog("daily note event staying in same file.");
+            console.debug("daily note event staying in same file.");
             updateCacheWithLocation({ file, lineNumber });
             await this.app.rewrite(file, (contents) => {
                 const lines = contents.split("\n");

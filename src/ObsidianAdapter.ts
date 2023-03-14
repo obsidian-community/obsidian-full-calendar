@@ -164,7 +164,7 @@ export class ObsidianIO implements ObsidianInterface {
     }
 
     read(file: TFile): Promise<string> {
-        return this.vault.cachedRead(file);
+        return this.vault.read(file);
     }
 
     async process<T>(file: TFile, func: (text: string) => T): Promise<T> {
