@@ -80,8 +80,11 @@ export default class DailyNoteCalendar extends EditableCalendar {
     }
 
     async createEvent(event: OFCEvent): Promise<EventLocation> {
-        console.debug("creating daily note event", event);
-        if (event.type !== "single" || event.type !== undefined) {
+        if (event.type !== "single" && event.type !== undefined) {
+            console.debug(
+                "tried creating a recurring event in a daily note",
+                event
+            );
             throw new Error("Cannot create a recurring event in a daily note.");
         }
         const m = moment(event.date);
@@ -145,7 +148,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
         updateCacheWithLocation: (loc: EventLocation) => void
     ): Promise<void> {
         console.debug("modified daily note event");
-        if (newEvent.type !== "single") {
+        if (newEvent.type !== "single" && newEvent.type !== undefined) {
             throw new Error(
                 "Recurring events in daily notes are not supported."
             );
@@ -199,7 +202,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
                         item: newEvent,
                         headingText: this.heading,
                     });
-                    // Before any file I/O, call the beforeEventIsMoved callback to ensure
+                    // Before any file changes are committed, call the updateCacheWithLocation callback to ensure
                     // the cache is properly updated with the new location.
                     updateCacheWithLocation({ file: newFile, lineNumber });
                     return page;

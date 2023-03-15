@@ -31,7 +31,7 @@ export function launchCreateModal(
                     await plugin.cache.addEvent(calendarId, data);
                 } catch (e) {
                     if (e instanceof Error) {
-                        new Notice(e.message);
+                        new Notice("Error when creating event: " + e.message);
                         console.error(e);
                     }
                 }
@@ -70,14 +70,28 @@ export function launchEditModal(plugin: FullCalendarPlugin, eventId: string) {
                 if (calendarIndex !== calIdx) {
                     throw new Error("Cannot move event to a new calendar.");
                 }
-                await plugin.cache.updateEventWithId(eventId, data);
+                try {
+                    await plugin.cache.updateEventWithId(eventId, data);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        new Notice("Error when updating event: " + e.message);
+                        console.error(e);
+                    }
+                }
                 closeModal();
             },
             open: async () => {
                 openFileForEvent(plugin.cache, plugin.app, eventId);
             },
             deleteEvent: async () => {
-                await plugin.cache.deleteEvent(eventId);
+                try {
+                    await plugin.cache.deleteEvent(eventId);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        new Notice("Error when deleting event: " + e.message);
+                        console.error(e);
+                    }
+                }
             },
         })
     ).open();
