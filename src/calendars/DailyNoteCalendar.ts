@@ -80,7 +80,8 @@ export default class DailyNoteCalendar extends EditableCalendar {
     }
 
     async createEvent(event: OFCEvent): Promise<EventLocation> {
-        if (event.type !== "single") {
+        console.debug("creating daily note event", event);
+        if (event.type !== "single" || event.type !== undefined) {
             throw new Error("Cannot create a recurring event in a daily note.");
         }
         const m = moment(event.date);

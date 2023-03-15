@@ -1,3 +1,4 @@
+import { Notice } from "obsidian";
 import * as React from "react";
 import { EditableCalendar } from "src/calendars/EditableCalendar";
 import FullCalendarPlugin from "src/main";
@@ -26,7 +27,14 @@ export function launchCreateModal(
             defaultCalendarIndex: 0,
             submit: async (data, calendarIndex) => {
                 const calendarId = calendars[calendarIndex].id;
-                await plugin.cache.addEvent(calendarId, data);
+                try {
+                    await plugin.cache.addEvent(calendarId, data);
+                } catch (e) {
+                    if (e instanceof Error) {
+                        new Notice(e.message);
+                        console.error(e);
+                    }
+                }
                 closeModal();
             },
         })
