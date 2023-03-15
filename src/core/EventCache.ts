@@ -6,6 +6,7 @@ import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
 import RemoteCalendar from "../calendars/RemoteCalendar";
+import FullNoteCalendar from "src/calendars/FullNoteCalendar";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
@@ -364,6 +365,51 @@ export default class EventCache {
         const newEvent = process(event);
         console.debug("process", newEvent, process);
         return this.updateEventWithId(id, newEvent);
+    }
+
+    async moveEventToCalendar(
+        eventId: string,
+        newCalendarId: string
+    ): Promise<void> {
+        const event = this.store.getEventById(eventId);
+        const details = this.store.getEventDetails(eventId);
+        if (!details || !event) {
+            throw new Error(
+                `Tried moving unknown event ID ${eventId} to calendar ${newCalendarId}`
+            );
+        }
+        const { calendarId: oldCalendarId, location } = details;
+
+        const oldCalendar = this.calendars.get(oldCalendarId);
+        if (!oldCalendar) {
+            throw new Error(`Source calendar ${oldCalendarId} did not exist.`);
+        }
+        const newCalendar = this.calendars.get(newCalendarId);
+        if (!newCalendar) {
+            throw new Error(`Source calendar ${newCalendarId} does not exist.`);
+        }
+
+        // TODO: Support moving around events between all sorts of editable calendars.
+        if (
+            !(
+                oldCalendar instanceof FullNoteCalendar &&
+                newCalendar instanceof FullNoteCalendar &&
+                location
+            )
+        ) {
+            throw new Error(
+                `Both calendars must be Full Note Calendars to move events between them.`
+            );
+        }
+
+        const newLocation = await oldCalendar.move(location, newCalendar);
+        this.store.delete(eventId);
+        this.store.add({
+            calendar: newCalendar,
+            location: newLocation,
+            id: eventId,
+            event,
+        });
     }
 
     ///

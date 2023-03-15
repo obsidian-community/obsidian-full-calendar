@@ -66,11 +66,13 @@ export function launchEditModal(plugin: FullCalendarPlugin, eventId: string) {
             calendars,
             defaultCalendarIndex: calIdx,
             submit: async (data, calendarIndex) => {
-                // TODO: Move calendars if appropriate.
-                if (calendarIndex !== calIdx) {
-                    throw new Error("Cannot move event to a new calendar.");
-                }
                 try {
+                    if (calendarIndex !== calIdx) {
+                        await plugin.cache.moveEventToCalendar(
+                            eventId,
+                            calendars[calendarIndex].id
+                        );
+                    }
                     await plugin.cache.updateEventWithId(eventId, data);
                 } catch (e) {
                     if (e instanceof Error) {
