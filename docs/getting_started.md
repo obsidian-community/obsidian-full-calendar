@@ -17,3 +17,7 @@ Either click on the ribbon icon, or run the "Full Calendar: Open Calendar" comma
 You can also open the calendar in the sidebar with the "Open in sidebar" command.
 
 ![Sidebar calendar](assets/sidebar.gif)
+
+## Troubleshooting
+
+If something is not working as expected, you should first try to clear the cache with the command `Full Calendar: Reset Event Cache`. If that didn't fix your problem, then feel free to [submit an issue on GitHub](https://github.com/davish/obsidian-full-calendar/issues).

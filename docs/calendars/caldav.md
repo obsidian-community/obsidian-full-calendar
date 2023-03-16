@@ -2,6 +2,8 @@
 
 You can add any calendar that supports CalDAV over HTTPS basic authentication with a few providers already confirmed to work.
 
+Calendars are automatically re-fetched from their source at most every five minutes. If you would like to revalidate remote calendars directly, you can run the command `Full Calendar: Revalidate remote calendars`.
+
 ## Apple Calendar
 
 In order to use your [iCloud Calendar](https://www.icloud.com/calendar), you'll first need to create an [app-specific password](https://support.apple.com/en-us/HT204397). Armed with that info, you can now add your private Apple Calendars.
@@ -43,7 +45,6 @@ Under `CalDAV URL`, you can copy the URL but make sure you **only** copy up to t
 ### Flythrough
 
 ![](../assets/sync-setup-fastmail.gif)
-
 
 ## Non-working providers
 

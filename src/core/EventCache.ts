@@ -572,6 +572,7 @@ export default class EventCache {
         Promise.allSettled(promises).then((results) => {
             this.revalidating = false;
             this.lastRevalidation = Date.now();
+            new Notice("All remote calendars have been fetched.");
             const errors = results.flatMap((result) =>
                 result.status === "rejected" ? result.reason : []
             );
