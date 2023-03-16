@@ -57,3 +57,11 @@ export function parseYaml(yaml: string): Record<string, string> | null {
     }
     return Object.fromEntries([[k.trim(), v.join(":").trim()]]);
 }
+
+export class Notice {
+    static notices: string[] = [];
+
+    constructor(message: string) {
+        Notice.notices.push(message);
+    }
+}
