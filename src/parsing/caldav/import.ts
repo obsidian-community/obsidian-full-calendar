@@ -1,5 +1,6 @@
 import Color from "color";
-import dav, { transport } from "dav";
+import dav from "dav";
+import * as transport from "./transport";
 import { Authentication, CalDAVSource } from "src/types";
 
 export async function importCalendars(

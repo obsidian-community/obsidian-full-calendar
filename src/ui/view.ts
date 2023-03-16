@@ -348,7 +348,6 @@ export class CalendarView extends ItemView {
     }
 
     async onunload() {
-        console.log("closing time");
         if (this.fullCalendarView) {
             this.fullCalendarView.destroy();
             this.fullCalendarView = null;

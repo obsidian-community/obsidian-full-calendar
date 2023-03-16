@@ -7,13 +7,8 @@ import {
     Setting,
     TFile,
     TFolder,
-    Vault,
 } from "obsidian";
-import {
-    makeDefaultPartialCalendarSource,
-    CalendarInfo,
-    FCError,
-} from "../types";
+import { makeDefaultPartialCalendarSource, CalendarInfo } from "../types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
 import * as ReactDOM from "react-dom";

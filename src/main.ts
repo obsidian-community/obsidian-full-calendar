@@ -151,6 +151,15 @@ export default class FullCalendarPlugin extends Plugin {
                 new Notice("Full Calendar has been reset.");
             },
         });
+
+        this.addCommand({
+            id: "full-calendar-revalidate",
+            name: "Revalidate remote calendars",
+            callback: () => {
+                this.cache.revalidateRemoteCalendars(true);
+            },
+        });
+
         this.addCommand({
             id: "full-calendar-open",
             name: "Open Calendar",

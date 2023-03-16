@@ -532,9 +532,10 @@ export default class EventCache {
         const now = Date.now();
 
         if (
-            force ||
+            !force &&
             now - this.lastRevalidation < MILLICONDS_BETWEEN_REVALIDATIONS
         ) {
+            console.debug("Last revalidation was too soon.");
             return;
         }
 
