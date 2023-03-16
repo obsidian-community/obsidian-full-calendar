@@ -161,8 +161,9 @@ export default class FullNoteCalendar extends EditableCalendar {
 
     async move(
         fromLocation: EventPathLocation,
-        toCalendar: EditableCalendar
-    ): Promise<EventLocation> {
+        toCalendar: EditableCalendar,
+        updateCacheWithLocation: (loc: EventLocation) => void
+    ): Promise<void> {
         const { path, lineNumber } = fromLocation;
         if (lineNumber !== undefined) {
             throw new Error("Note calendar cannot handle inline events.");
@@ -178,13 +179,11 @@ export default class FullNoteCalendar extends EditableCalendar {
         }
         const destDir = toCalendar.directory;
         const newPath = `${destDir}/${file.name}`;
+        updateCacheWithLocation({
+            file: { path: newPath },
+            lineNumber: undefined,
+        });
         await this.app.rename(file, newPath);
-        // TODO: Test to see if a file reference is still valid after a rename.
-        const newFile = this.app.getAbstractFileByPath(newPath);
-        if (!newFile || !(newFile instanceof TFile)) {
-            throw new Error("File cannot be found after rename.");
-        }
-        return { file: newFile, lineNumber: undefined };
     }
 
     deleteEvent({ path, lineNumber }: EventPathLocation): Promise<void> {

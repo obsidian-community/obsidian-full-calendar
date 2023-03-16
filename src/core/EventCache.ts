@@ -402,13 +402,14 @@ export default class EventCache {
             );
         }
 
-        const newLocation = await oldCalendar.move(location, newCalendar);
-        this.store.delete(eventId);
-        this.store.add({
-            calendar: newCalendar,
-            location: newLocation,
-            id: eventId,
-            event,
+        await oldCalendar.move(location, newCalendar, (newLocation) => {
+            this.store.delete(eventId);
+            this.store.add({
+                calendar: newCalendar,
+                location: newLocation,
+                id: eventId,
+                event,
+            });
         });
     }
 
