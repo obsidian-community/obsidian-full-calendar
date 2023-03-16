@@ -11,7 +11,7 @@
         "fix-lint": "prettier --write 'src/**/*.ts*'",
         "compile": "tsc -noEmit --skipLibCheck",
         "prepare": "husky install",
-        "test": "jest --ci",
+        "test": "jest --ci --silent=true",
         "test-dev": "jest --watch",
         "coverage": "jest --coverage"
     },

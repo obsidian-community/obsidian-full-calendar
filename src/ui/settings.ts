@@ -25,7 +25,6 @@ import { importCalendars } from "src/parsing/caldav/import";
 export interface FullCalendarSettings {
     calendarSources: CalendarInfo[];
     defaultCalendar: number;
-    recursiveLocal: boolean;
     firstDay: number;
     initialView: {
         desktop: string;
@@ -37,7 +36,6 @@ export interface FullCalendarSettings {
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
     calendarSources: [],
     defaultCalendar: 0,
-    recursiveLocal: false,
     firstDay: 0,
     initialView: {
         desktop: "timeGridWeek",
@@ -241,17 +239,6 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 });
             });
 
-        containerEl.createEl("h2", { text: "Events settings" });
-        new Setting(containerEl)
-            .setName("Recursive event folders")
-            .setDesc("Search through sub-folders for events")
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.recursiveLocal);
-                toggle.onChange(async (val) => {
-                    this.plugin.settings.recursiveLocal = val;
-                    await this.plugin.saveSettings();
-                });
-            });
         containerEl.createEl("h2", { text: "Manage Calendars" });
         addCalendarButton(
             this.app,

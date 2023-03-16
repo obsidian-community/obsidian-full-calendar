@@ -115,7 +115,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
         const res = await calendar.getEvents();
         expect(res.length).toBe(inputs.length);
         const events = res.map((e) => e[0]);
@@ -153,7 +153,7 @@ describe("Note Calendar Tests", () => {
 
     it("creates an event", async () => {
         const obsidian = makeApp(MockAppBuilder.make().done());
-        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
         const event: OFCEvent = {
             title: "Test Event",
             date: "2022-01-01",
@@ -198,7 +198,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
         await assertFailed(() => calendar.createEvent(event), /already exists/);
     });
 
@@ -220,7 +220,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new FullNoteCalendar(obsidian, color, dirName, false);
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
 
         const firstFile = obsidian.getAbstractFileByPath(
             join("events", filename)

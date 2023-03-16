@@ -28,8 +28,7 @@ export default class FullCalendarPlugin extends Plugin {
                 ? new FullNoteCalendar(
                       new ObsidianIO(this.app),
                       info.color,
-                      info.directory,
-                      this.settings.recursiveLocal
+                      info.directory
                   )
                 : null,
         dailynote: (info) =>

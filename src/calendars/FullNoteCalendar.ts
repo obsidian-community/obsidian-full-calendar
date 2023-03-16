@@ -26,18 +26,11 @@ const filenameForEvent = (event: OFCEvent) => `${basenameFromEvent(event)}.md`;
 export default class FullNoteCalendar extends EditableCalendar {
     app: ObsidianInterface;
     private _directory: string;
-    private isRecursive: boolean;
 
-    constructor(
-        app: ObsidianInterface,
-        color: string,
-        directory: string,
-        isRecursive: boolean
-    ) {
+    constructor(app: ObsidianInterface, color: string, directory: string) {
         super(color);
         this.app = app;
         this._directory = directory;
-        this.isRecursive = isRecursive;
     }
     get directory(): string {
         return this._directory;
@@ -96,9 +89,6 @@ export default class FullNoteCalendar extends EditableCalendar {
         for (const file of eventFolder.children) {
             if (file instanceof TFile) {
                 const results = await this.getEventsInFile(file);
-                events.push(...results);
-            } else if (file instanceof TFolder && this.isRecursive) {
-                const results = await this.getEventsInFolderRecursive(file);
                 events.push(...results);
             }
         }
@@ -195,13 +185,5 @@ export default class FullNoteCalendar extends EditableCalendar {
             throw new Error(`File ${path} not found.`);
         }
         return this.app.delete(file);
-    }
-
-    async upgradeNote(file: TFile, event: OFCEvent) {
-        await this.app.rewrite(file, (page) =>
-            modifyFrontmatterString(page, event)
-        );
-        const newPath = `${this.directory}/${file.name}`;
-        await this.app.rename(file, newPath);
     }
 }
