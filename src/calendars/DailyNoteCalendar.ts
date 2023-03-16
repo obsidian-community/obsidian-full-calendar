@@ -168,8 +168,8 @@ export default class DailyNoteCalendar extends EditableCalendar {
             );
         }
         if (newEvent.date !== oldDate) {
-            console.debug("daily note event moving to a new file.");
             // Event needs to be moved to a new file.
+            console.debug("daily note event moving to a new file.");
             // TODO: Factor this out with the createFile path.
             const m = moment(newEvent.date);
             let newFile = getDailyNote(m, getAllDailyNotes()) as TFile;

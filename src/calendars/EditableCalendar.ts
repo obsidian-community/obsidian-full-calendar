@@ -48,9 +48,6 @@ export abstract class EditableCalendar extends Calendar {
      */
     abstract deleteEvent(location: EventPathLocation): Promise<void>;
 
-    // TODO: Document how to call updateLocation() before doing any IO to ensure we don't
-    // end up with duplicate events.
-
     /**
      * Modify an event on disk.
      *

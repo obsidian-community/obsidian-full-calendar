@@ -118,7 +118,6 @@ export class CalendarView extends ItemView {
 
         const sources: EventSourceInput[] = this.translateSources();
 
-        // TODO: Add calendars that don't have any events to FC.
         if (this.fullCalendarView) {
             this.fullCalendarView.destroy();
             this.fullCalendarView = null;

@@ -46,7 +46,7 @@ export async function importCalendars(
                 name: c.name,
                 url,
                 homeUrl: c.url,
-                color: c.color || (null as any), // TODO: handle null colors.
+                color: c.color || (null as any), // TODO: handle null colors in the type system.
                 username: auth.username,
                 password: auth.password,
             }));

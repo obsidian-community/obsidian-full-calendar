@@ -125,7 +125,6 @@ type FileObj = { path: string };
  * by calendar and file. You can look up events by what calendar they belong to, as
  * well as what file their source lives in.
  */
-// TODO: Add a position index, just stored as a line number for now. This will be one-to-one.
 export default class EventStore {
     private store: Map<string, OFCEvent> = new Map();
 
