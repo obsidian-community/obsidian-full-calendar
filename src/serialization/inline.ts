@@ -188,34 +188,27 @@ const makeListItem = (
     } ${title} ${generateInlineAttributes(attrs)}`;
 };
 
-type ModifyListItemProps = {
-    lineNumber: number;
-    data: SingleEventData;
-};
 export const modifyListItem = (
-    page: string,
-    { lineNumber, data }: ModifyListItemProps
+    line: string,
+    data: SingleEventData
 ): string | null => {
-    let lines = page.split("\n");
-    let line = lines[lineNumber];
-
     const listMatch = line.match(listRegex);
     if (!listMatch) {
         console.warn(
             "Tried modifying a list item with a position that wasn't a list item",
-            { lineNumber, line }
+            { line }
         );
         return null;
     }
 
-    lines[lineNumber] = makeListItem(data, listMatch[1]);
-    return lines.join("\n");
+    return makeListItem(data, listMatch[1]);
 };
 
 /**
  * Add a list item to a given heading.
  * If the heading is undefined, then append the heading to the end of the file.
  */
+// TODO: refactor this to not do the weird props thing
 type AddToHeadingProps = {
     heading: HeadingCache | undefined;
     item: SingleEventData;
@@ -224,17 +217,18 @@ type AddToHeadingProps = {
 export const addToHeading = (
     page: string,
     { heading, item, headingText }: AddToHeadingProps
-): string => {
+): { page: string; lineNumber: number } => {
     let lines = page.split("\n");
 
     const listItem = makeListItem(item);
     if (heading) {
         const headingLine = heading.position.start.line;
-        lines.splice(headingLine + 1, 0, listItem);
+        const lineNumber = headingLine + 1;
+        lines.splice(lineNumber, 0, listItem);
+        return { page: lines.join("\n"), lineNumber };
     } else {
         lines.push(`## ${headingText}`);
         lines.push(listItem);
+        return { page: lines.join("\n"), lineNumber: lines.length - 1 };
     }
-
-    return lines.join("\n");
 };

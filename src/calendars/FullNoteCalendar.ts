@@ -1,16 +1,12 @@
 import { TFile, TFolder } from "obsidian";
+import { rrulestr } from "rrule";
 import { EventPathLocation } from "../core/EventStore";
 import { ObsidianInterface } from "../ObsidianAdapter";
 import {
     modifyFrontmatterString,
     newFrontmatter,
 } from "../serialization/frontmatter";
-import {
-    OFCEvent,
-    EventLocation,
-    LocalCalendarSource,
-    validateEvent,
-} from "../types";
+import { OFCEvent, EventLocation, validateEvent } from "../types";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
 const basenameFromEvent = (event: OFCEvent): string => {
@@ -20,43 +16,41 @@ const basenameFromEvent = (event: OFCEvent): string => {
             return `${event.date} ${event.title}`;
         case "recurring":
             return `(Every ${event.daysOfWeek.join(",")}) ${event.title}`;
+        case "rrule":
+            return `(${rrulestr(event.rrule).toText()}) ${event.title}`;
     }
 };
 
 const filenameForEvent = (event: OFCEvent) => `${basenameFromEvent(event)}.md`;
 
-export default class NoteCalendar extends EditableCalendar {
+export default class FullNoteCalendar extends EditableCalendar {
     app: ObsidianInterface;
     private _directory: string;
-    private isRecursive: boolean;
-    private systemTrash: boolean;
 
-    constructor(
-        app: ObsidianInterface,
-        color: string,
-        directory: string,
-        isRecursive: boolean,
-        systemTrash: boolean
-    ) {
+    constructor(app: ObsidianInterface, color: string, directory: string) {
         super(color);
         this.app = app;
         this._directory = directory;
-        this.isRecursive = isRecursive;
-        this.systemTrash = systemTrash;
     }
     get directory(): string {
         return this._directory;
     }
 
-    get type(): string {
-        return "NOTE";
+    get type(): "local" {
+        return "local";
     }
-    get id(): string {
+
+    get identifier(): string {
+        return this.directory;
+    }
+
+    get name(): string {
         return this.directory;
     }
 
     async getEventsInFile(file: TFile): Promise<EditableEventResponse[]> {
-        let event = validateEvent(this.app.getMetadata(file)?.frontmatter);
+        const metadata = this.app.getMetadata(file);
+        let event = validateEvent(metadata?.frontmatter);
         if (!event) {
             return [];
         }
@@ -96,9 +90,6 @@ export default class NoteCalendar extends EditableCalendar {
             if (file instanceof TFile) {
                 const results = await this.getEventsInFile(file);
                 events.push(...results);
-            } else if (file instanceof TFolder && this.isRecursive) {
-                const results = await this.getEventsInFolderRecursive(file);
-                events.push(...results);
             }
         }
         return events;
@@ -113,10 +104,10 @@ export default class NoteCalendar extends EditableCalendar {
         return { file, lineNumber: undefined };
     }
 
-    async modifyEvent(
+    getNewLocation(
         location: EventPathLocation,
         event: OFCEvent
-    ): Promise<EventLocation> {
+    ): EventLocation {
         const { path, lineNumber } = location;
         if (lineNumber !== undefined) {
             throw new Error("Note calendar cannot handle inline events.");
@@ -128,31 +119,46 @@ export default class NoteCalendar extends EditableCalendar {
             );
         }
 
+        const updatedPath = `${file.parent.path}/${filenameForEvent(event)}`;
+        return { file: { path: updatedPath }, lineNumber: undefined };
+    }
+
+    async modifyEvent(
+        location: EventPathLocation,
+        event: OFCEvent,
+        updateCacheWithLocation: (loc: EventLocation) => void
+    ): Promise<void> {
+        const { path } = location;
+        const file = this.app.getFileByPath(path);
+        if (!file) {
+            throw new Error(
+                `File ${path} either doesn't exist or is a folder.`
+            );
+        }
+        const newLocation = this.getNewLocation(location, event);
+
+        updateCacheWithLocation(newLocation);
+
+        if (file.path !== newLocation.file.path) {
+            await this.app.rename(file, newLocation.file.path);
+        }
         await this.app.rewrite(file, (page) =>
             modifyFrontmatterString(page, event)
         );
-        const updatedPath = `${file.parent.path}/${filenameForEvent(event)}`;
-        if (file.path !== updatedPath) {
-            const newPath = updatedPath;
-            await this.app.rename(file, newPath);
-        }
-        // TODO: Test to see if a file reference is still valid after a rename.
-        const newFile = this.app.getAbstractFileByPath(updatedPath);
-        if (!newFile || !(newFile instanceof TFile)) {
-            throw new Error("File cannot be found after rename.");
-        }
-        return { file: newFile, lineNumber: undefined };
+
+        return;
     }
 
     async move(
         fromLocation: EventPathLocation,
-        toCalendar: EditableCalendar
-    ): Promise<EventLocation> {
+        toCalendar: EditableCalendar,
+        updateCacheWithLocation: (loc: EventLocation) => void
+    ): Promise<void> {
         const { path, lineNumber } = fromLocation;
         if (lineNumber !== undefined) {
             throw new Error("Note calendar cannot handle inline events.");
         }
-        if (!(toCalendar instanceof NoteCalendar)) {
+        if (!(toCalendar instanceof FullNoteCalendar)) {
             throw new Error(
                 `Event cannot be moved to a note calendar from a calendar of type ${toCalendar.type}.`
             );
@@ -163,13 +169,11 @@ export default class NoteCalendar extends EditableCalendar {
         }
         const destDir = toCalendar.directory;
         const newPath = `${destDir}/${file.name}`;
+        updateCacheWithLocation({
+            file: { path: newPath },
+            lineNumber: undefined,
+        });
         await this.app.rename(file, newPath);
-        // TODO: Test to see if a file reference is still valid after a rename.
-        const newFile = this.app.getAbstractFileByPath(newPath);
-        if (!newFile || !(newFile instanceof TFile)) {
-            throw new Error("File cannot be found after rename.");
-        }
-        return { file: newFile, lineNumber: undefined };
     }
 
     deleteEvent({ path, lineNumber }: EventPathLocation): Promise<void> {
@@ -180,14 +184,6 @@ export default class NoteCalendar extends EditableCalendar {
         if (!file) {
             throw new Error(`File ${path} not found.`);
         }
-        return this.app.delete(file, this.systemTrash);
-    }
-
-    async upgradeNote(file: TFile, event: OFCEvent) {
-        await this.app.rewrite(file, (page) =>
-            modifyFrontmatterString(page, event)
-        );
-        const newPath = `${this.directory}/${file.name}`;
-        await this.app.rename(file, newPath);
+        return this.app.delete(file);
     }
 }

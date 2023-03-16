@@ -11,7 +11,7 @@
         "fix-lint": "prettier --write 'src/**/*.ts*'",
         "compile": "tsc -noEmit --skipLibCheck",
         "prepare": "husky install",
-        "test": "jest --ci",
+        "test": "jest --ci --silent=true",
         "test-dev": "jest --watch",
         "coverage": "jest --coverage"
     },
@@ -50,16 +50,20 @@
         "@fullcalendar/icalendar": "^5.10.1",
         "@fullcalendar/interaction": "^5.10.1",
         "@fullcalendar/list": "^5.10.1",
+        "@fullcalendar/rrule": "^5.11.2",
         "@fullcalendar/timegrid": "^5.10.1",
         "@types/deep-equal": "^1.0.1",
+        "@types/ical": "^0.8.0",
         "color": "^4.2.1",
         "dav": "^1.8.0",
         "deep-equal": "^2.1.0",
-        "ical.js": "^1.4.0",
+        "ical": "^0.8.0",
+        "ical.js": "^1.5.0",
         "luxon": "^2.3.0",
         "moment": "^2.29.4",
         "obsidian-daily-notes-interface": "^0.9.4",
         "react": "^17.0.2",
-        "react-dom": "^17.0.2"
+        "react-dom": "^17.0.2",
+        "rrule": "^2.7.2"
     }
 }

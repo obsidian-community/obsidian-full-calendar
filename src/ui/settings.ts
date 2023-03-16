@@ -7,25 +7,19 @@ import {
     Setting,
     TFile,
     TFolder,
-    Vault,
 } from "obsidian";
-import {
-    makeDefaultPartialCalendarSource,
-    CalendarInfo,
-    FCError,
-} from "../types";
+import { makeDefaultPartialCalendarSource, CalendarInfo } from "../types";
 import { CalendarSettings } from "./components/CalendarSetting";
 import { AddCalendarSource } from "./components/AddCalendarSource";
-import { RemoteSource } from "../models/RemoteSource";
 import * as ReactDOM from "react-dom";
 import { createElement } from "react";
-import { ReactModal } from "./modal";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import ReactModal from "./ReactModal";
+import { importCalendars } from "src/parsing/caldav/import";
 
 export interface FullCalendarSettings {
     calendarSources: CalendarInfo[];
     defaultCalendar: number;
-    recursiveLocal: boolean;
     firstDay: number;
     initialView: {
         desktop: string;
@@ -37,7 +31,6 @@ export interface FullCalendarSettings {
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
     calendarSources: [],
     defaultCalendar: 0,
-    recursiveLocal: false,
     firstDay: 0,
     initialView: {
         desktop: "timeGridWeek",
@@ -142,15 +135,22 @@ export function addCalendarButton(
                                 source.type === "caldav" ||
                                 source.type === "icloud"
                             ) {
-                                let sources = await new RemoteSource(
-                                    source
-                                ).importCalendars();
-                                if (sources instanceof FCError) {
-                                    new Notice(sources.message);
-                                } else {
+                                try {
+                                    let sources = await importCalendars(
+                                        {
+                                            type: "basic",
+                                            username: source.username,
+                                            password: source.password,
+                                        },
+                                        source.url
+                                    );
                                     sources.forEach((source) =>
                                         submitCallback(source)
                                     );
+                                } catch (e) {
+                                    if (e instanceof Error) {
+                                        new Notice(e.message);
+                                    }
                                 }
                             } else {
                                 submitCallback(source);
@@ -234,17 +234,6 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 });
             });
 
-        containerEl.createEl("h2", { text: "Events settings" });
-        new Setting(containerEl)
-            .setName("Recursive event folders")
-            .setDesc("Search through sub-folders for events")
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.recursiveLocal);
-                toggle.onChange(async (val) => {
-                    this.plugin.settings.recursiveLocal = val;
-                    await this.plugin.saveSettings();
-                });
-            });
         containerEl.createEl("h2", { text: "Manage Calendars" });
         addCalendarButton(
             this.app,

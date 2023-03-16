@@ -1,11 +1,10 @@
-import { MarkdownView, Plugin } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
 import {
     CalendarView,
     FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
     FULL_CALENDAR_VIEW_TYPE,
 } from "./ui/view";
 import { renderCalendar } from "./ui/calendar";
-
 import { toEventInput } from "./interop";
 import {
     DEFAULT_SETTINGS,
@@ -13,10 +12,53 @@ import {
     FullCalendarSettingTab,
 } from "./ui/settings";
 import { PLUGIN_SLUG } from "./types";
-import { EventModal } from "./ui/modal";
+import EventCache from "./core/EventCache";
+import { ObsidianIO } from "./ObsidianAdapter";
+import { launchCreateModal } from "./ui/event_modal";
+import FullNoteCalendar from "./calendars/FullNoteCalendar";
+import DailyNoteCalendar from "./calendars/DailyNoteCalendar";
+import ICSCalendar from "./calendars/ICSCalendar";
+import CalDAVCalendar from "./calendars/CalDAVCalendar";
 
 export default class FullCalendarPlugin extends Plugin {
     settings: FullCalendarSettings = DEFAULT_SETTINGS;
+    cache: EventCache = new EventCache({
+        local: (info) =>
+            info.type === "local"
+                ? new FullNoteCalendar(
+                      new ObsidianIO(this.app),
+                      info.color,
+                      info.directory
+                  )
+                : null,
+        dailynote: (info) =>
+            info.type === "dailynote"
+                ? new DailyNoteCalendar(
+                      new ObsidianIO(this.app),
+                      info.color,
+                      info.heading
+                  )
+                : null,
+        ical: (info) =>
+            info.type === "ical" ? new ICSCalendar(info.color, info.url) : null,
+        gcal: () => null,
+        caldav: (info) =>
+            info.type === "caldav"
+                ? new CalDAVCalendar(
+                      info.color,
+                      info.name,
+                      {
+                          type: "basic",
+                          username: info.username,
+                          password: info.password,
+                      },
+                      info.url,
+                      info.homeUrl
+                  )
+                : null,
+        icloud: () => null,
+        FOR_TEST_ONLY: () => null,
+    });
 
     renderCalendar = renderCalendar;
     processFrontmatter = toEventInput;
@@ -33,14 +75,41 @@ export default class FullCalendarPlugin extends Plugin {
             });
         } else {
             await Promise.all(
-                leaves.map((l) =>
-                    this.app.workspace.setActiveLeaf(l, { focus: true })
-                )
+                leaves.map((l) => (l.view as CalendarView).onOpen())
             );
         }
     }
     async onload() {
         await this.loadSettings();
+
+        this.cache.reset(this.settings.calendarSources);
+
+        this.registerEvent(
+            this.app.metadataCache.on("changed", (file) => {
+                this.cache.fileUpdated(file);
+            })
+        );
+
+        this.registerEvent(
+            this.app.vault.on("rename", (file, oldPath) => {
+                if (file instanceof TFile) {
+                    console.debug("FILE RENAMED", file.path);
+                    this.cache.deleteEventsAtPath(oldPath);
+                }
+            })
+        );
+
+        this.registerEvent(
+            this.app.vault.on("delete", (file) => {
+                if (file instanceof TFile) {
+                    console.debug("FILE DELETED", file.path);
+                    this.cache.deleteEventsAtPath(file.path);
+                }
+            })
+        );
+
+        // @ts-ignore
+        window.cache = this.cache;
 
         this.registerView(
             FULL_CALENDAR_VIEW_TYPE,
@@ -66,9 +135,31 @@ export default class FullCalendarPlugin extends Plugin {
             id: "full-calendar-new-event",
             name: "New Event",
             callback: () => {
-                new EventModal(this.app, this, null).open();
+                launchCreateModal(this, {});
             },
         });
+
+        this.addCommand({
+            id: "full-calendar-reset",
+            name: "Reset Event Cache",
+            callback: () => {
+                this.cache.reset(this.settings.calendarSources);
+                this.app.workspace.detachLeavesOfType(FULL_CALENDAR_VIEW_TYPE);
+                this.app.workspace.detachLeavesOfType(
+                    FULL_CALENDAR_SIDEBAR_VIEW_TYPE
+                );
+                new Notice("Full Calendar has been reset.");
+            },
+        });
+
+        this.addCommand({
+            id: "full-calendar-revalidate",
+            name: "Revalidate remote calendars",
+            callback: () => {
+                this.cache.revalidateRemoteCalendars(true);
+            },
+        });
+
         this.addCommand({
             id: "full-calendar-open",
             name: "Open Calendar",
@@ -94,19 +185,6 @@ export default class FullCalendarPlugin extends Plugin {
             },
         });
 
-        this.addCommand({
-            id: "full-calendar-upgrade-note",
-            name: "Upgrade note to event",
-            callback: () => {
-                const view =
-                    this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (view) {
-                    const file = view.file;
-                    new EventModal(this.app, this, null).editInModal(file);
-                }
-            },
-        });
-
         (this.app.workspace as any).registerHoverLinkSource(PLUGIN_SLUG, {
             display: "Full Calendar",
             defaultMod: true,
@@ -127,6 +205,10 @@ export default class FullCalendarPlugin extends Plugin {
     }
 
     async saveSettings() {
+        new Notice("Resetting the event cache with new settings...");
         await this.saveData(this.settings);
+        this.cache.reset(this.settings.calendarSources);
+        await this.cache.populate();
+        this.cache.resync();
     }
 }

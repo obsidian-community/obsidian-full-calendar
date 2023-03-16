@@ -38,6 +38,8 @@ export interface ObsidianInterface {
      */
     read(file: TFile): Promise<string>;
 
+    process<T>(file: TFile, func: (text: string) => T): Promise<T>;
+
     /**
      * Create a new file at the given path with the given contents.
      *
@@ -57,6 +59,24 @@ export interface ObsidianInterface {
         file: TFile,
         rewriteFunc: (contents: string) => string
     ): Promise<void>;
+    rewrite(
+        file: TFile,
+        rewriteFunc: (contents: string) => Promise<string>
+    ): Promise<void>;
+    /**
+     * Rewrite the given file and return some auxilliary info to the caller.
+     *
+     * @param file file to rewrite
+     * @param rewriteFunc callback function that performs the rewrite.
+     */
+    rewrite<T>(
+        file: TFile,
+        rewriteFunc: (contents: string) => [string, T]
+    ): Promise<T>;
+    rewrite<T>(
+        file: TFile,
+        rewriteFunc: (contents: string) => Promise<[string, T]>
+    ): Promise<T>;
 
     /**
      * Rename a file.
@@ -70,7 +90,7 @@ export interface ObsidianInterface {
      * @param file file to delete
      * @param system set to true to send to system trash, otherwise Vault trash.
      */
-    delete(file: TFile, system: boolean): Promise<void>;
+    delete(file: TFile): Promise<void>;
 }
 
 /**
@@ -81,28 +101,43 @@ export class ObsidianIO implements ObsidianInterface {
     vault: Vault;
     metadataCache: MetadataCache;
     fileManager: FileManager;
+    systemTrash: boolean;
 
-    constructor(app: App) {
+    constructor(app: App, systemTrash: boolean = true) {
         this.vault = app.vault;
         this.metadataCache = app.metadataCache;
         this.fileManager = app.fileManager;
+        this.systemTrash = systemTrash;
     }
 
-    delete(file: TFile, system: boolean): Promise<void> {
-        return this.vault.trash(file, system);
+    delete(file: TFile): Promise<void> {
+        return this.vault.trash(file, this.systemTrash);
     }
 
     rename(file: TFile, newPath: string): Promise<void> {
         return this.fileManager.renameFile(file, newPath);
     }
 
-    async rewrite(
+    async rewrite<T>(
         file: TFile,
-        rewriteFunc: (contents: string) => string
-    ): Promise<void> {
+        rewriteFunc: (
+            contents: string
+        ) => string | [string, T] | Promise<string> | Promise<[string, T]>
+    ): Promise<T | void> {
         const page = await this.vault.read(file);
-        const newPage = rewriteFunc(page);
-        await this.vault.modify(file, newPage);
+        let result = rewriteFunc(page);
+
+        if (result instanceof Promise) {
+            result = await result;
+        }
+
+        if (Array.isArray(result)) {
+            await this.vault.modify(file, result[0]);
+            return result[1];
+        } else {
+            await this.vault.modify(file, result);
+            return;
+        }
     }
 
     create(path: string, contents: string): Promise<TFile> {
@@ -130,5 +165,9 @@ export class ObsidianIO implements ObsidianInterface {
 
     read(file: TFile): Promise<string> {
         return this.vault.cachedRead(file);
+    }
+
+    async process<T>(file: TFile, func: (text: string) => T): Promise<T> {
+        return func(await this.read(file));
     }
 }

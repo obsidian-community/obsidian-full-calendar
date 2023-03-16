@@ -2,10 +2,10 @@ import { join } from "path";
 import { TFile } from "obsidian";
 
 import { ObsidianInterface } from "src/ObsidianAdapter";
-import { MockApp, MockAppBuilder } from "../helpers/AppBuilder";
-import { FileBuilder } from "../helpers/FileBuilder";
+import { MockApp, MockAppBuilder } from "../../test_helpers/AppBuilder";
+import { FileBuilder } from "../../test_helpers/FileBuilder";
 import { OFCEvent } from "src/types";
-import NoteCalendar from "./NoteCalendar";
+import FullNoteCalendar from "./FullNoteCalendar";
 
 async function assertFailed(func: () => Promise<any>, message: RegExp) {
     try {
@@ -36,6 +36,7 @@ const makeApp = (app: MockApp): ObsidianInterface => ({
     rewrite: jest.fn(),
     rename: jest.fn(),
     delete: jest.fn(),
+    process: jest.fn(),
 });
 
 const dirName = "events";
@@ -114,13 +115,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new NoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
         const res = await calendar.getEvents();
         expect(res.length).toBe(inputs.length);
         const events = res.map((e) => e[0]);
@@ -130,12 +125,25 @@ describe("Note Calendar Tests", () => {
             res.every((elt) => elt[1].lineNumber === undefined)
         ).toBeTruthy();
 
-        for (const { event, title } of inputs) {
+        for (const { event, title } of inputs.map((i) => ({
+            title: i.title,
+            event: {
+                ...i.event,
+                completed: undefined,
+                type: "single",
+            },
+        }))) {
             expect(events).toContainEqual(event);
             expect(paths).toContainEqual(`${dirName}/${title}`);
         }
 
-        for (const [event, { file }] of res) {
+        for (const [
+            event,
+            {
+                file: { path },
+            },
+        ] of res) {
+            const file = obsidian.getFileByPath(path)!;
             const eventsFromFile = await calendar.getEventsInFile(file);
             expect(eventsFromFile.length).toBe(1);
             expect(eventsFromFile[0][0]).toEqual(event);
@@ -145,13 +153,7 @@ describe("Note Calendar Tests", () => {
 
     it("creates an event", async () => {
         const obsidian = makeApp(MockAppBuilder.make().done());
-        const calendar = new NoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
         const event: OFCEvent = {
             title: "Test Event",
             date: "2022-01-01",
@@ -196,13 +198,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new NoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
         await assertFailed(() => calendar.createEvent(event), /already exists/);
     });
 
@@ -224,13 +220,7 @@ describe("Note Calendar Tests", () => {
                 )
                 .done()
         );
-        const calendar = new NoteCalendar(
-            obsidian,
-            color,
-            dirName,
-            false,
-            true
-        );
+        const calendar = new FullNoteCalendar(obsidian, color, dirName);
 
         const firstFile = obsidian.getAbstractFileByPath(
             join("events", filename)
@@ -238,10 +228,14 @@ describe("Note Calendar Tests", () => {
 
         const contents = await obsidian.read(firstFile);
 
-        const newLoc = await calendar.modifyEvent(
+        const mockFn = jest.fn();
+        await calendar.modifyEvent(
             { path: join("events", filename), lineNumber: undefined },
-            { ...event, endTime: "13:30" }
+            { ...event, endTime: "13:30" },
+            mockFn
         );
+        // TODO: make the third param a mock that we can inspect
+        const newLoc = mockFn.mock.calls[0][0];
         expect(newLoc.file.path).toBe(join("events", filename));
         expect(newLoc.lineNumber).toBeUndefined();
 

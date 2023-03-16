@@ -10,10 +10,30 @@ import {
 } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import rrulePlugin from "@fullcalendar/rrule";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import googleCalendarPlugin from "@fullcalendar/google-calendar";
 import iCalendarPlugin from "@fullcalendar/icalendar";
+
+// There is an issue with FullCalendar RRule support around DST boundaries which is fixed by this monkeypatch:
+// https://github.com/fullcalendar/fullcalendar/issues/5273#issuecomment-1360459342
+rrulePlugin.recurringTypes[0].expand = function (errd, fr, de) {
+    const hours = errd.rruleSet._dtstart.getHours();
+    return errd.rruleSet
+        .between(de.toDate(fr.start), de.toDate(fr.end), true)
+        .map((d: Date) => {
+            return new Date(
+                Date.UTC(
+                    d.getFullYear(),
+                    d.getMonth(),
+                    d.getDate(),
+                    hours,
+                    d.getMinutes()
+                )
+            );
+        });
+};
 
 interface ExtraRenderProps {
     eventClick?: (info: EventClickArg) => void;
@@ -79,6 +99,7 @@ export function renderCalendar(
             // Remote sources
             googleCalendarPlugin,
             iCalendarPlugin,
+            rrulePlugin,
         ],
         googleCalendarApiKey: "AIzaSyDIiklFwJXaLWuT_4y6I9ZRVVsPuf4xGrk",
         initialView:

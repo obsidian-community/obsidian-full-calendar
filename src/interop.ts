@@ -2,6 +2,7 @@ import { EventApi, EventInput } from "@fullcalendar/core";
 import { OFCEvent } from "./types";
 
 import { DateTime, Duration } from "luxon";
+import { rrulestr } from "rrule";
 
 /*
  * Functions for converting between the types used by the FullCalendar view plugin and types used internally by Obsidian Full Calendar.
@@ -69,7 +70,10 @@ const combineDateTimeStrings = (date: string, time: string): string | null => {
         return null;
     }
 
-    return add(parsedDate, parsedTime).toISO();
+    return add(parsedDate, parsedTime).toISO({
+        includeOffset: false,
+        suppressMilliseconds: true,
+    });
 };
 
 const DAYS = "UMTWRFS";
@@ -121,7 +125,66 @@ export function toEventInput(
                     : undefined,
             };
         }
-    } else {
+    } else if (frontmatter.type === "rrule") {
+        const dtstart = (() => {
+            if (frontmatter.allDay) {
+                return DateTime.fromISO(frontmatter.startDate);
+            } else {
+                const dtstartStr = combineDateTimeStrings(
+                    frontmatter.startDate,
+                    frontmatter.startTime
+                );
+
+                if (!dtstartStr) {
+                    return null;
+                }
+                return DateTime.fromISO(dtstartStr);
+            }
+        })();
+        if (dtstart === null) {
+            return null;
+        }
+        // NOTE: how exdates are handled does not support events which recur more than once per day.
+        const exdate = frontmatter.skipDates
+            .map((d) => {
+                // Can't do date arithmetic because timezone might change for different exdates due to DST.
+                // RRule only has one dtstart that doesn't know about DST/timezone changes.
+                // Therefore, just concatenate the date for this exdate and the start time for the event together.
+                const date = DateTime.fromISO(d).toISODate();
+                const time = dtstart.toJSDate().toISOString().split("T")[1];
+
+                return `${date}T${time}`;
+            })
+            .flatMap((d) => (d ? d : []));
+
+        event = {
+            id,
+            title: frontmatter.title,
+            allDay: frontmatter.allDay,
+            rrule: rrulestr(frontmatter.rrule, {
+                dtstart: dtstart.toJSDate(),
+            }).toString(),
+            exdate,
+        };
+
+        if (!frontmatter.allDay) {
+            const startTime = parseTime(frontmatter.startTime);
+            if (startTime && frontmatter.endTime) {
+                const endTime = parseTime(frontmatter.endTime);
+                const duration = endTime?.minus(startTime);
+                if (duration) {
+                    event.duration = duration.toISOTime({
+                        includePrefix: false,
+                        suppressMilliseconds: true,
+                        suppressSeconds: true,
+                    });
+                }
+            }
+        }
+    } else if (
+        frontmatter.type === "single" ||
+        frontmatter.type === undefined
+    ) {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(
                 frontmatter.date,
