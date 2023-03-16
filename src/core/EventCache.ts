@@ -6,7 +6,7 @@ import { EditableCalendar } from "../calendars/EditableCalendar";
 import EventStore, { StoredEvent } from "./EventStore";
 import { CalendarInfo, OFCEvent, validateEvent } from "../types";
 import RemoteCalendar from "../calendars/RemoteCalendar";
-import FullNoteCalendar from "src/calendars/FullNoteCalendar";
+import FullNoteCalendar from "../calendars/FullNoteCalendar";
 
 export type CalendarInitializerMap = Record<
     CalendarInfo["type"],
