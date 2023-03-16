@@ -213,5 +213,7 @@ export default class FullCalendarPlugin extends Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
         this.cache.reset(this.settings.calendarSources);
+        await this.cache.populate();
+        this.cache.resync();
     }
 }

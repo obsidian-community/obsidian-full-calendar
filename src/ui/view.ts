@@ -18,7 +18,7 @@ import { UpdateViewCallback } from "src/core/EventCache";
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
 export const FULL_CALENDAR_SIDEBAR_VIEW_TYPE = "full-calendar-sidebar-view";
 
-export function getCalendarColors(color: string | null | undefined): {
+function getCalendarColors(color: string | null | undefined): {
     color: string;
     textColor: string;
 } {
@@ -51,9 +51,9 @@ export function getCalendarColors(color: string | null | undefined): {
 }
 
 export class CalendarView extends ItemView {
-    fullCalendarView: Calendar | null;
     plugin: FullCalendarPlugin;
     inSidebar: boolean;
+    fullCalendarView: Calendar | null = null;
     callback: UpdateViewCallback | null = null;
 
     constructor(
@@ -63,7 +63,6 @@ export class CalendarView extends ItemView {
     ) {
         super(leaf);
         this.plugin = plugin;
-        this.fullCalendarView = null;
         this.inSidebar = inSidebar;
     }
 
@@ -79,6 +78,19 @@ export class CalendarView extends ItemView {
 
     getDisplayText() {
         return this.inSidebar ? "Full Calendar" : "Calendar";
+    }
+
+    translateSources() {
+        return this.plugin.cache.getAllEvents().map(
+            ({ events, editable, color, id }): EventSourceInput => ({
+                id,
+                events: events.flatMap(
+                    (e) => toEventInput(e.id, e.event) || []
+                ),
+                editable,
+                ...getCalendarColors(color),
+            })
+        );
     }
 
     async onOpen() {
@@ -104,20 +116,13 @@ export class CalendarView extends ItemView {
             return;
         }
 
-        const sources: EventSourceInput[] = this.plugin.cache
-            .getAllEvents()
-            .map(
-                ({ events, editable, color, id }): EventSourceInput => ({
-                    id,
-                    events: events.flatMap(
-                        (e) => toEventInput(e.id, e.event) || []
-                    ),
-                    editable,
-                    ...getCalendarColors(color),
-                })
-            );
-        // TODO: Add calendars that don't have any events to FC.
+        const sources: EventSourceInput[] = this.translateSources();
 
+        // TODO: Add calendars that don't have any events to FC.
+        if (this.fullCalendarView) {
+            this.fullCalendarView.destroy();
+            this.fullCalendarView = null;
+        }
         this.fullCalendarView = renderCalendar(calendarEl, sources, {
             forceNarrow: this.inSidebar,
             eventClick: async (info) => {
@@ -290,40 +295,51 @@ export class CalendarView extends ItemView {
             this.plugin.cache.revalidateRemoteCalendars();
         });
 
-        this.callback = this.plugin.cache.on(
-            "update",
-            ({ toRemove, toAdd }) => {
-                console.debug("updating view from cache...", {
-                    toRemove,
-                    toAdd,
-                });
-                toRemove.forEach((id) => {
-                    const event = this.fullCalendarView?.getEventById(id);
-                    if (event) {
-                        console.debug("removing event", event.toPlainObject());
-                        event.remove();
-                    } else {
-                        console.warn(
-                            `Event with id=${id} was slated to be removed but does not exist in the calendar.`
-                        );
-                    }
-                });
-                toAdd.forEach(({ id, event, calendarId }) => {
-                    const eventInput = toEventInput(id, event);
-                    console.debug("adding event", {
-                        id,
-                        event,
-                        eventInput,
-                        calendarId,
-                    });
-                    const addedEvent = this.fullCalendarView?.addEvent(
-                        eventInput!,
-                        calendarId
-                    );
-                    console.debug("event that was added", addedEvent);
-                });
+        if (this.callback) {
+            this.plugin.cache.off("update", this.callback);
+            this.callback = null;
+        }
+        this.callback = this.plugin.cache.on("update", (payload) => {
+            if (payload.resync) {
+                this.fullCalendarView?.removeAllEventSources();
+                const sources = this.translateSources();
+                sources.forEach((source) =>
+                    this.fullCalendarView?.addEventSource(source)
+                );
+                return;
             }
-        );
+
+            const { toRemove, toAdd } = payload;
+            console.debug("updating view from cache...", {
+                toRemove,
+                toAdd,
+            });
+            toRemove.forEach((id) => {
+                const event = this.fullCalendarView?.getEventById(id);
+                if (event) {
+                    console.debug("removing event", event.toPlainObject());
+                    event.remove();
+                } else {
+                    console.warn(
+                        `Event with id=${id} was slated to be removed but does not exist in the calendar.`
+                    );
+                }
+            });
+            toAdd.forEach(({ id, event, calendarId }) => {
+                const eventInput = toEventInput(id, event);
+                console.debug("adding event", {
+                    id,
+                    event,
+                    eventInput,
+                    calendarId,
+                });
+                const addedEvent = this.fullCalendarView?.addEvent(
+                    eventInput!,
+                    calendarId
+                );
+                console.debug("event that was added", addedEvent);
+            });
+        });
     }
 
     onResize(): void {
@@ -332,7 +348,8 @@ export class CalendarView extends ItemView {
         }
     }
 
-    async onClose() {
+    async onunload() {
+        console.log("closing time");
         if (this.fullCalendarView) {
             this.fullCalendarView.destroy();
             this.fullCalendarView = null;

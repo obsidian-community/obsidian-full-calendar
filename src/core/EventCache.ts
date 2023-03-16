@@ -15,10 +15,15 @@ export type CalendarInitializerMap = Record<
 
 export type CacheEntry = { event: OFCEvent; id: string; calendarId: string };
 
-export type UpdateViewCallback = (info: {
-    toRemove: string[];
-    toAdd: CacheEntry[];
-}) => void;
+export type UpdateViewCallback = (
+    info:
+        | {
+              resync: false;
+              toRemove: string[];
+              toAdd: CacheEntry[];
+          }
+        | { resync: true }
+) => void;
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -108,6 +113,7 @@ export default class EventCache {
      * Flush the cache and initialize calendars from the initializer map.
      */
     reset(infos: CalendarInfo[]): void {
+        this.lastRevalidation = 0;
         this.initialized = false;
         this.calendarInfos = infos;
         this.pkCounter = 0;
@@ -145,6 +151,12 @@ export default class EventCache {
         }
         this.initialized = true;
         this.revalidateRemoteCalendars();
+    }
+
+    resync(): void {
+        for (const callback of this.updateViewCallbacks) {
+            callback({ resync: true });
+        }
     }
 
     /**
@@ -260,7 +272,7 @@ export default class EventCache {
         };
 
         for (const callback of this.updateViewCallbacks) {
-            callback(payload);
+            callback({ resync: false, ...payload });
         }
     }
 

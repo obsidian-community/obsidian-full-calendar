@@ -30,6 +30,7 @@ export default class ICSCalendar extends RemoteCalendar {
     }
 
     async revalidate(): Promise<void> {
+        console.debug("revalidating ICS calendar " + this.name);
         this.response = await request({
             url: this.url,
             method: "GET",
