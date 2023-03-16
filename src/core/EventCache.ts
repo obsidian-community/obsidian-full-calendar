@@ -37,7 +37,7 @@ export const eventsAreDifferent = (
     oldEvents = oldEvents.flatMap((e) => validateEvent(e) || []);
     newEvents = newEvents.flatMap((e) => validateEvent(e) || []);
 
-    console.log("comparing events", oldEvents, newEvents);
+    console.debug("comparing events", oldEvents, newEvents);
 
     if (oldEvents.length !== newEvents.length) {
         return true;

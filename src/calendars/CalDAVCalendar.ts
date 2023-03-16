@@ -21,7 +21,6 @@ export default class CalDAVCalendar extends RemoteCalendar {
         calendarUrl: string
     ) {
         super(color);
-        console.log("constructing a calDAV calendar with name ", name);
         this._name = name;
         this.credentials = credentials;
         this.serverUrl = serverUrl;
@@ -29,7 +28,6 @@ export default class CalDAVCalendar extends RemoteCalendar {
     }
 
     async revalidate(): Promise<void> {
-        console.log("revalidating " + this.name);
         let xhr = new transport.Basic(
             new dav.Credentials({
                 username: this.credentials.username,
