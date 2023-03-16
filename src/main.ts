@@ -177,20 +177,6 @@ export default class FullCalendarPlugin extends Plugin {
             },
         });
 
-        this.addCommand({
-            id: "full-calendar-upgrade-note",
-            name: "Upgrade note to event",
-            callback: () => {
-                const view =
-                    this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (view) {
-                    const file = view.file;
-                    // TODO: Upgrade note.
-                    // new EventModal(this.app, this, null).editInModal(file);
-                }
-            },
-        });
-
         (this.app.workspace as any).registerHoverLinkSource(PLUGIN_SLUG, {
             display: "Full Calendar",
             defaultMod: true,
