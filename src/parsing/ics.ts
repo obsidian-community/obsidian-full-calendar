@@ -131,6 +131,10 @@ export function getEventsFromICS(text: string): OFCEvent[] {
 
     for (const [uid, event] of recurrenceExceptions) {
         const baseEvent = baseEvents[uid];
+        if (!baseEvent) {
+            continue;
+        }
+
         if (baseEvent.type !== "rrule" || event.type !== "single") {
             console.warn(
                 "Recurrence exception was recurring or base event was not recurring",
