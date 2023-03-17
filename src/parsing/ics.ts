@@ -48,7 +48,9 @@ function icsToOFC(input: ical.Event): OFCEvent {
         return {
             type: "rrule",
             title: input.summary,
-            id: input.uid,
+            id: `ics::${input.uid}::${DateTime.fromJSDate(
+                rrule.options.dtstart
+            ).toISODate()}::recurring`,
             rrule: rrule.toString(),
             skipDates: exdates,
             startDate: getDate(
@@ -77,7 +79,7 @@ function icsToOFC(input: ical.Event): OFCEvent {
         const allDay = input.startDate.isDate;
         return {
             type: "single",
-            id: input.uid,
+            id: `ics::${input.uid}::${date}::single`,
             title: input.summary,
             date,
             endDate: date !== endDate ? endDate : undefined,
@@ -115,8 +117,33 @@ export function getEventsFromICS(text: string): OFCEvent[] {
             }
         });
 
-    return events
-        .map((e) => icsToOFC(e))
-        .map(validateEvent)
-        .flatMap((e) => (e ? [e] : []));
+    // Events with RECURRENCE-ID will have duplicated UIDs.
+    // We need to modify the base event to exclude those recurrence exceptions.
+    const baseEvents = Object.fromEntries(
+        events
+            .filter((e) => e.recurrenceId === null)
+            .map((e) => [e.uid, icsToOFC(e)])
+    );
+
+    const recurrenceExceptions = events
+        .filter((e) => e.recurrenceId !== null)
+        .map((e): [string, OFCEvent] => [e.uid, icsToOFC(e)]);
+
+    for (const [uid, event] of recurrenceExceptions) {
+        const baseEvent = baseEvents[uid];
+        if (baseEvent.type !== "rrule" || event.type !== "single") {
+            console.warn(
+                "Recurrence exception was recurring or base event was not recurring",
+                { baseEvent, recurrenceException: event }
+            );
+            continue;
+        }
+        baseEvent.skipDates.push(event.date);
+    }
+
+    const allEvents = Object.values(baseEvents).concat(
+        recurrenceExceptions.map((e) => e[1])
+    );
+
+    return allEvents.map(validateEvent).flatMap((e) => (e ? [e] : []));
 }

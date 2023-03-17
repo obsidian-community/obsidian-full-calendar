@@ -54,6 +54,7 @@ declare module "ical.js" {
         public description: string;
         public location: string;
         public attendees: Property[];
+        public recurrenceId: Time | null;
 
         public component: Component;
 
