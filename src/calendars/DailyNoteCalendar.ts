@@ -1,5 +1,5 @@
 import moment from "moment";
-import { TFile } from "obsidian";
+import { CachedMetadata, TFile } from "obsidian";
 import {
     appHasDailyNotesPluginLoaded,
     createDailyNote,
@@ -91,12 +91,17 @@ export default class DailyNoteCalendar extends EditableCalendar {
         let file = getDailyNote(m, getAllDailyNotes()) as TFile;
         if (!file) {
             file = (await createDailyNote(m)) as TFile;
+            // Since we're relying on Obsidian's markdown parsing for header and list info
+            // wait until the cache is populated before continuing, since this might be
+            // a new file.
+            await this.app.read(file);
         }
-        // Since we're relying on Obsidian's markdown parsing for header and list info
-        // wait until the cache is populated before continuing, since this might be
-        // a new file.
-        await this.app.read(file);
-        const metadata = this.app.getMetadata(file);
+
+        let metadata: CachedMetadata | null = null;
+        while (metadata === null) {
+            metadata = this.app.getMetadata(file);
+        }
+
         if (!metadata) {
             throw new Error("No metadata for file " + file.path);
         }
