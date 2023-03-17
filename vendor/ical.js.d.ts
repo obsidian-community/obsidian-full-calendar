@@ -67,6 +67,7 @@ declare module "ical.js" {
         );
 
         public isRecurring(): boolean;
+        public isRecurrenceException(): boolean;
         public iterator(startTime?: Time): RecurExpansion;
     }
 

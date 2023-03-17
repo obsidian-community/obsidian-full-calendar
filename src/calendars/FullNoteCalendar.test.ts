@@ -31,6 +31,10 @@ const makeApp = (app: MockApp): ObsidianInterface => ({
         return f;
     },
     getMetadata: (file) => app.metadataCache.getFileCache(file),
+    waitForMetadata: (file) =>
+        new Promise((resolve) =>
+            resolve(app.metadataCache.getFileCache(file)!)
+        ),
     read: (file) => app.vault.read(file),
     create: jest.fn(),
     rewrite: jest.fn(),

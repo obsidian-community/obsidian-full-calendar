@@ -92,14 +92,8 @@ export default class DailyNoteCalendar extends EditableCalendar {
         if (!file) {
             file = (await createDailyNote(m)) as TFile;
         }
-        // Since we're relying on Obsidian's markdown parsing for header and list info
-        // wait until the cache is populated before continuing, since this might be
-        // a new file.
-        await this.app.read(file);
-        const metadata = this.app.getMetadata(file);
-        if (!metadata) {
-            throw new Error("No metadata for file " + file.path);
-        }
+        const metadata = await this.app.waitForMetadata(file);
+
         const headingInfo = metadata.headings?.find(
             (h) => h.heading == this.heading
         );
