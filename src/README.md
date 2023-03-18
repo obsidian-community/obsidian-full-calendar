@@ -1,4 +1,4 @@
-# Architecture
+# Plugin Architecture
 
 Obsidian Full Calendar's goal is to give users a robust and feature-ful calendar view into their Vault. In addition to displaying and modifying events stored in note frontmatter and daily note bulleted lists, it can also read events from the Internet in CalDAV and ICS format.
 
