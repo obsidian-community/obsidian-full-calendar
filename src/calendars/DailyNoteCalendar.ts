@@ -1,5 +1,12 @@
 import moment from "moment";
-import { TFile } from "obsidian";
+import {
+    TFile,
+    CachedMetadata,
+    HeadingCache,
+    ListItemCache,
+    Loc,
+    Pos,
+} from "obsidian";
 import {
     appHasDailyNotesPluginLoaded,
     createDailyNote,
@@ -8,20 +15,225 @@ import {
     getDailyNoteSettings,
     getDateFromFile,
 } from "obsidian-daily-notes-interface";
-import { EventPathLocation } from "src/core/EventStore";
-import { ObsidianInterface } from "src/ObsidianAdapter";
+import { EventPathLocation } from "../core/EventStore";
+import { ObsidianInterface } from "../ObsidianAdapter";
 import {
-    addToHeading,
-    getAllInlineEventsFromFile,
-    getInlineEventFromLine,
-    getListsUnderHeading,
-    modifyListItem,
-} from "src/serialization/inline";
-import { OFCEvent, EventLocation, CalendarInfo } from "src/types";
+    OFCEvent,
+    EventLocation,
+    CalendarInfo,
+    validateEvent,
+    SingleEventData,
+} from "../types";
 import { EventResponse } from "./Calendar";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
 const DATE_FORMAT = "YYYY-MM-DD";
+
+// PARSING
+
+type Line = {
+    text: string;
+    lineNumber: number;
+};
+
+const parseBool = (s: string): boolean | string =>
+    s === "true" ? true : s === "false" ? false : s;
+
+const fieldRegex = /\[([^\]]+):: ?([^\]]+)\]/g;
+export function getInlineAttributes(
+    s: string
+): Record<string, string | boolean> {
+    return Object.fromEntries(
+        Array.from(s.matchAll(fieldRegex)).map((m) => [m[1], parseBool(m[2])])
+    );
+}
+
+const getHeadingPosition = (
+    headingText: string,
+    metadata: CachedMetadata,
+    endOfDoc: Loc
+): Pos | null => {
+    if (!metadata.headings) {
+        return null;
+    }
+
+    let level: number | null = null;
+    let startingPos: Pos | null = null;
+    let endingPos: Pos | null = null;
+
+    for (const heading of metadata.headings) {
+        if (!level && heading.heading === headingText) {
+            level = heading.level;
+            startingPos = heading.position;
+        } else if (level && heading.level <= level) {
+            endingPos = heading.position;
+            break;
+        }
+    }
+
+    if (!level || !startingPos) {
+        return null;
+    }
+
+    return { start: startingPos.end, end: endingPos?.start || endOfDoc };
+};
+
+const getListsUnderHeading = (
+    headingText: string,
+    metadata: CachedMetadata
+): ListItemCache[] => {
+    if (!metadata.listItems) {
+        return [];
+    }
+    const endOfDoc = metadata.sections?.last()?.position.end;
+    if (!endOfDoc) {
+        return [];
+    }
+    const headingPos = getHeadingPosition(headingText, metadata, endOfDoc);
+    if (!headingPos) {
+        return [];
+    }
+    return metadata.listItems?.filter(
+        (l) =>
+            headingPos.start.offset < l.position.start.offset &&
+            l.position.end.offset <= headingPos.end.offset
+    );
+};
+
+const listRegex = /^(\s*)\-\s+(\[(.)\]\s+)?/;
+const checkboxRegex = /^\s*\-\s+\[(.)\]\s+/;
+const checkboxTodo = (s: string) => {
+    const match = s.match(checkboxRegex);
+    if (!match || !match[1]) {
+        return null;
+    }
+    return match[1] === " " ? false : match[1];
+};
+
+const getInlineEventFromLine = (
+    text: string,
+    globalAttrs: Partial<OFCEvent>
+): OFCEvent | null => {
+    const attrs = getInlineAttributes(text);
+
+    // Shortcut validation if there are no inline attributes.
+    if (Object.keys(attrs).length === 0) {
+        return null;
+    }
+
+    return validateEvent({
+        title: text.replace(listRegex, "").replace(fieldRegex, "").trim(),
+        completed: checkboxTodo(text),
+        ...globalAttrs,
+        ...attrs,
+    });
+};
+
+function getAllInlineEventsFromFile(
+    fileText: string,
+    listItems: ListItemCache[],
+    fileGlobalAttrs: Partial<OFCEvent>
+): { lineNumber: number; event: OFCEvent }[] {
+    const lines = fileText.split("\n");
+    const listItemText: Line[] = listItems
+        .map((i) => i.position.start.line)
+        .map((idx) => ({ lineNumber: idx, text: lines[idx] }));
+
+    return listItemText
+        .map((l) => ({
+            lineNumber: l.lineNumber,
+            event: getInlineEventFromLine(l.text, {
+                ...fileGlobalAttrs,
+                type: "single",
+            }),
+        }))
+        .flatMap(({ event, lineNumber }) =>
+            event ? [{ event, lineNumber }] : []
+        );
+}
+
+// SERIALIZATION
+
+const generateInlineAttributes = (attrs: Record<string, any>): string => {
+    return Object.entries(attrs)
+        .map(([k, v]) => `[${k}:: ${v}]`)
+        .join("  ");
+};
+
+const makeListItem = (
+    data: SingleEventData,
+    whitespacePrefix: string = ""
+): string => {
+    const { completed, title } = data;
+    const checkbox = (() => {
+        if (completed !== null && completed !== undefined) {
+            return `[${completed ? "x" : " "}]`;
+        }
+        return null;
+    })();
+
+    const attrs: Partial<SingleEventData> = { ...data };
+    delete attrs["completed"];
+    delete attrs["title"];
+    delete attrs["type"];
+    delete attrs["date"];
+
+    for (const key of <(keyof SingleEventData)[]>Object.keys(attrs)) {
+        if (attrs[key] === undefined || attrs[key] === null) {
+            delete attrs[key];
+        }
+    }
+
+    if (!attrs["allDay"]) {
+        delete attrs["allDay"];
+    }
+
+    return `${whitespacePrefix}- ${
+        checkbox || ""
+    } ${title} ${generateInlineAttributes(attrs)}`;
+};
+
+const modifyListItem = (line: string, data: SingleEventData): string | null => {
+    const listMatch = line.match(listRegex);
+    if (!listMatch) {
+        console.warn(
+            "Tried modifying a list item with a position that wasn't a list item",
+            { line }
+        );
+        return null;
+    }
+
+    return makeListItem(data, listMatch[1]);
+};
+
+/**
+ * Add a list item to a given heading.
+ * If the heading is undefined, then append the heading to the end of the file.
+ */
+// TODO: refactor this to not do the weird props thing
+type AddToHeadingProps = {
+    heading: HeadingCache | undefined;
+    item: SingleEventData;
+    headingText: string;
+};
+const addToHeading = (
+    page: string,
+    { heading, item, headingText }: AddToHeadingProps
+): { page: string; lineNumber: number } => {
+    let lines = page.split("\n");
+
+    const listItem = makeListItem(item);
+    if (heading) {
+        const headingLine = heading.position.start.line;
+        const lineNumber = headingLine + 1;
+        lines.splice(lineNumber, 0, listItem);
+        return { page: lines.join("\n"), lineNumber };
+    } else {
+        lines.push(`## ${headingText}`);
+        lines.push(listItem);
+        return { page: lines.join("\n"), lineNumber: lines.length - 1 };
+    }
+};
 
 export default class DailyNoteCalendar extends EditableCalendar {
     app: ObsidianInterface;
