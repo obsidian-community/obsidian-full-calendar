@@ -1,9 +1,9 @@
 import dav from "dav";
-import * as transport from "../parsing/caldav/transport";
+import * as transport from "./parsing/caldav/transport";
 import { Authentication, CalendarInfo, OFCEvent } from "src/types";
 import { EventResponse } from "./Calendar";
 import RemoteCalendar from "./RemoteCalendar";
-import { getEventsFromICS } from "src/parsing/ics";
+import { getEventsFromICS } from "src/calendars/parsing/ics";
 
 export default class CalDAVCalendar extends RemoteCalendar {
     _name: string;
