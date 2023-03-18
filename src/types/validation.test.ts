@@ -1,4 +1,4 @@
-import { validateEvent } from "./types";
+import { validateEvent } from "./validation";
 
 describe("validation tests", () => {
     it.each([

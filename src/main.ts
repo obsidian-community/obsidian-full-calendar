@@ -5,7 +5,7 @@ import {
     FULL_CALENDAR_VIEW_TYPE,
 } from "./ui/view";
 import { renderCalendar } from "./ui/calendar";
-import { toEventInput } from "./interop";
+import { toEventInput } from "./ui/interop";
 import {
     DEFAULT_SETTINGS,
     FullCalendarSettings,

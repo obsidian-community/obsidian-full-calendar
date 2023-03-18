@@ -8,11 +8,11 @@ import {
     dateEndpointsToFrontmatter,
     fromEventApi,
     toEventInput,
-} from "../interop";
+} from "./interop";
 import { renderOnboarding } from "./onboard";
 import { openFileForEvent } from "./actions";
 import { launchCreateModal, launchEditModal } from "./event_modal";
-import { isTask, toggleTask, unmakeTask } from "src/tasks";
+import { isTask, toggleTask, unmakeTask } from "src/ui/tasks";
 import { UpdateViewCallback } from "src/core/EventCache";
 
 export const FULL_CALENDAR_VIEW_TYPE = "full-calendar-view";
