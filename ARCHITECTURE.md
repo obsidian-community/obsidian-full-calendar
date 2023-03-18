@@ -1,3 +1,5 @@
+# Architecture
+
 Obsidian Full Calendar's goal is to give users a robust and feature-ful calendar view into their Vault. In addition to displaying and modifying events stored in note frontmatter and daily note bulleted lists, it can also read events from the Internet in CalDAV and ICS format.
 
 Obsidian Full Calendar takes its name from [FullCalendar](https://github.com/fullcalendar/fullcalendar), a "Full-sized drag & drop event calendar in JavaScript." This plugin uses FullCalendar as its calendar view. While the naming can be ambiguous, this document will always refer to the FullCalendar view library without any spaces, or as `fullcalendar.io`. The plugin will be referred to either as "the plugin", "Full Calendar" with a space, or "Obsidian Full Calendar".
@@ -41,7 +43,15 @@ Below is a birds-eye view of the different components of the plugin, and the int
 
 ## Codemap
 
-Following the advice in [this blog post on architecture docs](https://matklad.github.io/2021/02/06/ARCHITECTURE.md.html), the following section will list out the main modules of the code without linking out to specific file locations that may quickly become stale. Please make use of code search and the TypeScript Language Server to click around and explore, with this map as your guide.
+Following the advice in [this blog post on architecture docs](https://matklad.github.io/2021/02/06/ARCHITECTURE.md.html), the following section will list out the main modules of the code without linking out to specific file locations that may quickly become stale. Make use of code search and the TypeScript Language Server to jump around and explore the code, with this section as your guide.
+
+### `types`
+
+This module defines some common types used throughout the code. The most prevalent is `OFCEvent`, short for Obsidian Full Calendar Event, that specifies the intermediate representation all events in the plugin. Note that FullCalendar.io uses a different event format called `EventInput`, which you can read about [in their documentation](https://fullcalendar.io/docs/event-parsing).
+
+Translation between `OFCEvent` and `EventInput` is handled in `interop.ts`. Each `Calendar` subclass handles translation between its source format and `OFCEvent`.
+
+Objects can be validated as OFCEvents using `validateEvent()` . This function is used throughout the code to ensure that only valid events are present.
 
 ### `core`
 
