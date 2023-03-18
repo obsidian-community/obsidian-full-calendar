@@ -45,12 +45,11 @@ function icsToOFC(input: ical.Event): OFCEvent {
                 // so recurring events with exclusions that happen more than once per day are not supported.
                 return getDate(exdate);
             });
+
         return {
             type: "rrule",
             title: input.summary,
-            id: `ics::${input.uid}::${DateTime.fromJSDate(
-                rrule.options.dtstart
-            ).toISODate()}::recurring`,
+            id: `ics::${input.uid}::${getDate(input.startDate)}::recurring`,
             rrule: rrule.toString(),
             skipDates: exdates,
             startDate: getDate(

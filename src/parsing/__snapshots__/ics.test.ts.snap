@@ -157,7 +157,7 @@ END:VCALENDAR
   },
   {
     "endTime": "12:30",
-    "id": "ics::5tt2avr2th0h65homv3b6jeqof@google.com::2023-03-17::recurring",
+    "id": "ics::5tt2avr2th0h65homv3b6jeqof@google.com::2022-03-01::recurring",
     "rrule": "RRULE:FREQ=WEEKLY;BYDAY=TH,TU;WKST=SU",
     "skipDates": [],
     "startDate": "2022-03-01",

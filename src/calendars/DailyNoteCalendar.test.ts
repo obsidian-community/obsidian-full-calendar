@@ -1,4 +1,4 @@
-import { getInlineAttributes } from "./inline";
+import { getInlineAttributes } from "./DailyNoteCalendar";
 
 it.each([
     ["one variable [hello:: world]", { hello: "world" }],
