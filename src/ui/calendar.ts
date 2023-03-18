@@ -107,6 +107,7 @@ export function renderCalendar(
             (isNarrow ? "timeGrid3Days" : "timeGridWeek"),
         nowIndicator: true,
         scrollTimeReset: false,
+        dayMaxEvents: true,
 
         headerToolbar: !isNarrow
             ? {
