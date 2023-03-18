@@ -79,6 +79,6 @@ Each source of events has its own `Calendar` subclass that handles the relevant 
 
 ### `ui`
 
-While `core` and `calendars` make up the Model in the `MVC` pattern, the View and Controller are currently both living in the `ui` library. The view connector to the FullCalendar library lives in `calendar.ts`. Most of the controller logic that interfaces with the `EventCache` lives, confusingly, in `view.ts`. Auxilliary views, like the onboarding flow and the edit/create modal, are React components that live in their own `.tsx` files and are mounted into the DOM when needed.
+While `core` and `calendars` make up the Model in the `MVC` pattern, the View and Controller are currently both living in the `ui` directory. The view connector to the FullCalendar library lives in `calendar.ts`. Most of the controller logic that interfaces with the `EventCache` lives, confusingly, in `view.ts`. Auxilliary views, like the onboarding flow and the edit/create modal, are React components that live in their own `.tsx` files and are mounted into the DOM when needed.
 
 **Architecture Invariant**: All interactions with event data should be mediated by the `EventCache`. Code in the `ui` directory should not reference or call out to the `EventStore`, Obsidian Vault APIs, or `Calendar` subclasses.
