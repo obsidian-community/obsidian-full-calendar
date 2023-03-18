@@ -49,7 +49,7 @@ Following the advice in [this blog post on architecture docs](https://matklad.gi
 
 This module defines some common types used throughout the code. The most prevalent is `OFCEvent`, short for Obsidian Full Calendar Event, that specifies the intermediate representation for all events in the plugin. Note that FullCalendar.io uses a different event format called `EventInput`, which you can read about [in their documentation](https://fullcalendar.io/docs/event-parsing).
 
-Translation between `OFCEvent` and `EventInput` is handled in `interop.ts`. Each `Calendar` subclass handles translation between its source format and `OFCEvent`.
+Translation between `OFCEvent` and `EventInput` is handled in `interop.ts`. Each `Calendar` subclass (see below) handles its own translation between its source format and `OFCEvent`.
 
 Objects can be validated as OFCEvents using `validateEvent()` . This function is used throughout the code to ensure that only valid events are present.
 
@@ -57,7 +57,7 @@ Objects can be validated as OFCEvents using `validateEvent()` . This function is
 
 The `core` directory consists of two classes, `EventStore` and `EventCache`. These two classes comprise the plugin's main event-managing logic.
 
-The `EventStore` is the source of truth for events in the plugin. Its interface is similar to a simplified database that stores events, calendars and file locations. Files and calendars are one-to-many relationships: every event is related to a calendar and at most one file, but calendars and files can have many events within them. The `EventStore` allows for effecient querying of events grouped by calendars and files. Every event in the `EventStore` has an ID associated with it. Local events have random IDs that are generated at insert time, but remote events using the iCal spec have `UID`s that are plumbed through.
+The `EventStore` is the source of truth for events in the plugin. Its interface is similar to a simplified database that stores events, calendars and file locations. Files and calendars are one-to-many relationships: every event is related to exactly one calendar and at most one file, but calendars and files can have many events within them. The `EventStore` allows for effecient querying of events grouped by calendars and files. Every event in the `EventStore` has an ID associated with it. Local events have random IDs that are generated at insert time, but remote events using the iCal spec have `UID`s that are plumbed through.
 
 The `EventCache` manages the state stored in the `EventStore`. Its main job is co-ordinating with both the view layer and the `Calendar`s which perform I/O to actually read events from disk or the network. The `EventCache` has two main hooks to update the `EventStore`:
 
