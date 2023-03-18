@@ -15,15 +15,15 @@ import {
     getDailyNoteSettings,
     getDateFromFile,
 } from "obsidian-daily-notes-interface";
-import { EventPathLocation } from "src/core/EventStore";
-import { ObsidianInterface } from "src/ObsidianAdapter";
+import { EventPathLocation } from "../core/EventStore";
+import { ObsidianInterface } from "../ObsidianAdapter";
 import {
     OFCEvent,
     EventLocation,
     CalendarInfo,
     validateEvent,
     SingleEventData,
-} from "src/types";
+} from "../types";
 import { EventResponse } from "./Calendar";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
