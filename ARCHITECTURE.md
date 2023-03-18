@@ -47,7 +47,7 @@ Following the advice in [this blog post on architecture docs](https://matklad.gi
 
 ### `types`
 
-This module defines some common types used throughout the code. The most prevalent is `OFCEvent`, short for Obsidian Full Calendar Event, that specifies the intermediate representation all events in the plugin. Note that FullCalendar.io uses a different event format called `EventInput`, which you can read about [in their documentation](https://fullcalendar.io/docs/event-parsing).
+This module defines some common types used throughout the code. The most prevalent is `OFCEvent`, short for Obsidian Full Calendar Event, that specifies the intermediate representation for all events in the plugin. Note that FullCalendar.io uses a different event format called `EventInput`, which you can read about [in their documentation](https://fullcalendar.io/docs/event-parsing).
 
 Translation between `OFCEvent` and `EventInput` is handled in `interop.ts`. Each `Calendar` subclass handles translation between its source format and `OFCEvent`.
 
