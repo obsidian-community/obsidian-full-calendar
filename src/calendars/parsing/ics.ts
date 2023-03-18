@@ -1,5 +1,5 @@
 import ical from "ical.js";
-import { OFCEvent, validateEvent } from "../types";
+import { OFCEvent, validateEvent } from "../../types";
 import { DateTime } from "luxon";
 import { rrulestr } from "rrule";
 

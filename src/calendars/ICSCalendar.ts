@@ -1,7 +1,7 @@
 import { request } from "obsidian";
 import { CalendarInfo } from "src/types";
 import { EventResponse } from "./Calendar";
-import { getEventsFromICS } from "../parsing/ics";
+import { getEventsFromICS } from "./parsing/ics";
 import RemoteCalendar from "./RemoteCalendar";
 
 const WEBCAL = "webcal";
