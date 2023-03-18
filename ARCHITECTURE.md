@@ -1,5 +1,3 @@
-# Architecture
-
 Obsidian Full Calendar's goal is to give users a robust and feature-ful calendar view into their Vault. In addition to displaying and modifying events stored in note frontmatter and daily note bulleted lists, it can also read events from the Internet in CalDAV and ICS format.
 
 Obsidian Full Calendar takes its name from [FullCalendar](https://github.com/fullcalendar/fullcalendar), a "Full-sized drag & drop event calendar in JavaScript." This plugin uses FullCalendar as its calendar view. While the naming can be ambiguous, this document will always refer to the FullCalendar view library without any spaces, or as `fullcalendar.io`. The plugin will be referred to either as "the plugin", "Full Calendar" with a space, or "Obsidian Full Calendar".
@@ -71,4 +69,6 @@ Each source of events has its own `Calendar` subclass that handles the relevant 
 
 ### `ui`
 
-The actual interface with the FullCalendar library lives in `calendar.ts`. Most of the business logic around user interactions with the calendar live in `view.ts`. Auxilliary views, like the onboarding flow and the edit/create modal, are React components that live in their own `.tsx` files and are mounted into the DOM when needed.
+While `core` and `calendars` make up the Model in the `MVC` pattern, the View and Controller are currently both living in the `ui` library. The view connector to the FullCalendar library lives in `calendar.ts`. Most of the controller logic that interfaces with the `EventCache` lives, confusingly, in `view.ts`. Auxilliary views, like the onboarding flow and the edit/create modal, are React components that live in their own `.tsx` files and are mounted into the DOM when needed.
+
+**Architecture Invariant**: All interactions with event data should be mediated by the `EventCache`. Code in the `ui` directory should not reference or call out to the `EventStore`, Obsidian Vault APIs, or `Calendar` subclasses.
