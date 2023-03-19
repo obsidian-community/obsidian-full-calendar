@@ -4,33 +4,39 @@ import { OFCEvent } from "../../types";
 
 import { EditEvent } from "./EditEvent";
 
-import "../../../obsidian.css";
-
 export default {
     decorators: [
-      (Component) => (
-        <div className="modal">
-            <div className="modal-content">
-                <Component />
+        (Component) => (
+            <div className="modal">
+                <div className="modal-content">
+                    <Component />
+                </div>
             </div>
-        </div>
-      ),
+        ),
     ],
-  } satisfies StoryDefault;
+} satisfies StoryDefault;
 
 const calendars = [
-    {id: "local::calendar", name: "local calendar", type: "local" as "local"},
-    {id: "local::calendar2", name: "second calendar", type: "local" as "local"},
-    {id: "dailynote::calendar", name: "Daily Note Calendar", type: "dailynote" as "dailynote"},
+    { id: "local::calendar", name: "local calendar", type: "local" as "local" },
+    {
+        id: "local::calendar2",
+        name: "second calendar",
+        type: "local" as "local",
+    },
+    {
+        id: "dailynote::calendar",
+        name: "Daily Note Calendar",
+        type: "dailynote" as "dailynote",
+    },
 ];
 
-const submit= async function (
-            event: OFCEvent,
-            calendarIndex: number
-        ): Promise<void> {
-            alert("Event submitted, see console for details");
-            console.log({event, calendarIndex})
-        };
+const submit = async function (
+    event: OFCEvent,
+    calendarIndex: number
+): Promise<void> {
+    alert("Event submitted, see console for details");
+    console.log({ event, calendarIndex });
+};
 
 export const NewEvent: Story = () => (
     <EditEvent
@@ -40,11 +46,11 @@ export const NewEvent: Story = () => (
     ></EditEvent>
 );
 
-export const SingleEventWithTime: Story = () =>  (
-    <EditEvent 
-        submit={submit} 
-        calendars={calendars} 
-        defaultCalendarIndex={0} 
+export const SingleEventWithTime: Story = () => (
+    <EditEvent
+        submit={submit}
+        calendars={calendars}
+        defaultCalendarIndex={0}
         initialEvent={{
             title: "Event title",
             type: "single",
@@ -57,11 +63,11 @@ export const SingleEventWithTime: Story = () =>  (
 );
 SingleEventWithTime.storyName = "Single Event / Timed";
 
-export const SingleEventAllDay: Story = () =>  (
-    <EditEvent 
-        submit={submit} 
-        calendars={calendars} 
-        defaultCalendarIndex={0} 
+export const SingleEventAllDay: Story = () => (
+    <EditEvent
+        submit={submit}
+        calendars={calendars}
+        defaultCalendarIndex={0}
         initialEvent={{
             title: "Event title",
             type: "single",
@@ -72,11 +78,11 @@ export const SingleEventAllDay: Story = () =>  (
 );
 SingleEventAllDay.storyName = "Single Event / All Day";
 
-export const RecurringEvent: Story = () =>  (
-    <EditEvent 
-        submit={submit} 
-        calendars={calendars} 
-        defaultCalendarIndex={0} 
+export const RecurringEvent: Story = () => (
+    <EditEvent
+        submit={submit}
+        calendars={calendars}
+        defaultCalendarIndex={0}
         initialEvent={{
             title: "Event title",
             type: "recurring",
@@ -84,8 +90,7 @@ export const RecurringEvent: Story = () =>  (
             allDay: false,
             startTime: "12:00",
             endTime: "13:30",
-            daysOfWeek: ["M", "R"]
+            daysOfWeek: ["M", "R"],
         }}
     ></EditEvent>
 );
-
