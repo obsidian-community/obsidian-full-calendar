@@ -52,6 +52,7 @@
         "@fullcalendar/list": "^5.10.1",
         "@fullcalendar/rrule": "^5.11.2",
         "@fullcalendar/timegrid": "^5.10.1",
+        "@ladle/react": "^2.10.1",
         "@types/deep-equal": "^1.0.1",
         "@types/ical": "^0.8.0",
         "color": "^4.2.1",

@@ -1,3 +1,5 @@
 node_modules
 main.js
 version-bump.mjs
+*.snap
+*.stories.*
