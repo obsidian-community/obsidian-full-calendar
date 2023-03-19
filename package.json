@@ -38,7 +38,7 @@
         "husky": "^7.0.4",
         "jest": "^29.3.1",
         "obsidian": "^0.16.3",
-        "prettier": "2.5.1",
+        "prettier": "^2.5.1",
         "ts-jest": "^29.0.3",
         "tslib": "2.3.1",
         "typescript": "4.4.4"
@@ -52,6 +52,7 @@
         "@fullcalendar/list": "^5.10.1",
         "@fullcalendar/rrule": "^5.11.2",
         "@fullcalendar/timegrid": "^5.10.1",
+        "@ladle/react": "^2.10.1",
         "@types/deep-equal": "^1.0.1",
         "@types/ical": "^0.8.0",
         "color": "^4.2.1",
