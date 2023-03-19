@@ -1,20 +1,8 @@
-import type { Story, StoryDefault } from "@ladle/react";
+import type { Story } from "@ladle/react";
 import React from "react";
 import { OFCEvent } from "../../types";
 
 import { EditEvent } from "./EditEvent";
-
-export default {
-    decorators: [
-        (Component) => (
-            <div className="modal">
-                <div className="modal-content">
-                    <Component />
-                </div>
-            </div>
-        ),
-    ],
-} satisfies StoryDefault;
 
 const calendars = [
     { id: "local::calendar", name: "local calendar", type: "local" as "local" },
@@ -38,19 +26,29 @@ const submit = async function (
     console.log({ event, calendarIndex });
 };
 
+const EventModal = ({
+    initialEvent,
+}: {
+    initialEvent: Partial<OFCEvent> | undefined;
+}) => (
+    <div className="modal">
+        <div className="modal-content">
+            <EditEvent
+                submit={submit}
+                calendars={calendars}
+                defaultCalendarIndex={0}
+                initialEvent={initialEvent}
+            ></EditEvent>
+        </div>
+    </div>
+);
+
 export const NewEvent: Story = () => (
-    <EditEvent
-        submit={submit}
-        calendars={calendars}
-        defaultCalendarIndex={0}
-    ></EditEvent>
+    <EventModal initialEvent={undefined}></EventModal>
 );
 
 export const SingleEventWithTime: Story = () => (
-    <EditEvent
-        submit={submit}
-        calendars={calendars}
-        defaultCalendarIndex={0}
+    <EventModal
         initialEvent={{
             title: "Event title",
             type: "single",
@@ -59,30 +57,24 @@ export const SingleEventWithTime: Story = () => (
             startTime: "12:00",
             endTime: "13:30",
         }}
-    ></EditEvent>
+    ></EventModal>
 );
 SingleEventWithTime.storyName = "Single Event / Timed";
 
 export const SingleEventAllDay: Story = () => (
-    <EditEvent
-        submit={submit}
-        calendars={calendars}
-        defaultCalendarIndex={0}
+    <EventModal
         initialEvent={{
             title: "Event title",
             type: "single",
             date: new Date().toISOString().slice(0, 10),
             allDay: true,
         }}
-    ></EditEvent>
+    ></EventModal>
 );
 SingleEventAllDay.storyName = "Single Event / All Day";
 
 export const RecurringEvent: Story = () => (
-    <EditEvent
-        submit={submit}
-        calendars={calendars}
-        defaultCalendarIndex={0}
+    <EventModal
         initialEvent={{
             title: "Event title",
             type: "recurring",
@@ -92,5 +84,5 @@ export const RecurringEvent: Story = () => (
             endTime: "13:30",
             daysOfWeek: ["M", "R"],
         }}
-    ></EditEvent>
+    ></EventModal>
 );
