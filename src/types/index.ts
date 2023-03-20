@@ -18,6 +18,12 @@ export type CommonEventData = {
     id?: string; // Only set for remote calendars.
 } & (RangeTimeData | AllDayData);
 
+export function isRangeTimeData(
+    event: RangeTimeData | AllDayData
+): event is RangeTimeData {
+    return (event as RangeTimeData).startTime !== undefined;
+}
+
 export type SingleEventData = {
     type?: "single";
     date: string;

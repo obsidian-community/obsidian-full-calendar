@@ -2,13 +2,23 @@ import { TFile, TFolder, parseYaml } from "obsidian";
 import { rrulestr } from "rrule";
 import { EventPathLocation } from "../core/EventStore";
 import { ObsidianInterface } from "../ObsidianAdapter";
-import { OFCEvent, EventLocation, validateEvent } from "../types";
+import {
+    OFCEvent,
+    EventLocation,
+    validateEvent,
+    isRangeTimeData,
+} from "../types";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
 const basenameFromEvent = (event: OFCEvent): string => {
     switch (event.type) {
         case undefined:
         case "single":
+            if (isRangeTimeData(event)) {
+                return `${event.date} ${event.startTime.replace(":", "")} ${
+                    event.title
+                }`;
+            }
             return `${event.date} ${event.title}`;
         case "recurring":
             return `(Every ${event.daysOfWeek.join(",")}) ${event.title}`;
