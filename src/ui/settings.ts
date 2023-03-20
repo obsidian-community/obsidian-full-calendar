@@ -26,6 +26,7 @@ export interface FullCalendarSettings {
         mobile: string;
     };
     timeFormat24h: boolean;
+    timeInNoteTitle: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
         mobile: "timeGrid3Days",
     },
     timeFormat24h: false,
+    timeInNoteTitle: false,
 };
 
 const WEEKDAYS = [
@@ -230,6 +232,19 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.timeFormat24h);
                 toggle.onChange(async (val) => {
                     this.plugin.settings.timeFormat24h = val;
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        new Setting(containerEl)
+            .setName("Time in note title")
+            .setDesc(
+                "Format note title as <YYYY-MM-DD> <HHDD> <Event title>.md."
+            )
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.timeInNoteTitle);
+                toggle.onChange(async (val) => {
+                    this.plugin.settings.timeInNoteTitle = val;
                     await this.plugin.saveSettings();
                 });
             });
