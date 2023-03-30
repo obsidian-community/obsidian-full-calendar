@@ -119,6 +119,7 @@ export default class EventCache {
         this.calendarInfos = infos;
         this.pkCounter = 0;
         this.calendars.clear();
+        this.store.clear();
         this.resync();
         this.init();
     }
