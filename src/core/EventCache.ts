@@ -18,11 +18,12 @@ export type CacheEntry = { event: OFCEvent; id: string; calendarId: string };
 export type UpdateViewCallback = (
     info:
         | {
-              resync: false;
+              type: "events";
               toRemove: string[];
               toAdd: CacheEntry[];
           }
-        | { resync: true }
+        | { type: "calendar"; calendar: OFCEventSource }
+        | { type: "resync" }
 ) => void;
 
 const SECOND = 1000;
@@ -117,8 +118,8 @@ export default class EventCache {
         this.initialized = false;
         this.calendarInfos = infos;
         this.pkCounter = 0;
-        this.updateViews(this.store.clear(), []);
         this.calendars.clear();
+        this.resync();
         this.init();
     }
 
@@ -155,7 +156,7 @@ export default class EventCache {
 
     resync(): void {
         for (const callback of this.updateViewCallbacks) {
-            callback({ resync: true });
+            callback({ type: "resync" });
         }
     }
 
@@ -272,7 +273,13 @@ export default class EventCache {
         };
 
         for (const callback of this.updateViewCallbacks) {
-            callback({ resync: false, ...payload });
+            callback({ type: "events", ...payload });
+        }
+    }
+
+    private updateCalendar(calendar: OFCEventSource) {
+        for (const callback of this.updateViewCallbacks) {
+            callback({ type: "calendar", calendar });
         }
     }
 
@@ -566,7 +573,12 @@ export default class EventCache {
                             event,
                         });
                     });
-                    this.updateViews(deletedEvents, newEvents);
+                    this.updateCalendar({
+                        id: calendar.id,
+                        editable: false,
+                        color: calendar.color,
+                        events: newEvents,
+                    });
                 });
         });
         Promise.allSettled(promises).then((results) => {
