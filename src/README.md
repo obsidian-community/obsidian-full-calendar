@@ -49,9 +49,9 @@ Following the advice in [this blog post on architecture docs](https://matklad.gi
 
 This module defines some common types used throughout the code. The most prevalent is `OFCEvent`, short for Obsidian Full Calendar Event, that specifies the intermediate representation for all events in the plugin. Note that FullCalendar.io uses a different event format called `EventInput`, which you can read about [in their documentation](https://fullcalendar.io/docs/event-parsing).
 
-Translation between `OFCEvent` and `EventInput` is handled in `interop.ts`. Each `Calendar` subclass (see below) handles its own translation between its source format and `OFCEvent`.
+`OFCEvent` is derived from a [Zod parser](https://github.com/colinhacks/zod) that handles parsing/validating JavaScript objects into the expected shape of an event. You can check out the parser in `types/schema.ts`.
 
-Objects can be validated as OFCEvents using `validateEvent()` . This function is used throughout the code to ensure that only valid events are present.
+Translation between `OFCEvent` and `EventInput` is handled in `interop.ts`. Each `Calendar` subclass (see below) handles its own translation from its source format into `OFCEvent`.
 
 ### `core`
 
