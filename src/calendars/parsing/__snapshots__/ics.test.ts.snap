@@ -27,8 +27,8 @@ END:VCALENDAR 1`] = `
 [
   {
     "allDay": true,
-    "completed": undefined,
     "date": "2023-02-26",
+    "endDate": undefined,
     "id": "ics::7389432083-0-40713-74006::2023-02-26::single",
     "title": "EVENT TITLE",
     "type": "single",
@@ -148,7 +148,6 @@ END:VCALENDAR
 [
   {
     "allDay": true,
-    "completed": undefined,
     "date": "2022-03-02",
     "endDate": "2022-03-03",
     "id": "ics::5r09pnnlktaqivstai5vlbqb1h@google.com::2022-03-02::single",
@@ -156,6 +155,7 @@ END:VCALENDAR
     "type": "single",
   },
   {
+    "allDay": false,
     "endTime": "12:30",
     "id": "ics::5tt2avr2th0h65homv3b6jeqof@google.com::2022-03-01::recurring",
     "rrule": "RRULE:FREQ=WEEKLY;BYDAY=TH,TU;WKST=SU",
@@ -166,8 +166,9 @@ END:VCALENDAR
     "type": "rrule",
   },
   {
-    "completed": undefined,
+    "allDay": false,
     "date": "2022-02-28",
+    "endDate": undefined,
     "endTime": "19:45",
     "id": "ics::40mdbe6fvc1rmd60n6r0c3go7e@google.com::2022-02-28::single",
     "startTime": "16:45",
@@ -175,8 +176,9 @@ END:VCALENDAR
     "type": "single",
   },
   {
-    "completed": undefined,
+    "allDay": false,
     "date": "2022-02-19",
+    "endDate": undefined,
     "endTime": "23:00",
     "id": "ics::44hekcaaf0or7547vhqa772mqj@google.com::2022-02-19::single",
     "startTime": "19:00",
@@ -185,7 +187,6 @@ END:VCALENDAR
   },
   {
     "allDay": true,
-    "completed": undefined,
     "date": "2022-02-16",
     "endDate": "2022-02-17",
     "id": "ics::7ooluqb717vabebvc9gkc38c9l@google.com::2022-02-16::single",

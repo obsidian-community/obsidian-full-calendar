@@ -1,8 +1,4 @@
-import { parseEvent, OFCEvent } from "./schema";
-import type { OFCEvent as LegacyEvent } from ".";
-
-const assert = <A, B extends A, C extends B>() => {};
-assert<OFCEvent, LegacyEvent, OFCEvent>();
+import { parseEvent } from "./schema";
 
 describe("schema parsing tests", () => {
     describe("single events", () => {
