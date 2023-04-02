@@ -1,6 +1,6 @@
 # Plugin Architecture
 
-Obsidian Full Calendar's goal is to give users a robust and feature-ful calendar view into their Vault. In addition to displaying and modifying events stored in note frontmatter and daily note bulleted lists, it can also read events from the Internet in CalDAV and ICS format.
+Obsidian Full Calendar's goal is to give users a robust and feature-ful calendar view into their Obsidian Vault. In addition to displaying and modifying events stored in note frontmatter and daily note bulleted lists, it can also read events from the Internet in CalDAV and ICS format.
 
 Obsidian Full Calendar takes its name from [FullCalendar](https://github.com/fullcalendar/fullcalendar), a "Full-sized drag & drop event calendar in JavaScript." This plugin uses FullCalendar as its calendar view. While the naming can be ambiguous, this document will always refer to the FullCalendar view library without any spaces, or as `fullcalendar.io`. The plugin will be referred to either as "the plugin", "Full Calendar" with a space, or "Obsidian Full Calendar".
 
@@ -61,7 +61,7 @@ The `EventStore` is the source of truth for events in the plugin. Its interface 
 
 The `EventCache` manages the state stored in the `EventStore`. Its main job is co-ordinating with both the view layer and the `Calendar`s which perform I/O to actually read events from disk or the network. The `EventCache` has two main hooks to update the `EventStore`:
 
--   Hook for when a file has changed so that it can tell `Calendar`s to re-parse that file.
+-   Hook (via `MetadataCache.on('update')`) for when a file has changed so that it can tell `Calendar`s to re-parse that file.
 -   Hook for when an event with a given ID has been modified from the view.
     Other components can subscribe to state updates on the `EventCache`. Right now, the view is the only subscriber, but in the future it may be possible for other plugins to subscribe to updates.
 
@@ -73,12 +73,12 @@ While calendars that store their events on disk are kept up-to-date with listene
 
 ### `calendars`
 
-Each source of events has its own `Calendar` subclass that handles the relevant I/O operations and parses events into the common format. There are two abstract subclasses: `RemoteCalendar` and `EditableCalendar`. `RemoteCalendar`s cache their responses from the Internet, and have a method to re-fetch their input as part of the SWR cache strategy.
+Each source of events has its own `Calendar` subclass that handles the relevant I/O operations and parses events into the common format. There are two abstract subclasses: `RemoteCalendar` and `EditableCalendar`. `RemoteCalendar`s should cache their responses from the Internet, and have a method to re-fetch their input as part of the SWR cache strategy.
 
-`EditableCalendar`s are constructed with references to an `ObsidianAdapter` instance that handles all interactions with the Obsidian API. This adapter is useful for testing, since it reduces the surface area of APIs to be mocked from the entire API to a handful of functions that the plugin actually uses.
+`EditableCalendar`s are constructed with references to an `ObsidianAdapter` instance that handles all interactions with the Obsidian API. This adapter is useful for testing, since it reduces the surface area of APIs to be mocked from the entire API to a handful of functions that the plugin actually uses. It also allows for useful and safe abstractions on top of the Obsidian API, so that its harder for Calendars to do incorrect things, like write a stale copy of a file back to disk.
 
 ### `ui`
 
-While `core` and `calendars` make up the Model in the `MVC` pattern, the Views and Controllers are currently both living in the `ui` directory. The view connector to the FullCalendar library lives in `calendar.ts`. Most of the controller logic that interfaces with the `EventCache` lives, somewhat confusingly, in `view.ts`. Auxilliary views, like the edit/create modal and settings selectors, are React components that live in their own `.tsx` files and are mounted into the DOM when needed.
+While `core` and `calendars` make up the Model in the `MVC` pattern, the Views and Controllers are currently both living in the `ui` directory. The view connector to the FullCalendar library lives in `calendar.ts`. Most of the controller logic that interfaces with the `EventCache` lives, somewhat confusingly, in `view.ts`, which also instantiates the Obsidian plugin View. Auxilliary views, like the edit/create modal and settings selectors, are React components that live in their own `.tsx` files and are mounted into the DOM when needed.
 
 **Architecture Invariant**: All interactions with event data should be mediated by the `EventCache`. Code in the `ui` directory should not reference or call out to the `EventStore`, Obsidian Vault APIs, or `Calendar` subclasses.
