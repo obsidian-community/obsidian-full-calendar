@@ -13,7 +13,7 @@ import EventCache, {
 } from "./EventCache";
 import { EventPathLocation } from "./EventStore";
 
-jest.mock("../types/validation", () => ({
+jest.mock("../types/schema", () => ({
     validateEvent: (e: any) => e,
 }));
 
