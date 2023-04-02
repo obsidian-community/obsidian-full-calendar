@@ -13,18 +13,18 @@ const stripTime = (date: DateTime) => {
     );
 };
 
-const parsedDate = () =>
-    z.string().transform((val, ctx) => {
-        const parsed = DateTime.fromISO(val, { zone: "utc" });
-        if (parsed.invalidReason) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: parsed.invalidReason,
-            });
-            return z.NEVER;
-        }
-        return stripTime(parsed);
-    });
+const parsedDate = () => z.string();
+// z.string().transform((val, ctx) => {
+//     const parsed = DateTime.fromISO(val, { zone: "utc" });
+//     if (parsed.invalidReason) {
+//         ctx.addIssue({
+//             code: z.ZodIssueCode.custom,
+//             message: parsed.invalidReason,
+//         });
+//         return z.NEVER;
+//     }
+//     return stripTime(parsed);
+// });
 
 const stringDate = () =>
     z
@@ -32,35 +32,35 @@ const stringDate = () =>
         .or(z.date())
         .transform((arg) => new Date(arg));
 
-const parsedTime = () =>
-    z.string().transform((val, ctx) => {
-        let parsed = DateTime.fromFormat(val, "h:mm a");
-        if (parsed.invalidReason) {
-            parsed = DateTime.fromFormat(val, "HH:mm");
-        }
+const parsedTime = () => z.string();
+// z.string().transform((val, ctx) => {
+//     let parsed = DateTime.fromFormat(val, "h:mm a");
+//     if (parsed.invalidReason) {
+//         parsed = DateTime.fromFormat(val, "HH:mm");
+//     }
 
-        if (parsed.invalidReason) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: parsed.invalidReason,
-            });
-            return z.NEVER;
-        }
+//     if (parsed.invalidReason) {
+//         ctx.addIssue({
+//             code: z.ZodIssueCode.custom,
+//             message: parsed.invalidReason,
+//         });
+//         return z.NEVER;
+//     }
 
-        return Duration.fromISOTime(
-            parsed.toISOTime({
-                includeOffset: false,
-                includePrefix: false,
-            })
-        );
-    });
+//     return Duration.fromISOTime(
+//         parsed.toISOTime({
+//             includeOffset: false,
+//             includePrefix: false,
+//         })
+//     );
+// });
 
-const TimeSchema = z.discriminatedUnion("allDay", [
+const TimeSchema = z.union([
     z.object({ allDay: z.literal(true) }),
     z.object({
-        allDay: z.literal(false).default(false),
+        allDay: z.literal(false).optional(),
         startTime: parsedTime(),
-        endTime: parsedTime().optional(),
+        endTime: parsedTime().nullish(),
     }),
 ]);
 
@@ -69,11 +69,12 @@ const CommonSchema = z.object({ title: z.string(), id: z.string().optional() });
 const EventSchema = z.union([
     z
         .object({
-            type: z.literal("single").default("single"),
-            date: parsedDate(),
+            type: z.literal("single").optional(),
+            date: z.string(),
             endDate: parsedDate().optional(),
-            completed: stringDate()
-                .or(z.boolean())
+            completed: z
+                .string()
+                .or(z.literal(false))
                 .or(z.literal(null))
                 .optional(),
         })
@@ -81,7 +82,8 @@ const EventSchema = z.union([
     z
         .object({
             type: z.literal("recurring"),
-            daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
+            // daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
+            daysOfWeek: z.array(z.string()),
             startRecur: parsedDate().optional(),
             endRecur: parsedDate().optional(),
         })
@@ -101,13 +103,13 @@ type TimeType = z.infer<typeof TimeSchema>;
 
 export type OFCEvent = EventType & TimeType;
 
-export function parseEvent(obj: any): OFCEvent {
+export function parseEvent(obj: unknown): OFCEvent {
     const timeInfo = TimeSchema.parse(obj);
     const eventInfo = EventSchema.parse(obj);
     return { ...eventInfo, ...timeInfo };
 }
 
-export function validateEvent(obj: any): OFCEvent | null {
+export function validateEvent(obj: unknown): OFCEvent | null {
     try {
         return parseEvent(obj);
     } catch (e) {

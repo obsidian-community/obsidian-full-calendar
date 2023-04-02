@@ -1,4 +1,8 @@
-import { parseEvent } from "./schema";
+import { parseEvent, OFCEvent } from "./schema";
+import type { OFCEvent as LegacyEvent } from ".";
+
+const assert = <A, B extends A, C extends B>() => {};
+assert<OFCEvent, LegacyEvent, OFCEvent>();
 
 describe("schema parsing tests", () => {
     describe("single events", () => {
@@ -12,9 +16,8 @@ describe("schema parsing tests", () => {
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": true,
-                  "date": "2021-01-01T00:00:00.000Z",
+                  "date": "2021-01-01",
                   "title": "Test",
-                  "type": "single",
                 }
             `);
         });
@@ -29,7 +32,7 @@ describe("schema parsing tests", () => {
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": true,
-                  "date": "2021-01-01T00:00:00.000Z",
+                  "date": "2021-01-01",
                   "title": "Test",
                   "type": "single",
                 }
@@ -46,7 +49,7 @@ describe("schema parsing tests", () => {
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": true,
-                  "date": "2021-01-01T00:00:00.000Z",
+                  "date": "2021-01-01",
                   "title": "Test",
                   "type": "single",
                 }
@@ -60,12 +63,14 @@ describe("schema parsing tests", () => {
                     date: "2021-01-01T10:30:00.000Z",
                     allDay: false,
                     startTime: "10:30",
+                    endTime: null,
                 })
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": false,
-                  "date": "2021-01-01T00:00:00.000Z",
-                  "startTime": "PT10H30M",
+                  "date": "2021-01-01T10:30:00.000Z",
+                  "endTime": null,
+                  "startTime": "10:30",
                   "title": "Test",
                   "type": "single",
                 }
@@ -79,12 +84,14 @@ describe("schema parsing tests", () => {
                     date: "2021-01-01",
                     allDay: false,
                     startTime: "10:30 pm",
+                    endTime: null,
                 })
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": false,
-                  "date": "2021-01-01T00:00:00.000Z",
-                  "startTime": "PT22H30M",
+                  "date": "2021-01-01",
+                  "endTime": null,
+                  "startTime": "10:30 pm",
                   "title": "Test",
                   "type": "single",
                 }
@@ -103,9 +110,9 @@ describe("schema parsing tests", () => {
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": false,
-                  "date": "2021-01-01T00:00:00.000Z",
-                  "endTime": "PT11H45M",
-                  "startTime": "PT10H30M",
+                  "date": "2021-01-01",
+                  "endTime": "11:45",
+                  "startTime": "10:30",
                   "title": "Test",
                   "type": "single",
                 }
@@ -123,8 +130,8 @@ describe("schema parsing tests", () => {
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": true,
-                  "date": "2021-01-01T00:00:00.000Z",
-                  "endDate": "2021-01-03T00:00:00.000Z",
+                  "date": "2021-01-01",
+                  "endDate": "2021-01-03",
                   "title": "Test",
                   "type": "single",
                 }
@@ -143,7 +150,7 @@ describe("schema parsing tests", () => {
                 {
                   "allDay": true,
                   "completed": null,
-                  "date": "2021-01-01T00:00:00.000Z",
+                  "date": "2021-01-01",
                   "title": "Test",
                   "type": "single",
                 }
@@ -162,7 +169,7 @@ describe("schema parsing tests", () => {
                 {
                   "allDay": true,
                   "completed": false,
-                  "date": "2021-01-01T00:00:00.000Z",
+                  "date": "2021-01-01",
                   "title": "Test",
                   "type": "single",
                 }
@@ -180,8 +187,8 @@ describe("schema parsing tests", () => {
             ).toMatchInlineSnapshot(`
                 {
                   "allDay": true,
-                  "completed": 2021-01-01T10:30:00.000Z,
-                  "date": "2021-01-01T00:00:00.000Z",
+                  "completed": "2021-01-01T10:30:00.000Z",
+                  "date": "2021-01-01",
                   "title": "Test",
                   "type": "single",
                 }

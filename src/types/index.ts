@@ -10,7 +10,7 @@ export type AllDayData = {
 export type RangeTimeData = {
     allDay?: false;
     startTime: string;
-    endTime: string | null;
+    endTime?: string | null;
 };
 
 export type CommonEventData = {
