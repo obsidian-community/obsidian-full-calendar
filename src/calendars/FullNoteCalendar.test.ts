@@ -133,8 +133,6 @@ describe("Note Calendar Tests", () => {
             title: i.title,
             event: {
                 ...i.event,
-                completed: undefined,
-                type: "single",
             },
         }))) {
             expect(events).toContainEqual(event);
