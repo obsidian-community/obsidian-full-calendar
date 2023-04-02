@@ -1,45 +1,8 @@
-import { validateEvent as val } from "./validation";
-import { rrulestr } from "rrule";
+import { OFCEvent } from "./schema";
+
+export type { OFCEvent } from "./schema";
+export { validateEvent } from "./schema";
 export const PLUGIN_SLUG = "full-calendar-plugin";
-
-// Frontmatter
-export type AllDayData = {
-    allDay: true;
-};
-
-export type RangeTimeData = {
-    allDay?: false;
-    startTime: string;
-    endTime?: string | null;
-};
-
-export type CommonEventData = {
-    title: string;
-    id?: string; // Only set for remote calendars.
-} & (RangeTimeData | AllDayData);
-
-export type SingleEventData = {
-    type?: "single";
-    date: string;
-    endDate?: string;
-    completed?: string | false | null;
-} & CommonEventData;
-
-export type RecurringEventData = {
-    type: "recurring";
-    daysOfWeek: string[];
-    startRecur?: string;
-    endRecur?: string;
-} & CommonEventData;
-
-export type RRuleEventData = {
-    type: "rrule";
-    startDate: string;
-    rrule: string;
-    skipDates: string[];
-} & CommonEventData;
-
-export type OFCEvent = SingleEventData | RecurringEventData | RRuleEventData;
 
 // Settings
 
@@ -158,8 +121,6 @@ export type EventLocation = {
     file: { path: string };
     lineNumber: number | undefined;
 };
-
-export const validateEvent = val;
 
 export type Authentication = {
     type: "basic";
