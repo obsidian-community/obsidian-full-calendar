@@ -547,11 +547,12 @@ export default class EventCache {
             return;
         }
 
-        this.revalidating = true;
-        console.warn("Revalidating remote calendars...");
         const remoteCalendars = [...this.calendars.values()].flatMap((c) =>
             c instanceof RemoteCalendar ? c : []
         );
+
+        console.warn("Revalidating remote calendars...");
+        this.revalidating = true;
         const promises = remoteCalendars.map((calendar) => {
             return calendar
                 .revalidate()
@@ -585,7 +586,7 @@ export default class EventCache {
         Promise.allSettled(promises).then((results) => {
             this.revalidating = false;
             this.lastRevalidation = Date.now();
-            new Notice("All remote calendars have been fetched.");
+            console.debug("All remote calendars have been fetched.");
             const errors = results.flatMap((result) =>
                 result.status === "rejected" ? result.reason : []
             );
