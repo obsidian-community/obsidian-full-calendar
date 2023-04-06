@@ -177,7 +177,7 @@ export const EditEvent = ({
                       }
                     : {
                           date: date || "",
-                          endDate,
+                          endDate: endDate || null,
                           completed: isTask ? complete : null,
                       }),
             },

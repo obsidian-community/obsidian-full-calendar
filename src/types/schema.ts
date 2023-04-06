@@ -58,9 +58,9 @@ const parsedTime = () => z.string();
 const TimeSchema = z.union([
     z.object({ allDay: z.literal(true) }),
     z.object({
-        allDay: z.literal(false).optional(),
+        allDay: z.literal(false).default(false),
         startTime: parsedTime(),
-        endTime: parsedTime().nullish(),
+        endTime: parsedTime().nullable().default(null),
     }),
 ]);
 
@@ -71,7 +71,7 @@ const EventSchema = z.union([
         .object({
             type: z.literal("single").optional(),
             date: z.string(),
-            endDate: parsedDate().optional(),
+            endDate: parsedDate().nullable().default(null),
             completed: z
                 .string()
                 .or(z.literal(false))

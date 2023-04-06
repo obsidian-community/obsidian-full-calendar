@@ -263,7 +263,7 @@ export function fromEventApi(event: EventApi): OFCEvent {
             : {
                   type: "single",
                   date: startDate,
-                  ...(startDate !== endDate ? { endDate } : {}),
+                  ...(startDate !== endDate ? { endDate } : { endDate: null }),
                   completed: event.extendedProps.taskCompleted,
               }),
     };

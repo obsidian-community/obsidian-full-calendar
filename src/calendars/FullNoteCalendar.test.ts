@@ -159,6 +159,8 @@ describe("Note Calendar Tests", () => {
         const event: OFCEvent = {
             title: "Test Event",
             date: "2022-01-01",
+            endDate: null,
+            allDay: false,
             startTime: "11:00",
             endTime: "12:30",
         };
@@ -189,6 +191,7 @@ describe("Note Calendar Tests", () => {
             title: "Test Event",
             allDay: true,
             date: "2022-01-01",
+            endDate: null,
         };
         const obsidian = makeApp(
             MockAppBuilder.make()
@@ -207,7 +210,9 @@ describe("Note Calendar Tests", () => {
     it("modify an existing event and keeping the same day and title", async () => {
         const event: OFCEvent = {
             title: "Test Event",
+            allDay: false,
             date: "2022-01-01",
+            endDate: null,
             startTime: "11:00",
             endTime: "12:30",
         };
