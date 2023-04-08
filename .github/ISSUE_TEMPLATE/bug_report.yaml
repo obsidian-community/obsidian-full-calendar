@@ -73,16 +73,16 @@ body:
       attributes:
           label: Obsidian Version
           description: Which Obsidian version are you using?
-          placeholder: ""
+          placeholder: "Enter Obsidian Version here."
       validations:
           required: true
 
     - type: input
-      id: Full Calendar-version
+      id: full-calendar-version
       attributes:
           label: Full Calendar Plugin Version
           description: Which Full Calendar version are you using?
-          placeholder: ""
+          placeholder: "Enter Full Calendar version here."
       validations:
           required: true
 
