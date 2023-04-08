@@ -1,0 +1,49 @@
+# Modified from Obsidian Tasks, which is (c) 2021 Martin Schenck and Clare Macrae under the MIT license.
+# https://github.com/obsidian-tasks-group/obsidian-tasks/blob/main/.github/ISSUE_TEMPLATE/feature-request.yaml
+labels: []
+body:
+    - type: checkboxes
+      id: no-duplicate-issues
+      attributes:
+          label: "⚠️ Please check that this feature request hasn't been suggested before."
+          options:
+              - label: "I searched previous [Ideas in Discussions](https://github.com/davish/obsidian-full-calendar/discussions/categories/feature-requests) didn't find any similar feature requests."
+                required: true
+              - label: "I searched previous [Issues](https://github.com/davish/obsidian-full-calendar/issues) didn't find any similar feature requests."
+                required: true
+
+    - type: textarea
+      id: feature-description
+      validations:
+          required: true
+      attributes:
+          label: "🔖 Feature description"
+          description: "A clear and concise description of what the feature request is."
+          placeholder: "You should add ..."
+
+    - type: textarea
+      id: solution
+      validations:
+          required: true
+      attributes:
+          label: "✔️ Solution"
+          description: "A clear and concise description of what you want to happen, and why."
+          placeholder: "In my use-case, ..."
+
+    - type: textarea
+      id: alternatives
+      validations:
+          required: false
+      attributes:
+          label: "❓ Alternatives"
+          description: "A clear and concise description of any alternative solutions or features you've considered."
+          placeholder: "I have considered ..."
+
+    - type: textarea
+      id: additional-context
+      validations:
+          required: false
+      attributes:
+          label: "📝 Additional Context"
+          description: "Add any other context or screenshots about the feature request here."
+          placeholder: "..."
