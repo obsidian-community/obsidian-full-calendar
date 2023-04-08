@@ -114,7 +114,10 @@ export function validateEvent(obj: unknown): OFCEvent | null {
         return parseEvent(obj);
     } catch (e) {
         if (e instanceof ZodError) {
-            console.debug("Parsing failed with errors", e.message);
+            console.debug("Parsing failed with errors", {
+                obj,
+                message: e.message,
+            });
         }
         return null;
     }
