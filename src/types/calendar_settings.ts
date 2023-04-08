@@ -49,3 +49,27 @@ export function safeParseCalendarInfo(obj: unknown): CalendarInfo | null {
         return null;
     }
 }
+
+/**
+ * Construct a partial calendar source of the specified type
+ */
+export function makeDefaultPartialCalendarSource(
+    type: CalendarInfo["type"] | "icloud"
+): Partial<CalendarInfo> {
+    if (type === "icloud") {
+        return {
+            type: "caldav",
+            color: getComputedStyle(document.body)
+                .getPropertyValue("--interactive-accent")
+                .trim(),
+            url: "https://caldav.icloud.com",
+        };
+    }
+
+    return {
+        type: type,
+        color: getComputedStyle(document.body)
+            .getPropertyValue("--interactive-accent")
+            .trim(),
+    };
+}

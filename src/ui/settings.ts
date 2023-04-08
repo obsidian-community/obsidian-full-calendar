@@ -131,10 +131,7 @@ export function addCalendarButton(
                         ),
                         headings,
                         submit: async (source: CalendarInfo) => {
-                            if (
-                                source.type === "caldav" ||
-                                source.type === "icloud"
-                            ) {
+                            if (source.type === "caldav") {
                                 try {
                                     let sources = await importCalendars(
                                         {
