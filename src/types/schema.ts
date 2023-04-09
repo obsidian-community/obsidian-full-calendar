@@ -55,7 +55,7 @@ const parsedTime = () => z.string();
 //     );
 // });
 
-const TimeSchema = z.union([
+export const TimeSchema = z.union([
     z.object({ allDay: z.literal(true) }),
     z.object({
         allDay: z.literal(false).default(false),
@@ -64,9 +64,12 @@ const TimeSchema = z.union([
     }),
 ]);
 
-const CommonSchema = z.object({ title: z.string(), id: z.string().optional() });
+export const CommonSchema = z.object({
+    title: z.string(),
+    id: z.string().optional(),
+});
 
-const EventSchema = z.union([
+export const EventSchema = z.union([
     z.object({
         type: z.literal("single").optional(),
         date: z.string(),
@@ -117,4 +120,16 @@ export function validateEvent(obj: unknown): OFCEvent | null {
         }
         return null;
     }
+}
+type Json =
+    | { [key: string]: Json }
+    | Json[]
+    | string
+    | number
+    | true
+    | false
+    | null;
+
+export function serializeEvent(obj: OFCEvent): Json {
+    return { ...obj };
 }

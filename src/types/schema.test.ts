@@ -1,4 +1,13 @@
-import { parseEvent } from "./schema";
+import {
+    CommonSchema,
+    EventSchema,
+    OFCEvent,
+    TimeSchema,
+    parseEvent,
+    serializeEvent,
+} from "./schema";
+import fc from "fast-check";
+import { ZodFastCheck } from "zod-fast-check";
 
 describe("schema parsing tests", () => {
     describe("single events", () => {
@@ -330,5 +339,45 @@ describe("schema parsing tests", () => {
                 }
             `);
         });
+    });
+
+    it("parses", () => {
+        const CommonArb = ZodFastCheck().inputOf(CommonSchema);
+        const TimeArb = ZodFastCheck().inputOf(TimeSchema);
+        const EventArb = ZodFastCheck().inputOf(EventSchema);
+        const EventInputArbitrary = fc
+            .tuple(CommonArb, TimeArb, EventArb)
+            .map(([common, time, event]) => ({
+                ...common,
+                ...time,
+                ...event,
+            }));
+
+        fc.assert(
+            fc.property(EventInputArbitrary, (obj) => {
+                expect(() => parseEvent(obj)).not.toThrow();
+            })
+        );
+    });
+
+    it("roundtrips", () => {
+        const CommonArb = ZodFastCheck().outputOf(CommonSchema);
+        const TimeArb = ZodFastCheck().outputOf(TimeSchema);
+        const EventArb = ZodFastCheck().outputOf(EventSchema);
+        const OFCEventArbitrary: fc.Arbitrary<OFCEvent> = fc
+            .tuple(CommonArb, TimeArb, EventArb)
+            .map(([common, time, event]) => ({
+                ...common,
+                ...time,
+                ...event,
+            }));
+
+        fc.assert(
+            fc.property(OFCEventArbitrary, (event) => {
+                const obj = serializeEvent(event);
+                const newParsedEvent = parseEvent(obj);
+                expect(newParsedEvent).toEqual(event);
+            })
+        );
     });
 });
