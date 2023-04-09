@@ -1,0 +1,16 @@
+name: Feature Request
+description: Please submit feature requests as a Discussion.
+labels: []
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## Feature Requests have moved to Discussions
+              Please [submit feature requests as Discussions](https://github.com/davish/obsidian-full-calendar/discussions/new?category=feature-requests) so that they can be voted on and prioritized.
+    - type: checkboxes
+      attributes:
+        label: Submit on Discussions
+        description: Please submit your feature request as a Discussion.
+        options:
+          - label: I will submit my feature request as a [Discussion](https://github.com/davish/obsidian-full-calendar/discussions/new?category=feature-requests).
+            required: true
