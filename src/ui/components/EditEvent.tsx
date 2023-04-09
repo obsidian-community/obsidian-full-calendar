@@ -171,7 +171,15 @@ export const EditEvent = ({
                 ...(isRecurring
                     ? {
                           type: "recurring",
-                          daysOfWeek,
+                          daysOfWeek: daysOfWeek as (
+                              | "U"
+                              | "M"
+                              | "T"
+                              | "W"
+                              | "R"
+                              | "F"
+                              | "S"
+                          )[],
                           startRecur: date || undefined,
                           endRecur: endRecur || undefined,
                       }

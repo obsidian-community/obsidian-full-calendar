@@ -344,61 +344,79 @@ describe("schema parsing tests", () => {
         });
     });
 
-    const zfc = ZodFastCheck()
-        .override(
-            ParsedDate,
-            fc.date().map((d) => d.toISOString().slice(0, 10))
-        )
-        .override(
-            ParsedTime,
-            fc
-                .date()
-                .map(
-                    (date) =>
-                        `${date.getHours().toString().padStart(2, "0")}:${date
-                            .getMinutes()
-                            .toString()
-                            .padStart(2, "0")}`
-                )
-        );
+    describe("property-based tests", () => {
+        const zfc = ZodFastCheck()
+            .override(
+                ParsedDate,
+                fc
+                    .date({
+                        min: new Date(2000, 0, 0),
+                        max: new Date(2150, 0, 0),
+                    })
+                    .map(
+                        (date) =>
+                            `${date.getFullYear()}-${(date.getMonth() + 1)
+                                .toString()
+                                .padStart(2, "0")}-${date
+                                .getDate()
+                                .toString()
+                                .padStart(2, "0")}`
+                    )
+            )
+            .override(
+                ParsedTime,
+                fc
+                    .date()
+                    .map(
+                        (date) =>
+                            `${date
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0")}:${date
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0")}`
+                    )
+            );
 
-    it("parses", () => {
-        const CommonArb = zfc.inputOf(CommonSchema);
-        const TimeArb = zfc.inputOf(TimeSchema);
-        const EventArb = zfc.inputOf(EventSchema);
-        const EventInputArbitrary = fc
-            .tuple(CommonArb, TimeArb, EventArb)
-            .map(([common, time, event]) => ({
-                ...common,
-                ...time,
-                ...event,
-            }));
+        it("parses", () => {
+            const CommonArb = zfc.inputOf(CommonSchema);
+            const TimeArb = zfc.inputOf(TimeSchema);
+            const EventArb = zfc.inputOf(EventSchema);
+            const EventInputArbitrary = fc
+                .tuple(CommonArb, TimeArb, EventArb)
+                .map(([common, time, event]) => ({
+                    ...common,
+                    ...time,
+                    ...event,
+                }));
 
-        fc.assert(
-            fc.property(EventInputArbitrary, (obj) => {
-                expect(() => parseEvent(obj)).not.toThrow();
-            })
-        );
-    });
+            fc.assert(
+                fc.property(EventInputArbitrary, (obj) => {
+                    expect(() => parseEvent(obj)).not.toThrow();
+                })
+            );
+        });
 
-    it("roundtrips", () => {
-        const CommonArb = zfc.outputOf(CommonSchema);
-        const TimeArb = zfc.outputOf(TimeSchema);
-        const EventArb = zfc.outputOf(EventSchema);
-        const OFCEventArbitrary: fc.Arbitrary<OFCEvent> = fc
-            .tuple(CommonArb, TimeArb, EventArb)
-            .map(([common, time, event]) => ({
-                ...common,
-                ...time,
-                ...event,
-            }));
+        it("roundtrips", () => {
+            const CommonArb = zfc.outputOf(CommonSchema);
+            const TimeArb = zfc.outputOf(TimeSchema);
+            const EventArb = zfc.outputOf(EventSchema);
+            const OFCEventArbitrary: fc.Arbitrary<OFCEvent> = fc
+                .tuple(CommonArb, TimeArb, EventArb)
+                .map(([common, time, event]) => ({
+                    ...common,
+                    ...time,
+                    ...event,
+                }));
 
-        fc.assert(
-            fc.property(OFCEventArbitrary, (event) => {
-                const obj = serializeEvent(event);
-                const newParsedEvent = parseEvent(obj);
-                expect(newParsedEvent).toEqual(event);
-            })
-        );
+            fc.assert(
+                fc.property(OFCEventArbitrary, (event) => {
+                    const obj = serializeEvent(event);
+                    const newParsedEvent = parseEvent(obj);
+                    expect(newParsedEvent).toEqual(event);
+                })
+            );
+        });
     });
 });

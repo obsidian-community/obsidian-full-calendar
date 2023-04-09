@@ -66,18 +66,15 @@ export const CommonSchema = z.object({
 export const EventSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("single"),
-        date: z.string(),
+        date: ParsedDate,
         endDate: ParsedDate.nullable().default(null),
-        completed: z
-            .string()
-            .or(z.literal(false))
+        completed: ParsedDate.or(z.literal(false))
             .or(z.literal(null))
             .optional(),
     }),
     z.object({
         type: z.literal("recurring"),
-        // daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
-        daysOfWeek: z.array(z.string()),
+        daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
         startRecur: ParsedDate.optional(),
         endRecur: ParsedDate.optional(),
     }),
@@ -99,11 +96,12 @@ export function parseEvent(obj: unknown): OFCEvent {
     if (typeof obj !== "object") {
         throw new Error("value for parsing was not an object.");
     }
-    const withType = { type: "single", allDay: false, ...obj };
-    const commonInfo = CommonSchema.parse(withType);
-    const timeInfo = TimeSchema.parse(withType);
-    const eventInfo = EventSchema.parse(withType);
-    return { ...commonInfo, ...timeInfo, ...eventInfo };
+    const objectWithDefaults = { type: "single", allDay: false, ...obj };
+    return {
+        ...CommonSchema.parse(objectWithDefaults),
+        ...TimeSchema.parse(objectWithDefaults),
+        ...EventSchema.parse(objectWithDefaults),
+    };
 }
 
 export function validateEvent(obj: unknown): OFCEvent | null {
