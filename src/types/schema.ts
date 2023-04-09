@@ -67,46 +67,42 @@ const TimeSchema = z.union([
 const CommonSchema = z.object({ title: z.string(), id: z.string().optional() });
 
 const EventSchema = z.union([
-    z
-        .object({
-            type: z.literal("single").optional(),
-            date: z.string(),
-            endDate: parsedDate().nullable().default(null),
-            completed: z
-                .string()
-                .or(z.literal(false))
-                .or(z.literal(null))
-                .optional(),
-        })
-        .merge(CommonSchema),
-    z
-        .object({
-            type: z.literal("recurring"),
-            // daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
-            daysOfWeek: z.array(z.string()),
-            startRecur: parsedDate().optional(),
-            endRecur: parsedDate().optional(),
-        })
-        .merge(CommonSchema),
-    z
-        .object({
-            type: z.literal("rrule"),
-            startDate: parsedDate(),
-            rrule: z.string(),
-            skipDates: z.array(parsedDate()),
-        })
-        .merge(CommonSchema),
+    z.object({
+        type: z.literal("single").optional(),
+        date: z.string(),
+        endDate: parsedDate().nullable().default(null),
+        completed: z
+            .string()
+            .or(z.literal(false))
+            .or(z.literal(null))
+            .optional(),
+    }),
+    z.object({
+        type: z.literal("recurring"),
+        // daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
+        daysOfWeek: z.array(z.string()),
+        startRecur: parsedDate().optional(),
+        endRecur: parsedDate().optional(),
+    }),
+    z.object({
+        type: z.literal("rrule"),
+        startDate: parsedDate(),
+        rrule: z.string(),
+        skipDates: z.array(parsedDate()),
+    }),
 ]);
 
 type EventType = z.infer<typeof EventSchema>;
 type TimeType = z.infer<typeof TimeSchema>;
+type CommonType = z.infer<typeof CommonSchema>;
 
-export type OFCEvent = EventType & TimeType;
+export type OFCEvent = CommonType & TimeType & EventType;
 
 export function parseEvent(obj: unknown): OFCEvent {
+    const commonInfo = CommonSchema.parse(obj);
     const timeInfo = TimeSchema.parse(obj);
     const eventInfo = EventSchema.parse(obj);
-    return { ...eventInfo, ...timeInfo };
+    return { ...commonInfo, ...timeInfo, ...eventInfo };
 }
 
 export function validateEvent(obj: unknown): OFCEvent | null {

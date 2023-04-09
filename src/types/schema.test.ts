@@ -200,6 +200,135 @@ describe("schema parsing tests", () => {
             `);
         });
     });
-    describe("simple recurring events", () => {});
-    describe("rrule events", () => {});
+    describe("simple recurring events", () => {
+        it("recurs once per week", () => {
+            expect(
+                parseEvent({
+                    title: "Test",
+                    allDay: true,
+                    type: "recurring",
+                    daysOfWeek: ["M"],
+                })
+            ).toMatchInlineSnapshot(`
+                {
+                  "allDay": true,
+                  "daysOfWeek": [
+                    "M",
+                  ],
+                  "title": "Test",
+                  "type": "recurring",
+                }
+            `);
+        });
+        it("recurs twice per week", () => {
+            expect(
+                parseEvent({
+                    title: "Test",
+                    allDay: true,
+                    type: "recurring",
+                    daysOfWeek: ["M", "W"],
+                })
+            ).toMatchInlineSnapshot(`
+                {
+                  "allDay": true,
+                  "daysOfWeek": [
+                    "M",
+                    "W",
+                  ],
+                  "title": "Test",
+                  "type": "recurring",
+                }
+            `);
+        });
+        it("recurs with start date", () => {
+            expect(
+                parseEvent({
+                    title: "Test",
+                    allDay: true,
+                    type: "recurring",
+                    daysOfWeek: ["M"],
+                    startRecur: "2023-01-05",
+                })
+            ).toMatchInlineSnapshot(`
+                {
+                  "allDay": true,
+                  "daysOfWeek": [
+                    "M",
+                  ],
+                  "startRecur": "2023-01-05",
+                  "title": "Test",
+                  "type": "recurring",
+                }
+            `);
+        });
+        it("recurs with end date", () => {
+            expect(
+                parseEvent({
+                    title: "Test",
+                    allDay: true,
+                    type: "recurring",
+                    daysOfWeek: ["M"],
+                    endRecur: "2023-01-05",
+                })
+            ).toMatchInlineSnapshot(`
+                {
+                  "allDay": true,
+                  "daysOfWeek": [
+                    "M",
+                  ],
+                  "endRecur": "2023-01-05",
+                  "title": "Test",
+                  "type": "recurring",
+                }
+            `);
+        });
+        it("recurs with both start and end dates", () => {
+            expect(
+                parseEvent({
+                    title: "Test",
+                    allDay: true,
+                    type: "recurring",
+                    daysOfWeek: ["M"],
+                    startRecur: "2023-01-05",
+                    endRecur: "2023-05-12",
+                })
+            ).toMatchInlineSnapshot(`
+                {
+                  "allDay": true,
+                  "daysOfWeek": [
+                    "M",
+                  ],
+                  "endRecur": "2023-05-12",
+                  "startRecur": "2023-01-05",
+                  "title": "Test",
+                  "type": "recurring",
+                }
+            `);
+        });
+    });
+    describe("rrule events", () => {
+        it("basic rrule", () => {
+            expect(
+                parseEvent({
+                    title: "Test",
+                    allDay: true,
+                    type: "rrule",
+                    id: "hi",
+                    rrule: "RRULE",
+                    skipDates: [],
+                    startDate: "2023-01-05",
+                })
+            ).toMatchInlineSnapshot(`
+                {
+                  "allDay": true,
+                  "id": "hi",
+                  "rrule": "RRULE",
+                  "skipDates": [],
+                  "startDate": "2023-01-05",
+                  "title": "Test",
+                  "type": "rrule",
+                }
+            `);
+        });
+    });
 });
