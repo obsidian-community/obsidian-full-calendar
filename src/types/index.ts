@@ -59,6 +59,7 @@ type CalendarSourceCommon = {
 export type LocalCalendarSource = {
     type: "local";
     directory: string;
+    timeInNoteTitle: boolean;
 } & CalendarSourceCommon;
 
 /**
