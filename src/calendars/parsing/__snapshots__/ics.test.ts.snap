@@ -28,7 +28,7 @@ END:VCALENDAR 1`] = `
   {
     "allDay": true,
     "date": "2023-02-26",
-    "endDate": undefined,
+    "endDate": null,
     "id": "ics::7389432083-0-40713-74006::2023-02-26::single",
     "title": "EVENT TITLE",
     "type": "single",
@@ -168,7 +168,7 @@ END:VCALENDAR
   {
     "allDay": false,
     "date": "2022-02-28",
-    "endDate": undefined,
+    "endDate": null,
     "endTime": "19:45",
     "id": "ics::40mdbe6fvc1rmd60n6r0c3go7e@google.com::2022-02-28::single",
     "startTime": "16:45",
@@ -178,7 +178,7 @@ END:VCALENDAR
   {
     "allDay": false,
     "date": "2022-02-19",
-    "endDate": undefined,
+    "endDate": null,
     "endTime": "23:00",
     "id": "ics::44hekcaaf0or7547vhqa772mqj@google.com::2022-02-19::single",
     "startTime": "19:00",
