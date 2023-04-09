@@ -13,7 +13,7 @@ const stripTime = (date: DateTime) => {
     );
 };
 
-const parsedDate = () => z.string();
+export const ParsedDate = z.string();
 // z.string().transform((val, ctx) => {
 //     const parsed = DateTime.fromISO(val, { zone: "utc" });
 //     if (parsed.invalidReason) {
@@ -26,13 +26,7 @@ const parsedDate = () => z.string();
 //     return stripTime(parsed);
 // });
 
-const stringDate = () =>
-    z
-        .string()
-        .or(z.date())
-        .transform((arg) => new Date(arg));
-
-const parsedTime = () => z.string();
+export const ParsedTime = z.string();
 // z.string().transform((val, ctx) => {
 //     let parsed = DateTime.fromFormat(val, "h:mm a");
 //     if (parsed.invalidReason) {
@@ -55,12 +49,12 @@ const parsedTime = () => z.string();
 //     );
 // });
 
-export const TimeSchema = z.union([
+export const TimeSchema = z.discriminatedUnion("allDay", [
     z.object({ allDay: z.literal(true) }),
     z.object({
-        allDay: z.literal(false).default(false),
-        startTime: parsedTime(),
-        endTime: parsedTime().nullable().default(null),
+        allDay: z.literal(false),
+        startTime: ParsedTime,
+        endTime: ParsedTime.nullable().default(null),
     }),
 ]);
 
@@ -69,11 +63,11 @@ export const CommonSchema = z.object({
     id: z.string().optional(),
 });
 
-export const EventSchema = z.union([
+export const EventSchema = z.discriminatedUnion("type", [
     z.object({
-        type: z.literal("single").optional(),
+        type: z.literal("single"),
         date: z.string(),
-        endDate: parsedDate().nullable().default(null),
+        endDate: ParsedDate.nullable().default(null),
         completed: z
             .string()
             .or(z.literal(false))
@@ -84,14 +78,14 @@ export const EventSchema = z.union([
         type: z.literal("recurring"),
         // daysOfWeek: z.array(z.enum(["U", "M", "T", "W", "R", "F", "S"])),
         daysOfWeek: z.array(z.string()),
-        startRecur: parsedDate().optional(),
-        endRecur: parsedDate().optional(),
+        startRecur: ParsedDate.optional(),
+        endRecur: ParsedDate.optional(),
     }),
     z.object({
         type: z.literal("rrule"),
-        startDate: parsedDate(),
+        startDate: ParsedDate,
         rrule: z.string(),
-        skipDates: z.array(parsedDate()),
+        skipDates: z.array(ParsedDate),
     }),
 ]);
 
@@ -102,9 +96,13 @@ type CommonType = z.infer<typeof CommonSchema>;
 export type OFCEvent = CommonType & TimeType & EventType;
 
 export function parseEvent(obj: unknown): OFCEvent {
-    const commonInfo = CommonSchema.parse(obj);
-    const timeInfo = TimeSchema.parse(obj);
-    const eventInfo = EventSchema.parse(obj);
+    if (typeof obj !== "object") {
+        throw new Error("value for parsing was not an object.");
+    }
+    const withType = { type: "single", allDay: false, ...obj };
+    const commonInfo = CommonSchema.parse(withType);
+    const timeInfo = TimeSchema.parse(withType);
+    const eventInfo = EventSchema.parse(withType);
     return { ...commonInfo, ...timeInfo, ...eventInfo };
 }
 

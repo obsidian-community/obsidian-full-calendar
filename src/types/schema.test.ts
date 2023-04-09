@@ -2,6 +2,8 @@ import {
     CommonSchema,
     EventSchema,
     OFCEvent,
+    ParsedDate,
+    ParsedTime,
     TimeSchema,
     parseEvent,
     serializeEvent,
@@ -24,6 +26,7 @@ describe("schema parsing tests", () => {
                   "date": "2021-01-01",
                   "endDate": null,
                   "title": "Test",
+                  "type": "single",
                 }
             `);
         });
@@ -341,10 +344,28 @@ describe("schema parsing tests", () => {
         });
     });
 
+    const zfc = ZodFastCheck()
+        .override(
+            ParsedDate,
+            fc.date().map((d) => d.toISOString().slice(0, 10))
+        )
+        .override(
+            ParsedTime,
+            fc
+                .date()
+                .map(
+                    (date) =>
+                        `${date.getHours().toString().padStart(2, "0")}:${date
+                            .getMinutes()
+                            .toString()
+                            .padStart(2, "0")}`
+                )
+        );
+
     it("parses", () => {
-        const CommonArb = ZodFastCheck().inputOf(CommonSchema);
-        const TimeArb = ZodFastCheck().inputOf(TimeSchema);
-        const EventArb = ZodFastCheck().inputOf(EventSchema);
+        const CommonArb = zfc.inputOf(CommonSchema);
+        const TimeArb = zfc.inputOf(TimeSchema);
+        const EventArb = zfc.inputOf(EventSchema);
         const EventInputArbitrary = fc
             .tuple(CommonArb, TimeArb, EventArb)
             .map(([common, time, event]) => ({
@@ -361,9 +382,9 @@ describe("schema parsing tests", () => {
     });
 
     it("roundtrips", () => {
-        const CommonArb = ZodFastCheck().outputOf(CommonSchema);
-        const TimeArb = ZodFastCheck().outputOf(TimeSchema);
-        const EventArb = ZodFastCheck().outputOf(EventSchema);
+        const CommonArb = zfc.outputOf(CommonSchema);
+        const TimeArb = zfc.outputOf(TimeSchema);
+        const EventArb = zfc.outputOf(EventSchema);
         const OFCEventArbitrary: fc.Arbitrary<OFCEvent> = fc
             .tuple(CommonArb, TimeArb, EventArb)
             .map(([common, time, event]) => ({

@@ -6,6 +6,7 @@ import { MockApp, MockAppBuilder } from "../../test_helpers/AppBuilder";
 import { FileBuilder } from "../../test_helpers/FileBuilder";
 import { OFCEvent } from "src/types";
 import FullNoteCalendar from "./FullNoteCalendar";
+import { parseEvent } from "../types/schema";
 
 async function assertFailed(func: () => Promise<any>, message: RegExp) {
     try {
@@ -136,6 +137,7 @@ describe("Note Calendar Tests", () => {
                 event: {
                     endDate: null,
                     allDay: false,
+                    type: "single",
                     ...i.event,
                 },
             }))) {
@@ -161,7 +163,7 @@ describe("Note Calendar Tests", () => {
     it("creates an event", async () => {
         const obsidian = makeApp(MockAppBuilder.make().done());
         const calendar = new FullNoteCalendar(obsidian, color, dirName);
-        const event: OFCEvent = {
+        const event = {
             title: "Test Event",
             date: "2022-01-01",
             endDate: null,
@@ -173,7 +175,7 @@ describe("Note Calendar Tests", () => {
         (obsidian.create as jest.Mock).mockReturnValue({
             path: join(dirName, "2022-01-01 Test Event.md"),
         });
-        const { lineNumber } = await calendar.createEvent(event);
+        const { lineNumber } = await calendar.createEvent(parseEvent(event));
         expect(lineNumber).toBeUndefined();
         expect(obsidian.create).toHaveBeenCalledTimes(1);
         const returns = (obsidian.create as jest.Mock).mock.calls[0];
@@ -182,11 +184,12 @@ describe("Note Calendar Tests", () => {
               "events/2022-01-01 Test Event.md",
               "---
             title: Test Event
-            date: 2022-01-01
-            endDate: null
             allDay: false
             startTime: 11:00
             endTime: 12:30
+            type: single
+            date: 2022-01-01
+            endDate: null
             ---
             ",
             ]
@@ -194,7 +197,7 @@ describe("Note Calendar Tests", () => {
     });
 
     it("cannot overwrite event", async () => {
-        const event: OFCEvent = {
+        const event = {
             title: "Test Event",
             allDay: true,
             date: "2022-01-01",
@@ -211,18 +214,21 @@ describe("Note Calendar Tests", () => {
                 .done()
         );
         const calendar = new FullNoteCalendar(obsidian, color, dirName);
-        await assertFailed(() => calendar.createEvent(event), /already exists/);
+        await assertFailed(
+            () => calendar.createEvent(parseEvent(event)),
+            /already exists/
+        );
     });
 
     it("modify an existing event and keeping the same day and title", async () => {
-        const event: OFCEvent = {
+        const event = parseEvent({
             title: "Test Event",
             allDay: false,
             date: "2022-01-01",
             endDate: null,
             startTime: "11:00",
             endTime: "12:30",
-        };
+        });
         const filename = "2022-01-01 Test Event.md";
         const obsidian = makeApp(
             MockAppBuilder.make()
@@ -245,6 +251,7 @@ describe("Note Calendar Tests", () => {
         const mockFn = jest.fn();
         await calendar.modifyEvent(
             { path: join("events", filename), lineNumber: undefined },
+            // @ts-ignore
             { ...event, endTime: "13:30" },
             mockFn
         );
@@ -262,10 +269,11 @@ describe("Note Calendar Tests", () => {
             "---
             title: Test Event
             allDay: false
-            date: 2022-01-01
-            endDate: null
             startTime: 11:00
             endTime: 13:30
+            type: single
+            date: 2022-01-01
+            endDate: null
             ---
             "
         `);

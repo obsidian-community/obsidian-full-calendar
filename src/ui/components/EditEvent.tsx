@@ -176,6 +176,7 @@ export const EditEvent = ({
                           endRecur: endRecur || undefined,
                       }
                     : {
+                          type: "single",
                           date: date || "",
                           endDate: endDate || null,
                           completed: isTask ? complete : null,

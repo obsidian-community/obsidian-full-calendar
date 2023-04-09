@@ -181,10 +181,7 @@ export function toEventInput(
                 }
             }
         }
-    } else if (
-        frontmatter.type === "single" ||
-        frontmatter.type === undefined
-    ) {
+    } else if (frontmatter.type === "single") {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(
                 frontmatter.date,
