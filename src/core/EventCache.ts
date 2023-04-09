@@ -18,11 +18,12 @@ export type CacheEntry = { event: OFCEvent; id: string; calendarId: string };
 export type UpdateViewCallback = (
     info:
         | {
-              resync: false;
+              type: "events";
               toRemove: string[];
               toAdd: CacheEntry[];
           }
-        | { resync: true }
+        | { type: "calendar"; calendar: OFCEventSource }
+        | { type: "resync" }
 ) => void;
 
 const SECOND = 1000;
@@ -117,8 +118,9 @@ export default class EventCache {
         this.initialized = false;
         this.calendarInfos = infos;
         this.pkCounter = 0;
-        this.updateViews(this.store.clear(), []);
         this.calendars.clear();
+        this.store.clear();
+        this.resync();
         this.init();
     }
 
@@ -155,7 +157,7 @@ export default class EventCache {
 
     resync(): void {
         for (const callback of this.updateViewCallbacks) {
-            callback({ resync: true });
+            callback({ type: "resync" });
         }
     }
 
@@ -272,7 +274,13 @@ export default class EventCache {
         };
 
         for (const callback of this.updateViewCallbacks) {
-            callback({ resync: false, ...payload });
+            callback({ type: "events", ...payload });
+        }
+    }
+
+    private updateCalendar(calendar: OFCEventSource) {
+        for (const callback of this.updateViewCallbacks) {
+            callback({ type: "calendar", calendar });
         }
     }
 
@@ -539,11 +547,12 @@ export default class EventCache {
             return;
         }
 
-        this.revalidating = true;
-        console.warn("Revalidating remote calendars...");
         const remoteCalendars = [...this.calendars.values()].flatMap((c) =>
             c instanceof RemoteCalendar ? c : []
         );
+
+        console.warn("Revalidating remote calendars...");
+        this.revalidating = true;
         const promises = remoteCalendars.map((calendar) => {
             return calendar
                 .revalidate()
@@ -566,13 +575,18 @@ export default class EventCache {
                             event,
                         });
                     });
-                    this.updateViews(deletedEvents, newEvents);
+                    this.updateCalendar({
+                        id: calendar.id,
+                        editable: false,
+                        color: calendar.color,
+                        events: newEvents,
+                    });
                 });
         });
         Promise.allSettled(promises).then((results) => {
             this.revalidating = false;
             this.lastRevalidation = Date.now();
-            new Notice("All remote calendars have been fetched.");
+            console.debug("All remote calendars have been fetched.");
             const errors = results.flatMap((result) =>
                 result.status === "rejected" ? result.reason : []
             );

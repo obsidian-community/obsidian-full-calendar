@@ -299,45 +299,59 @@ export class CalendarView extends ItemView {
             this.callback = null;
         }
         this.callback = this.plugin.cache.on("update", (payload) => {
-            if (payload.resync) {
+            if (payload.type === "resync") {
                 this.fullCalendarView?.removeAllEventSources();
                 const sources = this.translateSources();
                 sources.forEach((source) =>
                     this.fullCalendarView?.addEventSource(source)
                 );
                 return;
-            }
-
-            const { toRemove, toAdd } = payload;
-            console.debug("updating view from cache...", {
-                toRemove,
-                toAdd,
-            });
-            toRemove.forEach((id) => {
-                const event = this.fullCalendarView?.getEventById(id);
-                if (event) {
-                    console.debug("removing event", event.toPlainObject());
-                    event.remove();
-                } else {
-                    console.warn(
-                        `Event with id=${id} was slated to be removed but does not exist in the calendar.`
-                    );
-                }
-            });
-            toAdd.forEach(({ id, event, calendarId }) => {
-                const eventInput = toEventInput(id, event);
-                console.debug("adding event", {
-                    id,
-                    event,
-                    eventInput,
-                    calendarId,
+            } else if (payload.type === "events") {
+                const { toRemove, toAdd } = payload;
+                console.debug("updating view from cache...", {
+                    toRemove,
+                    toAdd,
                 });
-                const addedEvent = this.fullCalendarView?.addEvent(
-                    eventInput!,
-                    calendarId
-                );
-                console.debug("event that was added", addedEvent);
-            });
+                toRemove.forEach((id) => {
+                    const event = this.fullCalendarView?.getEventById(id);
+                    if (event) {
+                        console.debug("removing event", event.toPlainObject());
+                        event.remove();
+                    } else {
+                        console.warn(
+                            `Event with id=${id} was slated to be removed but does not exist in the calendar.`
+                        );
+                    }
+                });
+                toAdd.forEach(({ id, event, calendarId }) => {
+                    const eventInput = toEventInput(id, event);
+                    console.debug("adding event", {
+                        id,
+                        event,
+                        eventInput,
+                        calendarId,
+                    });
+                    const addedEvent = this.fullCalendarView?.addEvent(
+                        eventInput!,
+                        calendarId
+                    );
+                    console.debug("event that was added", addedEvent);
+                });
+            } else if (payload.type == "calendar") {
+                const {
+                    calendar: { id, events, editable, color },
+                } = payload;
+                console.debug("replacing calendar with id", payload.calendar);
+                this.fullCalendarView?.getEventSourceById(id)?.remove();
+                this.fullCalendarView?.addEventSource({
+                    id,
+                    events: events.flatMap(
+                        ({ id, event }) => toEventInput(id, event) || []
+                    ),
+                    editable,
+                    ...getCalendarColors(color),
+                });
+            }
         });
     }
 
