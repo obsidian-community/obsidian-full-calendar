@@ -13,7 +13,7 @@ import EventCache, {
 } from "./EventCache";
 import { EventPathLocation } from "./EventStore";
 
-jest.mock("../types/validation", () => ({
+jest.mock("../types/schema", () => ({
     validateEvent: (e: any) => e,
 }));
 
@@ -62,9 +62,7 @@ const initializerMap = (
     FOR_TEST_ONLY: cb,
     local: () => null,
     dailynote: () => null,
-    gcal: () => null,
     ical: () => null,
-    icloud: () => null,
     caldav: () => null,
 });
 

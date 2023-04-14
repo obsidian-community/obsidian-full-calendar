@@ -109,7 +109,7 @@ export class CalendarView extends ItemView {
 
         if (
             this.plugin.settings.calendarSources.filter(
-                (s) => s.type !== "FOR_TEST_ONLY" && s.type !== "gcal"
+                (s) => s.type !== "FOR_TEST_ONLY"
             ).length === 0
         ) {
             renderOnboarding(this.app, this.plugin, calendarEl);

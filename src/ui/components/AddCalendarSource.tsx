@@ -229,7 +229,7 @@ export const AddCalendarSource = ({
     headings,
     submit,
 }: AddCalendarProps) => {
-    const isCalDAV = source.type === "caldav" || source.type === "icloud";
+    const isCalDAV = source.type === "caldav";
 
     const [setting, setSettingState] = useState(source);
     const [submitting, setSubmitingState] = useState(false);
@@ -279,9 +279,7 @@ export const AddCalendarSource = ({
                         headings={headings}
                     />
                 )}
-                {source.type === "gcal" ||
-                source.type === "ical" ||
-                source.type === "caldav" ? (
+                {source.type === "ical" || source.type === "caldav" ? (
                     <UrlInput
                         source={setting}
                         changeListener={makeChangeListener}

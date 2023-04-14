@@ -17,13 +17,7 @@ import {
 } from "obsidian-daily-notes-interface";
 import { EventPathLocation } from "../core/EventStore";
 import { ObsidianInterface } from "../ObsidianAdapter";
-import {
-    OFCEvent,
-    EventLocation,
-    CalendarInfo,
-    validateEvent,
-    SingleEventData,
-} from "../types";
+import { OFCEvent, EventLocation, CalendarInfo, validateEvent } from "../types";
 import { EventResponse } from "./Calendar";
 import { EditableCalendar, EditableEventResponse } from "./EditableCalendar";
 
@@ -161,9 +155,12 @@ const generateInlineAttributes = (attrs: Record<string, any>): string => {
 };
 
 const makeListItem = (
-    data: SingleEventData,
+    data: OFCEvent,
     whitespacePrefix: string = ""
 ): string => {
+    if (data.type !== "single") {
+        throw new Error("Can only pass in single event.");
+    }
     const { completed, title } = data;
     const checkbox = (() => {
         if (completed !== null && completed !== undefined) {
@@ -172,13 +169,13 @@ const makeListItem = (
         return null;
     })();
 
-    const attrs: Partial<SingleEventData> = { ...data };
+    const attrs: Partial<OFCEvent> = { ...data };
     delete attrs["completed"];
     delete attrs["title"];
     delete attrs["type"];
     delete attrs["date"];
 
-    for (const key of <(keyof SingleEventData)[]>Object.keys(attrs)) {
+    for (const key of <(keyof OFCEvent)[]>Object.keys(attrs)) {
         if (attrs[key] === undefined || attrs[key] === null) {
             delete attrs[key];
         }
@@ -193,7 +190,7 @@ const makeListItem = (
     } ${title} ${generateInlineAttributes(attrs)}`;
 };
 
-const modifyListItem = (line: string, data: SingleEventData): string | null => {
+const modifyListItem = (line: string, data: OFCEvent): string | null => {
     const listMatch = line.match(listRegex);
     if (!listMatch) {
         console.warn(
@@ -213,7 +210,7 @@ const modifyListItem = (line: string, data: SingleEventData): string | null => {
 // TODO: refactor this to not do the weird props thing
 type AddToHeadingProps = {
     heading: HeadingCache | undefined;
-    item: SingleEventData;
+    item: OFCEvent;
     headingText: string;
 };
 const addToHeading = (

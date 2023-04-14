@@ -1,12 +1,7 @@
 import { DateTime } from "luxon";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import {
-    CalendarInfo,
-    OFCEvent,
-    SingleEventData,
-    RangeTimeData,
-} from "../../types";
+import { CalendarInfo, OFCEvent } from "../../types";
 
 function makeChangeListener<T>(
     setState: React.Dispatch<React.SetStateAction<T>>,
@@ -103,10 +98,13 @@ export const EditEvent = ({
 }: EditEventProps) => {
     const [date, setDate] = useState(
         initialEvent
-            ? initialEvent.type !== "recurring"
-                ? // Discriminated union on unset type not working well within Partial<>
-                  (initialEvent as SingleEventData).date
-                : initialEvent.startRecur || ""
+            ? initialEvent.type === "single"
+                ? initialEvent.date
+                : initialEvent.type === "recurring"
+                ? initialEvent.startRecur
+                : initialEvent.type === "rrule"
+                ? initialEvent.startDate
+                : ""
             : ""
     );
     const [endDate, setEndDate] = useState(
@@ -117,11 +115,9 @@ export const EditEvent = ({
 
     let initialStartTime = "";
     let initialEndTime = "";
-    if (
-        initialEvent &&
-        (initialEvent.allDay === false || initialEvent.allDay === undefined)
-    ) {
-        const { startTime, endTime } = initialEvent as RangeTimeData;
+    if (initialEvent) {
+        // @ts-ignore
+        const { startTime, endTime } = initialEvent;
         initialStartTime = startTime || "";
         initialEndTime = endTime || "";
     }
@@ -171,17 +167,26 @@ export const EditEvent = ({
                 ...{ title },
                 ...(allDay
                     ? { allDay: true }
-                    : { allDay: false, startTime, endTime }),
+                    : { allDay: false, startTime: startTime || "", endTime }),
                 ...(isRecurring
                     ? {
                           type: "recurring",
-                          daysOfWeek,
+                          daysOfWeek: daysOfWeek as (
+                              | "U"
+                              | "M"
+                              | "T"
+                              | "W"
+                              | "R"
+                              | "F"
+                              | "S"
+                          )[],
                           startRecur: date || undefined,
                           endRecur: endRecur || undefined,
                       }
                     : {
-                          date,
-                          endDate,
+                          type: "single",
+                          date: date || "",
+                          endDate: endDate || null,
                           completed: isTask ? complete : null,
                       }),
             },
@@ -250,6 +255,7 @@ export const EditEvent = ({
                             id="date"
                             value={date}
                             required={!isRecurring}
+                            // @ts-ignore
                             onChange={makeChangeListener(setDate, (x) => x)}
                         />
                     )}
@@ -313,6 +319,7 @@ export const EditEvent = ({
                                 type="date"
                                 id="startDate"
                                 value={date}
+                                // @ts-ignore
                                 onChange={makeChangeListener(setDate, (x) => x)}
                             />
                             and stops recurring

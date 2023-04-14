@@ -123,7 +123,7 @@ export const CalendarSettingRow = ({
     onColorChange,
     deleteCalendar,
 }: CalendarSettingsProps) => {
-    const isCalDAV = setting.type === "caldav" || setting.type === "icloud";
+    const isCalDAV = setting.type === "caldav";
     return (
         <div className="setting-item">
             <button

@@ -181,10 +181,7 @@ export function toEventInput(
                 }
             }
         }
-    } else if (
-        frontmatter.type === "single" ||
-        frontmatter.type === undefined
-    ) {
+    } else if (frontmatter.type === "single") {
         if (!frontmatter.allDay) {
             const start = combineDateTimeStrings(
                 frontmatter.date,
@@ -263,7 +260,7 @@ export function fromEventApi(event: EventApi): OFCEvent {
             : {
                   type: "single",
                   date: startDate,
-                  ...(startDate !== endDate ? { endDate } : {}),
+                  ...(startDate !== endDate ? { endDate } : { endDate: null }),
                   completed: event.extendedProps.taskCompleted,
               }),
     };
