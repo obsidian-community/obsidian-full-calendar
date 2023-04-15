@@ -42,7 +42,6 @@ export default class FullCalendarPlugin extends Plugin {
                 : null,
         ical: (info) =>
             info.type === "ical" ? new ICSCalendar(info.color, info.url) : null,
-        gcal: () => null,
         caldav: (info) =>
             info.type === "caldav"
                 ? new CalDAVCalendar(
@@ -57,7 +56,6 @@ export default class FullCalendarPlugin extends Plugin {
                       info.homeUrl
                   )
                 : null,
-        icloud: () => null,
         FOR_TEST_ONLY: () => null,
     });
 

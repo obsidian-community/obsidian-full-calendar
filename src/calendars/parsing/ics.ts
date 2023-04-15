@@ -81,7 +81,7 @@ function icsToOFC(input: ical.Event): OFCEvent {
             id: `ics::${input.uid}::${date}::single`,
             title: input.summary,
             date,
-            endDate: date !== endDate ? endDate : undefined,
+            endDate: date !== endDate ? endDate || null : null,
             ...(allDay
                 ? { allDay: true }
                 : {
