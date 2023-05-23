@@ -50,13 +50,11 @@ function getCalendarColors(color: string | null | undefined): {
     };
 }
 
-export function translateSources(plugin : FullCalendarPlugin) {
+export function translateSources(plugin: FullCalendarPlugin) {
     return plugin.cache.getAllEvents().map(
         ({ events, editable, color, id }): EventSourceInput => ({
             id,
-            events: events.flatMap(
-                (e) => toEventInput(e.id, e.event) || []
-            ),
+            events: events.flatMap((e) => toEventInput(e.id, e.event) || []),
             editable,
             ...getCalendarColors(color),
         })

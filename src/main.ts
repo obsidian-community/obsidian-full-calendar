@@ -4,9 +4,12 @@ import {
     FULL_CALENDAR_SIDEBAR_VIEW_TYPE,
     FULL_CALENDAR_VIEW_TYPE,
 } from "./ui/view";
-import { renderCalendar, ExtraRenderProps } from "./ui/calendar";
+import {
+    renderCalendar as calendarRender,
+    ExtraRenderProps,
+} from "./ui/calendar";
 import { toEventInput } from "./ui/interop";
-import { translateSources } from "./ui/view"
+import { translateSources } from "./ui/view";
 import {
     DEFAULT_SETTINGS,
     FullCalendarSettings,
@@ -65,9 +68,11 @@ export default class FullCalendarPlugin extends Plugin {
         containerEl: HTMLElement,
         eventSources: EventSourceInput[],
         settings?: ExtraRenderProps
-        ) => {
-        if (!eventSources) { eventSources = translateSources(this); }
-        renderCalendar(containerEl, eventSources, settings);
+    ) => {
+        if (!eventSources) {
+            eventSources = translateSources(this);
+        }
+        return calendarRender(containerEl, eventSources, settings);
     };
 
     processFrontmatter = toEventInput;
