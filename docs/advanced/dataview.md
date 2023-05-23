@@ -13,4 +13,15 @@ calendar.render()
 
 Unfortunately, there's a bug on first render and you need to interact with the calendar by changing the week or view before it renders properly.
 
+`renderCalendar()` includes all events from all event sources set in the global settings when no event sources aer passed in.
+
+````
+```dataviewjs
+this.container.style.minHeight = "500px";
+const { renderCalendar } = app.plugins.plugins["obsidian-full-calendar"];
+let calendar = renderCalendar(this.container);
+calendar.render()
+```
+````
+
 `renderCalendar()` exposes the FullCalendar API directly, so check out [the event parsing documentation](https://fullcalendar.io/docs/event-parsing) to see everything you can do here!
