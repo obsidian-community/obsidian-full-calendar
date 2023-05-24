@@ -11,8 +11,6 @@ renderCalendar(this.container, [[{start: new Date(), id: "id", title: "Now and f
 ```
 ````
 
-Unfortunately, there's a bug on first render and you need to interact with the calendar by changing the week or view before it renders properly.
-
 `renderCalendar()` includes all events from all event sources set in the global settings when no event sources aer passed in.
 
 ````
