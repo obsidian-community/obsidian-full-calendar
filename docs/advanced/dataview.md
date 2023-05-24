@@ -11,7 +11,7 @@ renderCalendar(this.container, [[{start: new Date(), id: "id", title: "Now and f
 ```
 ````
 
-`renderCalendar()` includes all events from all event sources set in the global settings when no event sources aer passed in.
+`renderCalendar()` includes all events from all event sources set in the global settings when no event sources are passed in.
 
 ````
 ```dataviewjs
