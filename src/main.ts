@@ -64,12 +64,15 @@ export default class FullCalendarPlugin extends Plugin {
     });
 
     translateSources = translateSources;
-    renderCalendar = (
+    renderCalendar = async (
         containerEl: HTMLElement,
         eventSources: EventSourceInput[],
         settings?: ExtraRenderProps
     ) => {
         if (!eventSources) {
+            if (!this.cache.initialized) {
+                await this.saveSettings();
+            }
             eventSources = translateSources(this);
         }
         return calendarRender(containerEl, eventSources, settings);
