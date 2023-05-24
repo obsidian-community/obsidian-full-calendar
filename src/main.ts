@@ -64,15 +64,12 @@ export default class FullCalendarPlugin extends Plugin {
     });
 
     translateSources = translateSources;
-    renderCalendar = async (
+    renderCalendar = (
         containerEl: HTMLElement,
         eventSources: EventSourceInput[],
         settings?: ExtraRenderProps
     ) => {
         if (!eventSources) {
-            if (!this.cache.initialized) {
-                await this.saveSettings();
-            }
             eventSources = translateSources(this);
         }
         return calendarRender(containerEl, eventSources, settings);
@@ -221,11 +218,17 @@ export default class FullCalendarPlugin extends Plugin {
         );
     }
 
-    async saveSettings() {
+    initializeSettings = async () => {
+        if (!this.cache.initialized) {
+            await this.saveSettings();
+        }
+    };
+
+    saveSettings = async () => {
         new Notice("Resetting the event cache with new settings...");
         await this.saveData(this.settings);
         this.cache.reset(this.settings.calendarSources);
         await this.cache.populate();
         this.cache.resync();
-    }
+    };
 }

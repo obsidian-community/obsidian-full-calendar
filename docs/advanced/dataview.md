@@ -6,8 +6,8 @@ Create calendars inline with your notes from [dataviewjs](https://blacksmithgu.g
 ```dataviewjs
 this.container.style.minHeight = "500px";
 const { renderCalendar } = app.plugins.plugins["obsidian-full-calendar"];
-renderCalendar(this.container, [[{start: new Date(), id: "id", title: "Now and for an hour"}]])
-  .then(calendar => calendar.render());
+let calendar = renderCalendar(this.container, [[{start: new Date(), id: "id", title: "Now and for an hour"}]]);
+calendar.render()
 ```
 ````
 
@@ -16,8 +16,10 @@ renderCalendar(this.container, [[{start: new Date(), id: "id", title: "Now and f
 ````
 ```dataviewjs
 this.container.style.minHeight = "500px";
-const { renderCalendar } = app.plugins.plugins["obsidian-full-calendar"];
-renderCalendar(this.container).then(calendar => calendar.render());
+const { renderCalendar, initializeSettings } = app.plugins.plugins["obsidian-full-calendar"];
+await initializeSettings();
+let calendar = renderCalendar(this.container);
+calendar.render();
 ```
 ````
 
