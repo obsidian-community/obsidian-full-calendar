@@ -94,6 +94,12 @@ function newFrontmatter(fields: Partial<OFCEvent>): string {
     );
 }
 
+function createReminder(fields: Partial<OFCEvent>): string {
+    return `- [ ] Reminder for this event (@${fields.date ?? "no date"} ${
+        fields.startTime ?? "no time"
+    })`;
+}
+
 function modifyFrontmatterString(
     page: string,
     modifications: Partial<OFCEvent>
@@ -140,6 +146,19 @@ function modifyFrontmatterString(
                 )
         );
     }
+    console.log(newFrontmatter);
+    const pairs: { [name: string]: string } = { abc: "abc" };
+    newFrontmatter.forEach((item) => {
+        const [key, ...values] = item.split(":").map((entry) => entry.trim());
+        pairs[key] = values.join(":");
+    });
+    console.log(pairs);
+    const date: string = pairs["date"] || "no date";
+    const startTime: string = pairs["startTime"] || "no startTime";
+
+    console.log(page);
+    page = page.replace(/\(@([^]+)\)/, `(@${date} ${startTime})`);
+    console.log(page);
     return replaceFrontmatter(page, newFrontmatter.join("\n") + "\n");
 }
 
@@ -220,7 +239,10 @@ export default class FullNoteCalendar extends EditableCalendar {
         if (this.app.getAbstractFileByPath(path)) {
             throw new Error(`Event at ${path} already exists.`);
         }
-        const file = await this.app.create(path, newFrontmatter(event));
+        const file = await this.app.create(
+            path,
+            newFrontmatter(event) + createReminder(event)
+        );
         return { file, lineNumber: undefined };
     }
 
