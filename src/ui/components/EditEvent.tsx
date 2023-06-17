@@ -128,7 +128,11 @@ export const EditEvent = ({
     const [isRecurring, setIsRecurring] = useState(
         initialEvent?.type === "recurring" || false
     );
-    const [endRecur, setEndRecur] = useState("");
+    const [endRecur, setEndRecur] = useState(
+		initialEvent && initialEvent.type === "recurring"
+			? initialEvent.endRecur
+			: ""
+	);
 
     const [daysOfWeek, setDaysOfWeek] = useState<string[]>(
         (initialEvent?.type === "recurring" ? initialEvent.daysOfWeek : []) ||
