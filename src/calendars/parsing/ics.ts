@@ -1,18 +1,18 @@
 import ical from "ical.js";
 import { OFCEvent, validateEvent } from "../../types";
-import { DateTime } from "luxon";
+import { DateTime, DateTimeJSOptions } from "luxon";
 import { rrulestr } from "rrule";
 
 function getDate(
     t: ical.Time,
-    options: { zone: string } = { zone: "UTC" }
+    options: DateTimeJSOptions = { zone: "UTC" }
 ): string {
     return DateTime.fromSeconds(t.toUnixTime(), options).toISODate();
 }
 
 function getTime(
     t: ical.Time,
-    options: { zone: string } = { zone: "UTC" }
+    options: DateTimeJSOptions = { zone: "UTC" }
 ): string {
     if (t.isDate) {
         return "00:00";
