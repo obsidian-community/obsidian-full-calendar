@@ -26,6 +26,8 @@ export interface FullCalendarSettings {
         mobile: string;
     };
     timeFormat24h: boolean;
+    staticEventLimit: boolean;
+    dayMaxEvents: number;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -37,6 +39,8 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
         mobile: "timeGrid3Days",
     },
     timeFormat24h: false,
+    staticEventLimit: false,
+    dayMaxEvents: 8,
 };
 
 const WEEKDAYS = [
@@ -230,6 +234,32 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 });
             });
+
+        containerEl.createEl("h2", { text: "Event limit" });
+        new Setting(containerEl)
+            .setName("Static event limit (Requires Reload)")
+            .setDesc("Change the number of events visible per day in the month view. Otherwise, it scales with the window size.")
+            .addToggle(toggle => {
+                toggle.setValue(this.plugin.settings.staticEventLimit);
+                toggle.onChange(async (val) =>{
+                    this.plugin.settings.staticEventLimit = val;
+                    await this.plugin.saveSettings();
+                }
+                )
+            })
+
+        new Setting(containerEl)
+            .setName("Maximum visible events (Requires Reload)")
+            .setDesc("If static event limit is true. The maximum number of events to display in one day.")
+            .addSlider(slider => {
+            slider.setValue(this.plugin.settings.dayMaxEvents)
+            slider.setLimits(3, 16, 1); // start, stop, step
+            slider.setDynamicTooltip();
+            slider.onChange(async (val) => {
+                this.plugin.settings.dayMaxEvents = val;
+                await this.plugin.saveSettings();
+            }); 
+        });
 
         containerEl.createEl("h2", { text: "Manage Calendars" });
         addCalendarButton(

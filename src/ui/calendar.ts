@@ -48,6 +48,8 @@ interface ExtraRenderProps {
     firstDay?: number;
     initialView?: { desktop: string; mobile: string };
     timeFormat24h?: boolean;
+    staticEventLimit?: boolean;
+    dayMaxEvents?: number;
     openContextMenuForEvent?: (
         event: EventApi,
         mouseEvent: MouseEvent
@@ -107,7 +109,8 @@ export function renderCalendar(
             (isNarrow ? "timeGrid3Days" : "timeGridWeek"),
         nowIndicator: true,
         scrollTimeReset: false,
-        dayMaxEvents: true,
+        dayMaxEvents: 
+            (settings?.staticEventLimit) ? (settings?.dayMaxEvents):(true),
 
         headerToolbar: !isNarrow
             ? {
