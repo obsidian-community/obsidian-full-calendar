@@ -48,6 +48,7 @@ interface ExtraRenderProps {
     firstDay?: number;
     initialView?: { desktop: string; mobile: string };
     timeFormat24h?: boolean;
+    locale?: string;
     openContextMenuForEvent?: (
         event: EventApi,
         mouseEvent: MouseEvent
@@ -220,6 +221,8 @@ export function renderCalendar(
         },
 
         longPressDelay: 250,
+
+        locale: settings?.locale,
     });
     cal.render();
     return cal;
