@@ -16,6 +16,8 @@ import { createElement } from "react";
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 import ReactModal from "./ReactModal";
 import { importCalendars } from "src/calendars/parsing/caldav/import";
+import allLocales from "@fullcalendar/core/locales-all";
+import { getUserLocales } from "get-user-locale";
 
 export interface FullCalendarSettings {
     calendarSources: CalendarInfo[];
@@ -26,6 +28,7 @@ export interface FullCalendarSettings {
         mobile: string;
     };
     timeFormat24h: boolean;
+    locale: string;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -37,7 +40,13 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
         mobile: "timeGrid3Days",
     },
     timeFormat24h: false,
+    locale: defaultLocale(),
 };
+
+function defaultLocale(): string {
+    const userLocale = getUserLocales()[0].toLowerCase();
+    return allLocales.find((l) => l.code === userLocale)?.code || "en";
+}
 
 const WEEKDAYS = [
     "Sunday",
@@ -227,6 +236,20 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.timeFormat24h);
                 toggle.onChange(async (val) => {
                     this.plugin.settings.timeFormat24h = val;
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        new Setting(containerEl)
+            .setName("Locale")
+            .setDesc("Choose locale for date formats and language.")
+            .addDropdown((dropdown) => {
+                allLocales.forEach((locale) => {
+                    dropdown.addOption(locale.code, locale.code);
+                });
+                dropdown.setValue(this.plugin.settings.locale);
+                dropdown.onChange(async (locale) => {
+                    this.plugin.settings.locale = locale;
                     await this.plugin.saveSettings();
                 });
             });
