@@ -40,8 +40,13 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
         mobile: "timeGrid3Days",
     },
     timeFormat24h: false,
-    locale: getUserLocales({ fallbackLocale: "en" })[0].toLowerCase(),
+    locale: defaultLocale(),
 };
+
+function defaultLocale(): string {
+    const userLocale = getUserLocales()[0].toLowerCase();
+    return allLocales.find((l) => l.code === userLocale)?.code || "en";
+}
 
 const WEEKDAYS = [
     "Sunday",
