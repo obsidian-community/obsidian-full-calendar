@@ -249,7 +249,9 @@ export const EditEvent = ({
                     </select>
                 </p>
                 <p>
-                    {!isRecurring && (
+                    {isRecurring ? (
+                        <></>
+                    ) : (
                         <input
                             type="date"
                             id="date"
@@ -264,6 +266,7 @@ export const EditEvent = ({
                         <></>
                     ) : (
                         <>
+                            {!isRecurring && " @ "}
                             <input
                                 type="time"
                                 id="startTime"
@@ -274,7 +277,7 @@ export const EditEvent = ({
                                     (x) => x
                                 )}
                             />
-                            -
+                            {" - "}
                             <input
                                 type="time"
                                 id="endTime"
@@ -313,8 +316,16 @@ export const EditEvent = ({
                             value={daysOfWeek}
                             onChange={setDaysOfWeek}
                         />
-                        <p>
-                            Starts recurring
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "auto 1fr",
+                                gap: "10px",
+                                marginTop: "10px",
+                                alignItems: "center",
+                            }}
+                        >
+                            <div>Start:</div>
                             <input
                                 type="date"
                                 id="startDate"
@@ -322,7 +333,7 @@ export const EditEvent = ({
                                 // @ts-ignore
                                 onChange={makeChangeListener(setDate, (x) => x)}
                             />
-                            and stops recurring
+                            <div>Stop:</div>
                             <input
                                 type="date"
                                 id="endDate"
@@ -332,7 +343,7 @@ export const EditEvent = ({
                                     (x) => x
                                 )}
                             />
-                        </p>
+                        </div>
                     </>
                 )}
                 <p>
