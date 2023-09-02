@@ -289,22 +289,22 @@ export const EditEvent = ({
                     )}
                 </p>
                 <p>
-                    <label htmlFor="allDay">All day event </label>
                     <input
                         id="allDay"
                         checked={allDay}
                         onChange={(e) => setAllDay(e.target.checked)}
                         type="checkbox"
                     />
+                    <label htmlFor="allDay">All day event</label>
                 </p>
                 <p>
-                    <label htmlFor="recurring">Recurring Event </label>
                     <input
                         id="recurring"
                         checked={isRecurring}
                         onChange={(e) => setIsRecurring(e.target.checked)}
                         type="checkbox"
                     />
+                    <label htmlFor="recurring">Recurring Event</label>
                 </p>
 
                 {isRecurring && (
@@ -336,7 +336,6 @@ export const EditEvent = ({
                     </>
                 )}
                 <p>
-                    <label htmlFor="task">Task Event </label>
                     <input
                         id="task"
                         checked={isTask}
@@ -345,11 +344,11 @@ export const EditEvent = ({
                         }}
                         type="checkbox"
                     />
+                    <label htmlFor="task">Task Event</label>
                 </p>
 
                 {isTask && (
                     <>
-                        <label htmlFor="taskStatus">Complete? </label>
                         <input
                             id="taskStatus"
                             checked={
@@ -364,6 +363,7 @@ export const EditEvent = ({
                             }
                             type="checkbox"
                         />
+                        <label htmlFor="taskStatus">Complete</label>
                     </>
                 )}
 
