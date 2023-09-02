@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { CalendarInfo, OFCEvent } from "../../types";
+import "./EditEvent.css";
 
 function makeChangeListener<T>(
     setState: React.Dispatch<React.SetStateAction<T>>,
@@ -316,15 +317,7 @@ export const EditEvent = ({
                             value={daysOfWeek}
                             onChange={setDaysOfWeek}
                         />
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "auto 1fr",
-                                gap: "10px",
-                                marginTop: "10px",
-                                alignItems: "center",
-                            }}
-                        >
+                        <div className="ofc-form-grid">
                             <div>Start:</div>
                             <input
                                 type="date"
