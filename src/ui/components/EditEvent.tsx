@@ -97,7 +97,7 @@ export const EditEvent = ({
     defaultCalendarIndex,
 }: EditEventProps) => {
     const [date, setDate] = useState(
-        initialEvent
+        (initialEvent
             ? initialEvent.type === "single"
                 ? initialEvent.date
                 : initialEvent.type === "recurring"
@@ -105,7 +105,7 @@ export const EditEvent = ({
                 : initialEvent.type === "rrule"
                 ? initialEvent.startDate
                 : ""
-            : ""
+            : "") || ""
     );
     const [endDate, setEndDate] = useState(
         initialEvent && initialEvent.type === "single"
@@ -330,7 +330,6 @@ export const EditEvent = ({
                                 type="date"
                                 id="startDate"
                                 value={date}
-                                // @ts-ignore
                                 onChange={makeChangeListener(setDate, (x) => x)}
                             />
                             <div>Stop:</div>
