@@ -133,7 +133,8 @@ export class CalendarView extends ItemView {
                         await openFileForEvent(
                             this.plugin.cache,
                             this.app,
-                            info.event.id
+                            info.event.id,
+                            this.plugin.settings
                         );
                     } else {
                         launchEditModal(this.plugin, info.event.id);

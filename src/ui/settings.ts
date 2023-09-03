@@ -27,6 +27,7 @@ export interface FullCalendarSettings {
     };
     timeFormat24h: boolean;
     clickToCreateEventFromMonthView: boolean;
+    alwaysOpenInNewTab: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -39,6 +40,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
     },
     timeFormat24h: false,
     clickToCreateEventFromMonthView: true,
+    alwaysOpenInNewTab: false,
 };
 
 const WEEKDAYS = [
@@ -242,6 +244,19 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 );
                 toggle.onChange(async (val) => {
                     this.plugin.settings.clickToCreateEventFromMonthView = val;
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        new Setting(containerEl)
+            .setName("Always open events in a new tab")
+            .setDesc(
+                "Switch off to only open events in a new tab when the current tab is pinned."
+            )
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.alwaysOpenInNewTab);
+                toggle.onChange(async (val) => {
+                    this.plugin.settings.alwaysOpenInNewTab = val;
                     await this.plugin.saveSettings();
                 });
             });
