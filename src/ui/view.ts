@@ -161,7 +161,7 @@ export class CalendarView extends ItemView {
                 );
                 try {
                     if (
-                        this.plugin.settings.clickToCreateEvent ||
+                        this.plugin.settings.clickToCreateEventFromMonthView ||
                         viewType !== "dayGridMonth"
                     ) {
                         launchCreateModal(this.plugin, partialEvent);
