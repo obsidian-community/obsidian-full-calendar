@@ -160,7 +160,15 @@ export class CalendarView extends ItemView {
                     allDay
                 );
                 try {
-                    launchCreateModal(this.plugin, partialEvent);
+                    if (
+                        this.plugin.settings.clickToCreateEventFromMonthView ||
+                        viewType !== "dayGridMonth"
+                    ) {
+                        launchCreateModal(this.plugin, partialEvent);
+                    } else {
+                        this.fullCalendarView?.changeView("timeGridDay");
+                        this.fullCalendarView?.gotoDate(start);
+                    }
                 } catch (e) {
                     if (e instanceof Error) {
                         console.error(e);

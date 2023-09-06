@@ -26,6 +26,7 @@ export interface FullCalendarSettings {
         mobile: string;
     };
     timeFormat24h: boolean;
+    clickToCreateEventFromMonthView: boolean;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
         mobile: "timeGrid3Days",
     },
     timeFormat24h: false,
+    clickToCreateEventFromMonthView: true,
 };
 
 const WEEKDAYS = [
@@ -227,6 +229,17 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.timeFormat24h);
                 toggle.onChange(async (val) => {
                     this.plugin.settings.timeFormat24h = val;
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        new Setting(containerEl)
+            .setName("Click on a day in month view to create event")
+            .setDesc("Switch off to open day view on click instead.")
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.clickToCreateEventFromMonthView);
+                toggle.onChange(async (val) => {
+                    this.plugin.settings.clickToCreateEventFromMonthView = val;
                     await this.plugin.saveSettings();
                 });
             });
