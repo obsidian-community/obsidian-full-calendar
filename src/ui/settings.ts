@@ -237,7 +237,9 @@ export class FullCalendarSettingTab extends PluginSettingTab {
             .setName("Click on a day in month view to create event")
             .setDesc("Switch off to open day view on click instead.")
             .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.clickToCreateEventFromMonthView);
+                toggle.setValue(
+                    this.plugin.settings.clickToCreateEventFromMonthView
+                );
                 toggle.onChange(async (val) => {
                     this.plugin.settings.clickToCreateEventFromMonthView = val;
                     await this.plugin.saveSettings();
