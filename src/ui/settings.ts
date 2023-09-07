@@ -28,7 +28,7 @@ export interface FullCalendarSettings {
         mobile: string;
     };
     timeFormat24h: boolean;
-    locale: string;
+    locale?: string;
 }
 
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
@@ -247,7 +247,9 @@ export class FullCalendarSettingTab extends PluginSettingTab {
                 allLocales.forEach((locale) => {
                     dropdown.addOption(locale.code, locale.code);
                 });
-                dropdown.setValue(this.plugin.settings.locale);
+                dropdown.setValue(
+                    this.plugin.settings.locale || defaultLocale()
+                );
                 dropdown.onChange(async (locale) => {
                     this.plugin.settings.locale = locale;
                     await this.plugin.saveSettings();
