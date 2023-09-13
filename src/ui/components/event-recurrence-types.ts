@@ -50,7 +50,7 @@ export const getDateStats = (date: DateTime): DateStats => {
 };
 
 export const formatOrdinalNumber = (value: number): string => {
-	const tensValue = value % 100;
+    const tensValue = value % 100;
     const isBetween10And20 = tensValue > 10 && tensValue < 20;
     const onesDigit = value % 10;
     if (onesDigit === 1 && !isBetween10And20) {

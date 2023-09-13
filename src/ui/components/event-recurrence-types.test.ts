@@ -1,6 +1,14 @@
 import { Options, RRule } from "rrule";
 import { DateTime } from "luxon";
-import { DateStats, MONTH_RECURRENCE_INFO, MonthYearRecurrenceType, RecurrenceInfo, YEAR_RECURRENCE_INFO, formatOrdinalNumber, getDateStats } from "./event-recurrence-types";
+import {
+    DateStats,
+    MONTH_RECURRENCE_INFO,
+    MonthYearRecurrenceType,
+    RecurrenceInfo,
+    YEAR_RECURRENCE_INFO,
+    formatOrdinalNumber,
+    getDateStats,
+} from "./event-recurrence-types";
 
 describe("Recurrence Info", () => {
     let currentInfo: RecurrenceInfo;
@@ -51,14 +59,14 @@ describe("Recurrence Info", () => {
     };
 
     describe("MONTH_RECURRENCE_INFO", () => {
-		beforeEach(() => {
-			getRecurrenceInfo = (type) => {
-				currentInfo =
-					MONTH_RECURRENCE_INFO.find(
-						(info) => info.recurrenceType === type
-					) ?? MONTH_RECURRENCE_INFO[0];
-			};
-		});
+        beforeEach(() => {
+            getRecurrenceInfo = (type) => {
+                currentInfo =
+                    MONTH_RECURRENCE_INFO.find(
+                        (info) => info.recurrenceType === type
+                    ) ?? MONTH_RECURRENCE_INFO[0];
+            };
+        });
 
         describe("dayOfMonth", () => {
             beforeEach(() => {
@@ -688,14 +696,14 @@ describe("Recurrence Info", () => {
     });
 
     describe("YEAR_RECURRENCE_INFO", () => {
-		beforeEach(() => {
-			getRecurrenceInfo = (type) => {
-				currentInfo =
-					YEAR_RECURRENCE_INFO.find(
-						(info) => info.recurrenceType === type
-					) ?? YEAR_RECURRENCE_INFO[0];
-			};
-		});
+        beforeEach(() => {
+            getRecurrenceInfo = (type) => {
+                currentInfo =
+                    YEAR_RECURRENCE_INFO.find(
+                        (info) => info.recurrenceType === type
+                    ) ?? YEAR_RECURRENCE_INFO[0];
+            };
+        });
 
         describe("dayOfMonth", () => {
             beforeEach(() => {
@@ -708,7 +716,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: [1],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -723,7 +731,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: [-1],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -738,7 +746,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: 1,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -753,7 +761,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: -1,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -767,8 +775,8 @@ describe("Recurrence Info", () => {
                 describe("when day is undefined", () => {
                     beforeEach(() => {
                         options = {
-							bymonth: [9]
-						};
+                            bymonth: [9],
+                        };
 
                         actHasProps();
                     });
@@ -782,7 +790,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: null,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -796,8 +804,8 @@ describe("Recurrence Info", () => {
                 describe("when month is undefined", () => {
                     beforeEach(() => {
                         options = {
-							bymonthday: [1]
-						};
+                            bymonthday: [1],
+                        };
 
                         actHasProps();
                     });
@@ -811,7 +819,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: [1],
-							bymonth: null
+                            bymonth: null,
                         };
 
                         actHasProps();
@@ -832,9 +840,9 @@ describe("Recurrence Info", () => {
                     expect(optionsResult.bymonthday).toMatchObject([1]);
                 });
 
-				it("should put the dateStats month in the options", () => {
-					expect(optionsResult.bymonth).toMatchObject([9]);
-				});
+                it("should put the dateStats month in the options", () => {
+                    expect(optionsResult.bymonth).toMatchObject([9]);
+                });
             });
 
             describe("filterProps", () => {
@@ -846,13 +854,13 @@ describe("Recurrence Info", () => {
                     expect(Object.keys(optionsResult)).toHaveLength(2);
                 });
 
-				it("should return an options with bymonthday", () => {
-					expect(Object.keys(optionsResult)).toContain("bymonthday");
-				});
+                it("should return an options with bymonthday", () => {
+                    expect(Object.keys(optionsResult)).toContain("bymonthday");
+                });
 
-				it("should return an options with bymonth", () => {
-					expect(Object.keys(optionsResult)).toContain("bymonth");
-				});
+                it("should return an options with bymonth", () => {
+                    expect(Object.keys(optionsResult)).toContain("bymonth");
+                });
             });
 
             describe("getDisplay", () => {
@@ -866,9 +874,7 @@ describe("Recurrence Info", () => {
                     });
 
                     it("should return the expected text", () => {
-                        expect(displayResult).toBe(
-                            "on September 12th"
-                        );
+                        expect(displayResult).toBe("on September 12th");
                     });
                 });
             });
@@ -885,7 +891,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: [1],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -900,7 +906,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: [-1],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -915,7 +921,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: 1,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -930,7 +936,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: -1,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -944,8 +950,8 @@ describe("Recurrence Info", () => {
                 describe("when day is undefined", () => {
                     beforeEach(() => {
                         options = {
-							bymonth: [9]
-						};
+                            bymonth: [9],
+                        };
 
                         actHasProps();
                     });
@@ -959,7 +965,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: null,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -973,8 +979,8 @@ describe("Recurrence Info", () => {
                 describe("when month is undefined", () => {
                     beforeEach(() => {
                         options = {
-							bymonthday: [-1]
-						};
+                            bymonthday: [-1],
+                        };
 
                         actHasProps();
                     });
@@ -988,7 +994,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: [-1],
-							bymonth: null
+                            bymonth: null,
                         };
 
                         actHasProps();
@@ -1009,9 +1015,9 @@ describe("Recurrence Info", () => {
                     expect(optionsResult.bymonthday).toMatchObject([-30]);
                 });
 
-				it("should put the dateStats month in the options", () => {
-					expect(optionsResult.bymonth).toMatchObject([9]);
-				});
+                it("should put the dateStats month in the options", () => {
+                    expect(optionsResult.bymonth).toMatchObject([9]);
+                });
             });
 
             describe("filterProps", () => {
@@ -1023,13 +1029,13 @@ describe("Recurrence Info", () => {
                     expect(Object.keys(optionsResult)).toHaveLength(2);
                 });
 
-				it("should return an options with bymonthday", () => {
-					expect(Object.keys(optionsResult)).toContain("bymonthday");
-				});
+                it("should return an options with bymonthday", () => {
+                    expect(Object.keys(optionsResult)).toContain("bymonthday");
+                });
 
-				it("should return an options with bymonth", () => {
-					expect(Object.keys(optionsResult)).toContain("bymonth");
-				});
+                it("should return an options with bymonth", () => {
+                    expect(Object.keys(optionsResult)).toContain("bymonth");
+                });
             });
 
             describe("getDisplay", () => {
@@ -1063,7 +1069,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [1],
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1079,7 +1085,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [-1],
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1095,7 +1101,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: 1,
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1111,7 +1117,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bymonthday: -1,
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1126,7 +1132,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1142,7 +1148,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: null,
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1157,7 +1163,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1173,7 +1179,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [1],
                             byweekday: null,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1188,7 +1194,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1204,7 +1210,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [1],
                             byweekday: [RRule.MO.weekday],
-							bymonth: null
+                            bymonth: null,
                         };
 
                         actHasProps();
@@ -1233,11 +1239,11 @@ describe("Recurrence Info", () => {
                     ]);
                 });
 
-				it("should put the month in the options", () => {
-					expect(optionsResult.bymonth).toMatchObject([
-						dateStats.month
-					]);
-				});
+                it("should put the month in the options", () => {
+                    expect(optionsResult.bymonth).toMatchObject([
+                        dateStats.month,
+                    ]);
+                });
             });
 
             describe("filterProps", () => {
@@ -1295,7 +1301,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [1],
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1311,7 +1317,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [-1],
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1327,7 +1333,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: 1,
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1343,7 +1349,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: -1,
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1358,7 +1364,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1374,7 +1380,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: null,
                             byweekday: [RRule.MO.weekday],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1389,7 +1395,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1405,7 +1411,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [1],
                             byweekday: null,
-							bymonth: [9]
+                            bymonth: [9],
                         };
 
                         actHasProps();
@@ -1420,7 +1426,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1436,7 +1442,7 @@ describe("Recurrence Info", () => {
                         options = {
                             bysetpos: [1],
                             byweekday: [RRule.MO.weekday],
-							bymonth: null
+                            bymonth: null,
                         };
 
                         actHasProps();
@@ -1465,11 +1471,11 @@ describe("Recurrence Info", () => {
                     ]);
                 });
 
-				it("should put the month in the options", () => {
-					expect(optionsResult.bymonth).toMatchObject([
-						dateStats.month
-					]);
-				});
+                it("should put the month in the options", () => {
+                    expect(optionsResult.bymonth).toMatchObject([
+                        dateStats.month,
+                    ]);
+                });
             });
 
             describe("filterProps", () => {
@@ -1523,7 +1529,7 @@ describe("Recurrence Info", () => {
                 describe("when day is an array with a positive number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: [1]
+                            byyearday: [1],
                         };
 
                         actHasProps();
@@ -1537,7 +1543,7 @@ describe("Recurrence Info", () => {
                 describe("when day is an array with a negative number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: [-1]
+                            byyearday: [-1],
                         };
 
                         actHasProps();
@@ -1551,7 +1557,7 @@ describe("Recurrence Info", () => {
                 describe("when day is a positive number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: 1
+                            byyearday: 1,
                         };
 
                         actHasProps();
@@ -1565,7 +1571,7 @@ describe("Recurrence Info", () => {
                 describe("when day is a negative number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: -1
+                            byyearday: -1,
                         };
 
                         actHasProps();
@@ -1591,7 +1597,7 @@ describe("Recurrence Info", () => {
                 describe("when day is null", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: null
+                            byyearday: null,
                         };
 
                         actHasProps();
@@ -1619,7 +1625,9 @@ describe("Recurrence Info", () => {
                 });
 
                 it("should return an options with the expected property", () => {
-                    expect(Object.keys(optionsResult)).toMatchObject(["byyearday"]);
+                    expect(Object.keys(optionsResult)).toMatchObject([
+                        "byyearday",
+                    ]);
                 });
             });
 
@@ -1652,7 +1660,7 @@ describe("Recurrence Info", () => {
                 describe("when day is an array with a positive number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: [1]
+                            byyearday: [1],
                         };
 
                         actHasProps();
@@ -1666,7 +1674,7 @@ describe("Recurrence Info", () => {
                 describe("when day is an array with a negative number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: [-1]
+                            byyearday: [-1],
                         };
 
                         actHasProps();
@@ -1680,7 +1688,7 @@ describe("Recurrence Info", () => {
                 describe("when day is a positive number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: 1
+                            byyearday: 1,
                         };
 
                         actHasProps();
@@ -1694,7 +1702,7 @@ describe("Recurrence Info", () => {
                 describe("when day is a negative number", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: -1
+                            byyearday: -1,
                         };
 
                         actHasProps();
@@ -1720,7 +1728,7 @@ describe("Recurrence Info", () => {
                 describe("when day is null", () => {
                     beforeEach(() => {
                         options = {
-                            byyearday: null
+                            byyearday: null,
                         };
 
                         actHasProps();
@@ -1748,7 +1756,9 @@ describe("Recurrence Info", () => {
                 });
 
                 it("should return an options with the expected property", () => {
-                    expect(Object.keys(optionsResult)).toMatchObject(["byyearday"]);
+                    expect(Object.keys(optionsResult)).toMatchObject([
+                        "byyearday",
+                    ]);
                 });
             });
 
@@ -1782,7 +1792,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1797,7 +1807,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [-1],
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1812,7 +1822,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: 1,
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1827,7 +1837,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bymonthday: -1,
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1841,7 +1851,7 @@ describe("Recurrence Info", () => {
                 describe("when bysetpos is undefined", () => {
                     beforeEach(() => {
                         options = {
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1856,7 +1866,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: null,
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1870,7 +1880,7 @@ describe("Recurrence Info", () => {
                 describe("when weekday is undefined", () => {
                     beforeEach(() => {
                         options = {
-                            bysetpos: [1]
+                            bysetpos: [1],
                         };
 
                         actHasProps();
@@ -1885,7 +1895,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-                            byweekday: null
+                            byweekday: null,
                         };
 
                         actHasProps();
@@ -1965,7 +1975,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1980,7 +1990,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [-1],
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -1995,7 +2005,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: 1,
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -2010,7 +2020,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: -1,
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -2024,7 +2034,7 @@ describe("Recurrence Info", () => {
                 describe("when bysetpos is undefined", () => {
                     beforeEach(() => {
                         options = {
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -2039,7 +2049,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: null,
-                            byweekday: [RRule.MO.weekday]
+                            byweekday: [RRule.MO.weekday],
                         };
 
                         actHasProps();
@@ -2053,7 +2063,7 @@ describe("Recurrence Info", () => {
                 describe("when weekday is undefined", () => {
                     beforeEach(() => {
                         options = {
-                            bysetpos: [1]
+                            bysetpos: [1],
                         };
 
                         actHasProps();
@@ -2068,7 +2078,7 @@ describe("Recurrence Info", () => {
                     beforeEach(() => {
                         options = {
                             bysetpos: [1],
-                            byweekday: null
+                            byweekday: null,
                         };
 
                         actHasProps();
@@ -2138,324 +2148,324 @@ describe("Recurrence Info", () => {
 });
 
 describe("formatOrdinalNumber", () => {
-	let value: number;
-	let result: string;
+    let value: number;
+    let result: string;
 
-	const act = () => {
-		result = formatOrdinalNumber(value);
-	};
+    const act = () => {
+        result = formatOrdinalNumber(value);
+    };
 
-	describe("when value ends in 1", () => {
-		describe("when the tens place is zero", () => {
-			describe("when the value is 1", () => {
-				beforeEach(() => {
-					value = 1;
-		
-					act();
-				});
-	
-				it("should end in st", () => {
-					expect(result).toBe("1st");
-				});
-			});
+    describe("when value ends in 1", () => {
+        describe("when the tens place is zero", () => {
+            describe("when the value is 1", () => {
+                beforeEach(() => {
+                    value = 1;
 
-			describe("when the value is 101", () => {
-				beforeEach(() => {
-					value = 101;
+                    act();
+                });
 
-					act();
-				});
+                it("should end in st", () => {
+                    expect(result).toBe("1st");
+                });
+            });
 
-				it("should end in st", () => {
-					expect(result).toBe("101st");
-				});
-			});
-		});
+            describe("when the value is 101", () => {
+                beforeEach(() => {
+                    value = 101;
 
-		describe("when the tens place is one", () => {
-			describe("when the value is 11", () => {
-				beforeEach(() => {
-					value = 11;
-		
-					act();
-				});
-	
-				it("should end in th", () => {
-					expect(result).toBe("11th");
-				});
-			});
+                    act();
+                });
 
-			describe("when the value is 111", () => {
-				beforeEach(() => {
-					value = 111;
+                it("should end in st", () => {
+                    expect(result).toBe("101st");
+                });
+            });
+        });
 
-					act();
-				});
+        describe("when the tens place is one", () => {
+            describe("when the value is 11", () => {
+                beforeEach(() => {
+                    value = 11;
 
-				it("should end in th", () => {
-					expect(result).toBe("111th");
-				});
-			});
-		});
+                    act();
+                });
 
-		describe("when the tens place is two", () => {
-			describe("when the value is 21", () => {
-				beforeEach(() => {
-					value = 21;
-		
-					act();
-				});
-	
-				it("should end in st", () => {
-					expect(result).toBe("21st");
-				});
-			});
+                it("should end in th", () => {
+                    expect(result).toBe("11th");
+                });
+            });
 
-			describe("when the value is 121", () => {
-				beforeEach(() => {
-					value = 121;
+            describe("when the value is 111", () => {
+                beforeEach(() => {
+                    value = 111;
 
-					act();
-				});
+                    act();
+                });
 
-				it("should end in st", () => {
-					expect(result).toBe("121st");
-				});
-			});
-		});
-	});
-	
-	describe("when value ends in 2", () => {
-		describe("when the tens place is zero", () => {
-			describe("when the value is 2", () => {
-				beforeEach(() => {
-					value = 2;
-		
-					act();
-				});
-	
-				it("should end in nd", () => {
-					expect(result).toBe("2nd");
-				});
-			});
+                it("should end in th", () => {
+                    expect(result).toBe("111th");
+                });
+            });
+        });
 
-			describe("when the value is 102", () => {
-				beforeEach(() => {
-					value = 102;
+        describe("when the tens place is two", () => {
+            describe("when the value is 21", () => {
+                beforeEach(() => {
+                    value = 21;
 
-					act();
-				});
+                    act();
+                });
 
-				it("should end in nd", () => {
-					expect(result).toBe("102nd");
-				});
-			});
-		});
+                it("should end in st", () => {
+                    expect(result).toBe("21st");
+                });
+            });
 
-		describe("when the tens place is one", () => {
-			describe("when the value is 12", () => {
-				beforeEach(() => {
-					value = 12;
-		
-					act();
-				});
-	
-				it("should end in th", () => {
-					expect(result).toBe("12th");
-				});
-			});
+            describe("when the value is 121", () => {
+                beforeEach(() => {
+                    value = 121;
 
-			describe("when the value is 112", () => {
-				beforeEach(() => {
-					value = 112;
+                    act();
+                });
 
-					act();
-				});
+                it("should end in st", () => {
+                    expect(result).toBe("121st");
+                });
+            });
+        });
+    });
 
-				it("should end in th", () => {
-					expect(result).toBe("112th");
-				});
-			});
-		});
+    describe("when value ends in 2", () => {
+        describe("when the tens place is zero", () => {
+            describe("when the value is 2", () => {
+                beforeEach(() => {
+                    value = 2;
 
-		describe("when the tens place is two", () => {
-			describe("when the value is 22", () => {
-				beforeEach(() => {
-					value = 22;
-		
-					act();
-				});
-	
-				it("should end in nd", () => {
-					expect(result).toBe("22nd");
-				});
-			});
+                    act();
+                });
 
-			describe("when the value is 122", () => {
-				beforeEach(() => {
-					value = 122;
+                it("should end in nd", () => {
+                    expect(result).toBe("2nd");
+                });
+            });
 
-					act();
-				});
+            describe("when the value is 102", () => {
+                beforeEach(() => {
+                    value = 102;
 
-				it("should end in nd", () => {
-					expect(result).toBe("122nd");
-				});
-			});
-		});
-	});
+                    act();
+                });
 
-	describe("when value ends in 3", () => {
-		describe("when the tens place is zero", () => {
-			describe("when the value is 3", () => {
-				beforeEach(() => {
-					value = 3;
-		
-					act();
-				});
-	
-				it("should end in rd", () => {
-					expect(result).toBe("3rd");
-				});
-			});
+                it("should end in nd", () => {
+                    expect(result).toBe("102nd");
+                });
+            });
+        });
 
-			describe("when the value is 103", () => {
-				beforeEach(() => {
-					value = 103;
+        describe("when the tens place is one", () => {
+            describe("when the value is 12", () => {
+                beforeEach(() => {
+                    value = 12;
 
-					act();
-				});
+                    act();
+                });
 
-				it("should end in rd", () => {
-					expect(result).toBe("103rd");
-				});
-			});
-		});
+                it("should end in th", () => {
+                    expect(result).toBe("12th");
+                });
+            });
 
-		describe("when the tens place is one", () => {
-			describe("when the value is 13", () => {
-				beforeEach(() => {
-					value = 13;
-		
-					act();
-				});
-	
-				it("should end in th", () => {
-					expect(result).toBe("13th");
-				});
-			});
+            describe("when the value is 112", () => {
+                beforeEach(() => {
+                    value = 112;
 
-			describe("when the value is 113", () => {
-				beforeEach(() => {
-					value = 113;
+                    act();
+                });
 
-					act();
-				});
+                it("should end in th", () => {
+                    expect(result).toBe("112th");
+                });
+            });
+        });
 
-				it("should end in th", () => {
-					expect(result).toBe("113th");
-				});
-			});
-		});
+        describe("when the tens place is two", () => {
+            describe("when the value is 22", () => {
+                beforeEach(() => {
+                    value = 22;
 
-		describe("when the tens place is two", () => {
-			describe("when the value is 23", () => {
-				beforeEach(() => {
-					value = 23;
-		
-					act();
-				});
-	
-				it("should end in rd", () => {
-					expect(result).toBe("23rd");
-				});
-			});
+                    act();
+                });
 
-			describe("when the value is 123", () => {
-				beforeEach(() => {
-					value = 123;
+                it("should end in nd", () => {
+                    expect(result).toBe("22nd");
+                });
+            });
 
-					act();
-				});
+            describe("when the value is 122", () => {
+                beforeEach(() => {
+                    value = 122;
 
-				it("should end in rd", () => {
-					expect(result).toBe("123rd");
-				});
-			});
-		});
-	});
+                    act();
+                });
 
-	describe("when the value does not end in 1, 2 or 3", () => {
-		describe("when the value is 7", () => {
-			beforeEach(() => {
-				value = 7;
+                it("should end in nd", () => {
+                    expect(result).toBe("122nd");
+                });
+            });
+        });
+    });
 
-				act();
-			});
+    describe("when value ends in 3", () => {
+        describe("when the tens place is zero", () => {
+            describe("when the value is 3", () => {
+                beforeEach(() => {
+                    value = 3;
 
-			it("should end in th", () => {
-				expect(result).toBe("7th");
-			});
-		});
-		
-		describe("when the value is 17", () => {
-			beforeEach(() => {
-				value = 17;
+                    act();
+                });
 
-				act();
-			});
+                it("should end in rd", () => {
+                    expect(result).toBe("3rd");
+                });
+            });
 
-			it("should end in th", () => {
-				expect(result).toBe("17th");
-			});
-		});
+            describe("when the value is 103", () => {
+                beforeEach(() => {
+                    value = 103;
 
-		describe("when the value is 27", () => {
-			beforeEach(() => {
-				value = 27;
+                    act();
+                });
 
-				act();
-			});
+                it("should end in rd", () => {
+                    expect(result).toBe("103rd");
+                });
+            });
+        });
 
-			it("should end in th", () => {
-				expect(result).toBe("27th");
-			});
-		});
-		
-		describe("when the value is 107", () => {
-			beforeEach(() => {
-				value = 107;
+        describe("when the tens place is one", () => {
+            describe("when the value is 13", () => {
+                beforeEach(() => {
+                    value = 13;
 
-				act();
-			});
+                    act();
+                });
 
-			it("should end in th", () => {
-				expect(result).toBe("107th");
-			});
-		});
+                it("should end in th", () => {
+                    expect(result).toBe("13th");
+                });
+            });
 
-		describe("when the value is 117", () => {
-			beforeEach(() => {
-				value = 117;
+            describe("when the value is 113", () => {
+                beforeEach(() => {
+                    value = 113;
 
-				act();
-			});
+                    act();
+                });
 
-			it("should end in th", () => {
-				expect(result).toBe("117th");
-			});
-		});
-		
-		describe("when the value is 127", () => {
-			beforeEach(() => {
-				value = 127;
+                it("should end in th", () => {
+                    expect(result).toBe("113th");
+                });
+            });
+        });
 
-				act();
-			});
+        describe("when the tens place is two", () => {
+            describe("when the value is 23", () => {
+                beforeEach(() => {
+                    value = 23;
 
-			it("should end in th", () => {
-				expect(result).toBe("127th");
-			});
-		});
-	});
+                    act();
+                });
+
+                it("should end in rd", () => {
+                    expect(result).toBe("23rd");
+                });
+            });
+
+            describe("when the value is 123", () => {
+                beforeEach(() => {
+                    value = 123;
+
+                    act();
+                });
+
+                it("should end in rd", () => {
+                    expect(result).toBe("123rd");
+                });
+            });
+        });
+    });
+
+    describe("when the value does not end in 1, 2 or 3", () => {
+        describe("when the value is 7", () => {
+            beforeEach(() => {
+                value = 7;
+
+                act();
+            });
+
+            it("should end in th", () => {
+                expect(result).toBe("7th");
+            });
+        });
+
+        describe("when the value is 17", () => {
+            beforeEach(() => {
+                value = 17;
+
+                act();
+            });
+
+            it("should end in th", () => {
+                expect(result).toBe("17th");
+            });
+        });
+
+        describe("when the value is 27", () => {
+            beforeEach(() => {
+                value = 27;
+
+                act();
+            });
+
+            it("should end in th", () => {
+                expect(result).toBe("27th");
+            });
+        });
+
+        describe("when the value is 107", () => {
+            beforeEach(() => {
+                value = 107;
+
+                act();
+            });
+
+            it("should end in th", () => {
+                expect(result).toBe("107th");
+            });
+        });
+
+        describe("when the value is 117", () => {
+            beforeEach(() => {
+                value = 117;
+
+                act();
+            });
+
+            it("should end in th", () => {
+                expect(result).toBe("117th");
+            });
+        });
+
+        describe("when the value is 127", () => {
+            beforeEach(() => {
+                value = 127;
+
+                act();
+            });
+
+            it("should end in th", () => {
+                expect(result).toBe("127th");
+            });
+        });
+    });
 });
