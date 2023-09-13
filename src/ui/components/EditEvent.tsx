@@ -85,7 +85,7 @@ export const EditEvent = ({
     const parsedDate = initialDate
         ? DateTime.fromFormat(initialDate, "yyyy-MM-dd")
         : DateTime.now();
-    console.log("parsedDate:", parsedDate);
+    console.debug("parsedDate:", parsedDate);
 
     const [recurringRule, setRecurringRule] = useState(
         (initialEvent?.type === "rrule" &&
