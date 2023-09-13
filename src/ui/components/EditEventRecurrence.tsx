@@ -71,7 +71,7 @@ export const EditEventRecurrence = ({
                   byweekday: [defaultStartDate.weekday - 1],
               } as Options);
 
-    console.log("original:", recurrence?.origOptions);
+    console.debug("original:", recurrence?.origOptions);
 
     const currentStartDate = options.dtstart
         ? DateTime.fromJSDate(options.dtstart).toUTC()
@@ -129,9 +129,9 @@ export const EditEventRecurrence = ({
             const dtstart = options.dtstart;
             let otherOptions: Partial<Options> = {};
 
-            console.log("Other:", otherOptions);
-            console.log("Updated:", updatedOptions);
-            console.log("Include Extra", includeExtra);
+            console.debug("Other:", otherOptions);
+            console.debug("Updated:", updatedOptions);
+            console.debug("Include Extra", includeExtra);
 
             if ((updatedEndType ?? endType) === "endDate") {
                 otherOptions.until = currentEndDate.toJSDate();
@@ -159,7 +159,7 @@ export const EditEventRecurrence = ({
                 ...updatedOptions,
             };
 
-            console.log("newProps", newProps);
+            console.debug("newProps", newProps);
 
             onChange?.(new RRule(newProps));
         },
@@ -201,7 +201,7 @@ export const EditEventRecurrence = ({
                                 );
                             }
 
-                            console.log("extra updated:", extra);
+                            console.debug("extra updated:", extra);
                         }
 
                         setCurrentExtraProps(extra);
@@ -410,7 +410,7 @@ const DaySelect = ({
                         label={day.toString()}
                         isSelected={value.includes(code)}
                         onClick={() => {
-                            console.log("Day Switched:", value, code);
+                            console.debug("Day Switched:", value, code);
                             value.includes(code)
                                 ? onChange(value.filter((c) => c !== code))
                                 : onChange([code, ...value]);
