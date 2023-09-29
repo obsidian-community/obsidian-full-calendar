@@ -445,6 +445,7 @@ const MonthYearSelect = ({
         <p>
             <select
                 id="recurrenceMonthlyType"
+				className="fc-recurring-control"
                 value={currentRecurrenceInfo.recurrenceType}
                 onChange={(element) => {
                     const selectedMonthYearType = Number(element.target.value);
