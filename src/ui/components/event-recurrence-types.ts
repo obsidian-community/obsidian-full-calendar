@@ -1,6 +1,15 @@
 import { DateTime } from "luxon";
 import { Options, RRule } from "rrule";
 
+/**
+ * This file declares the different types of recurrence supported by
+ * this plugin, specifically for Monthly and Yearly recurrences.
+ */
+
+/**
+ * This enum lists all of the possible types of recurrence, both for
+ * monthly and yearly recurrence.
+ */
 export enum MonthYearRecurrenceType {
     dayOfMonth = 0,
     dayBeforeEndOfMonth = 1,
@@ -12,6 +21,11 @@ export enum MonthYearRecurrenceType {
     weekdayBeforeEndOfYear = 7,
 }
 
+/**
+ * An interface with the results from the getDateStats function. Contains
+ * any information that will be needed to calculate values for monthly or
+ * yearly recurrence.
+ */
 export interface DateStats {
     monthDay: number;
     weekday: number;
@@ -27,6 +41,14 @@ export interface DateStats {
     weekdaysFromYearEnd: number;
 }
 
+/**
+ * Computes various values to be used in the recurrence rules for monthly
+ * or yearly recurrences.
+ *
+ * @param {DateTime} date - The date for which to compute statistics.
+ * @returns {DateStats} - Values related to the date, useful for computing
+ * recurrences.
+ */
 export const getDateStats = (date: DateTime): DateStats => {
     const monthDay = Number(date.day);
     const daysInMonth = date.daysInMonth;
@@ -49,6 +71,12 @@ export const getDateStats = (date: DateTime): DateStats => {
     };
 };
 
+/**
+ * Formats the value as an ordinal. For example, 1 becomes '1st', 2 becomes
+ * '2nd', etc.
+ * @param {number} value - The value to be turned into an ordianl
+ * @returns {string} - The number as an ordinal.
+ */
 export const formatOrdinalNumber = (value: number): string => {
     const tensValue = value % 100;
     const isBetween10And20 = tensValue > 10 && tensValue < 20;
@@ -68,6 +96,17 @@ export const formatOrdinalNumber = (value: number): string => {
     return `${value}th`;
 };
 
+/**
+ * Formats the argument value as an ordinal, including the string 'to last'
+ * at the end. If the argument is 1, then the string 'last' will be
+ * returned.
+ *
+ * Used to format a number as an ordinal relative to the end of a time
+ * period (for example, the 2nd to last Friday of the month).
+ * @param {number} value - The value to be converted into an ordinal
+ * @returns {string} - The display string of an ordinal relative to the end
+ * of a time period.
+ */
 export const formatLastOrdinalNumber = (value: number): string => {
     if (value === 1) {
         return "last";
@@ -76,14 +115,79 @@ export const formatLastOrdinalNumber = (value: number): string => {
     return `${formatOrdinalNumber(value)} to last`;
 };
 
+/**
+ * A RecurrenceInfo declares all of the necessary functionality to
+ * calculate/display different recurrence types in the Month/Year select
+ * box.
+ */
 export interface RecurrenceInfo {
+    /**
+     * The type of recurrence declared by this RecurrenceInfo. The rest of
+     * the properties in this interface provide the necessary functionality
+     * to support this type of recurrence.
+     */
     recurrenceType: MonthYearRecurrenceType;
+
+    /**
+     * Returns a boolean declaring whether the passed-in RRule options
+     * contain all of the properties necessary for this recurrence type.
+     *
+     * Used to correctly display a selected recurrence type in the view on
+     * initialization.
+     *
+     * @param {Partial<Options>} options - The current options selected for
+     * the current recurrence.
+     * @returns {boolean} - True if the current options contain all the
+     * information needed for this recurrence type, false otherwise.
+     */
     hasProps: (options: Partial<Options>) => boolean;
+
+    /**
+     * Given the date stats for a certain date, this function will provide
+     * the RRule options necessary for this recurrence type.
+     *
+     * Used to provide the correct options for this recurrence type when
+     * the user selects it in the Month/Year select box.
+     *
+     * @param {DateStats} dateStats - The result of the getDateStats
+     * function for the necessary date.
+     * @returns {Partial<Options>} - The RRule options needed for this
+     * recurrence type.
+     */
     getProps: (dateStats: DateStats) => Partial<Options>;
+
+    /**
+     * Given a set of RRule options, this will return RRule options only
+     * including the ones needed for this recurrence type.
+     *
+     * Used when initializing the EditEventRecurrence component to the
+     * correct values for the current selected recurrence type.
+     *
+     * @param {Partial<Options>} options - The RRule options provided in the
+     * props to the EditEventRecurrence component.
+     * @returns {Partial<Options>} - The provided RRule options, only
+     * including the properties necessary for this recurrence type.
+     */
     filterProps: (options: Partial<Options>) => Partial<Options>;
+
+    /**
+     * Formats the display for this recurrence type.
+     *
+     * Used for the value displayed in the Month/Yearly recurrence select
+     * box.
+     *
+     * @param {DateStats} dateStats - The result of the getDateStats
+     * function for the necessary date.
+     * @returns {string} - The display string for this recurrence type.
+     */
     getDisplay: (dateStats: DateStats) => string;
 }
 
+/**
+ * The supported recurrences for monthly recurrence. This array can be
+ * updated if we need to support any additional monthly recurrence types in
+ * the future.
+ */
 export const MONTH_RECURRENCE_INFO: RecurrenceInfo[] = [
     {
         recurrenceType: MonthYearRecurrenceType.dayOfMonth,
@@ -187,6 +291,11 @@ export const MONTH_RECURRENCE_INFO: RecurrenceInfo[] = [
     },
 ];
 
+/**
+ * The supported recurrences for yearly recurrence. This array can be
+ * updated if we need to support any additional monthly recurrence types in
+ * the future.
+ */
 export const YEAR_RECURRENCE_INFO: RecurrenceInfo[] = [
     {
         recurrenceType: MonthYearRecurrenceType.dayOfMonth,
