@@ -244,6 +244,7 @@ export class FullCalendarSettingTab extends PluginSettingTab {
             .setName("Locale")
             .setDesc("Choose locale for date formats and language.")
             .addDropdown((dropdown) => {
+                dropdown.addOption("en", "en-us");
                 allLocales.forEach((locale) => {
                     dropdown.addOption(locale.code, locale.code);
                 });
