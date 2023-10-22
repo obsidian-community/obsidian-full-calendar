@@ -95,9 +95,13 @@ function newFrontmatter(fields: Partial<OFCEvent>): string {
 }
 
 function createReminder(fields: Partial<OFCEvent>): string {
-    return `- [ ] Reminder for this event (@${fields.date ?? "no date"} ${
-        fields.startTime ?? "no time"
-    })`;
+    const dateField = Object.entries(fields).filter(([k, _]) => k === "date");
+    const date = dateField[0][1] ?? "no date";
+    const startField = Object.entries(fields).filter(
+        ([k, _]) => k === "startTime"
+    );
+    const startTime = startField[0][1] ?? "no startTime";
+    return `- [ ] Reminder for this event (@${date} ${startTime})`;
 }
 
 function modifyFrontmatterString(
