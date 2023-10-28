@@ -1,20 +1,19 @@
 import { MarkdownView, TFile, Vault, Workspace } from "obsidian";
 import EventCache from "src/core/EventCache";
-import { FullCalendarSettings } from "./settings";
 
 /**
  * Open a file in the editor to a given event.
  * @param cache
  * @param param1 App
  * @param id event ID
- * @param settings settings from FullCalendar
+ * @param openInNewTab whether to open in new tab or not
  * @returns
  */
 export async function openFileForEvent(
     cache: EventCache,
     { workspace, vault }: { workspace: Workspace; vault: Vault },
     id: string,
-    settings?: FullCalendarSettings
+    openInNewTab: boolean
 ) {
     const details = cache.getInfoForEditableEvent(id);
     if (!details) {
@@ -31,7 +30,7 @@ export async function openFileForEvent(
     if (!leaf) {
         return;
     }
-    if (leaf.getViewState().pinned || settings?.alwaysOpenInNewTab) {
+    if (leaf.getViewState().pinned || openInNewTab) {
         leaf = workspace.getLeaf("tab");
     }
     await leaf.openFile(file);
