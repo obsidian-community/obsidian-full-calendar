@@ -95,6 +95,8 @@ function newFrontmatter(fields: Partial<OFCEvent>): string {
 }
 
 function createReminder(fields: Partial<OFCEvent>): string {
+    const type = Object.entries(fields).filter(([k, _]) => k === "type");
+    if (type[0][1] === "recurring") return "";
     const dateField = Object.entries(fields).filter(([k, _]) => k === "date");
     const date = dateField[0][1] ?? "no date";
     const startField = Object.entries(fields).filter(
