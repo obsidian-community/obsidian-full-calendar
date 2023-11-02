@@ -110,11 +110,11 @@ export const EditEvent = ({
     const [endDate, setEndDate] = useState(
         initialEvent
             ? initialEvent.type === "single"
-                ? initialEvent.endDate || undefined
+                ? initialEvent.endDate || ""
                 : initialEvent.type === "recurring"
                 ? initialEvent.endRecur
                 : initialEvent.type === "rrule"
-                ? initialEvent.startDate || undefined
+                ? initialEvent.startDate || ""
                 : ""
             : ""
     );
