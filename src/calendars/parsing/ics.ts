@@ -93,8 +93,8 @@ export function getEventsFromICS(text: string): OFCEvent[] {
         ics: text,
         maxIterations: 1000,
     };
-    const icalExpander2 = new iCalExp(opts);
-    const component = new ical.Component(icalExpander2.jCalData);
+    const expander = new iCalExp(opts);
+    const component = new ical.Component(expander.jCalData);
 
     const events: ical.Event[] = component
         .getAllSubcomponents("vevent")
