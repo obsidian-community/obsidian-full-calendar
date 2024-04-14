@@ -303,8 +303,8 @@ export default class DailyNoteCalendar extends EditableCalendar {
         }
         const metadata = await this.app.waitForMetadata(file);
         await this.app.read(file);
+		await new Promise(resolve => setTimeout(resolve, 1000));
 
-		/* Removed because this was always returning undefined as of latest Obsidian.
         const headingInfo = metadata.headings?.find(
             (h) => h.heading == this.heading
         );
@@ -313,7 +313,7 @@ export default class DailyNoteCalendar extends EditableCalendar {
                 `Could not find heading ${this.heading} in daily note ${file.path}.`
             );
         }
-		*/
+
         let lineNumber = await this.app.rewrite(file, (contents) => {
             const { page, lineNumber } = addToHeading(contents, {
                 heading: headingInfo,
