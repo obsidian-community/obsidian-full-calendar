@@ -301,9 +301,9 @@ export default class DailyNoteCalendar extends EditableCalendar {
         if (!file) {
             file = (await createDailyNote(m)) as TFile;
         }
+		await this.app.read(file);
+		await new Promise(resolve => setTimeout(resolve, 500));
         const metadata = await this.app.waitForMetadata(file);
-        await this.app.read(file);
-		await new Promise(resolve => setTimeout(resolve, 1000));
 
         const headingInfo = metadata.headings?.find(
             (h) => h.heading == this.heading
