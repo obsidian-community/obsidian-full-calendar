@@ -6,7 +6,7 @@ Keep your calendar in your vault! This plugin integrates the [FullCalendar](http
 
 Full Calendar can pull events from frontmatter on notes, or from event lists in daily notes. Full Calendar also supports read-only ICS and CalDAV remote calendars.
 
-You can find the full documentation [here](https://davish.github.io/obsidian-full-calendar/)!
+You can find the full documentation [here](https://obsidian-community.github.io/obsidian-full-calendar/)!
 
 ![Sample Calendar](https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/sample-calendar.png)
 
