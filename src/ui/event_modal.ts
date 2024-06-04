@@ -88,6 +88,7 @@ export function launchEditModal(plugin: FullCalendarPlugin, eventId: string) {
             deleteEvent: async () => {
                 try {
                     await plugin.cache.deleteEvent(eventId);
+                    closeModal();
                 } catch (e) {
                     if (e instanceof Error) {
                         new Notice("Error when deleting event: " + e.message);
