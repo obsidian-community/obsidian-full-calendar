@@ -6,9 +6,9 @@ Keep your calendar in your vault! This plugin integrates the [FullCalendar](http
 
 Full Calendar can pull events from frontmatter on notes, or from event lists in daily notes. Full Calendar also supports read-only ICS and CalDAV remote calendars.
 
-You can find the full documentation [here](https://davish.github.io/obsidian-full-calendar/)!
+You can find the full documentation [here](https://obsidian-community.github.io/obsidian-full-calendar/)!
 
-![Sample Calendar](https://raw.githubusercontent.com/davish/obsidian-full-calendar/main/docs/assets/sample-calendar.png)
+![Sample Calendar](https://raw.githubusercontent.com/obsidian-community/obsidian-full-calendar/main/docs/assets/sample-calendar.png)
 
 The FullCalendar library is released under the [MIT license](https://github.com/fullcalendar/fullcalendar/blob/master/LICENSE.txt) by [Adam Shaw](https://github.com/arshaw). It's an awesome piece of work, and it would not have been possible to make something like this plugin so easily without it.
 
@@ -20,4 +20,4 @@ Full Calendar is available from the Obsidian Community Plugins list -- just sear
 
 ### Manual Installation
 
-You can also head over to the [releases page](https://github.com/davish/obsidian-full-calendar/releases) and unzip the latest release inside of the `.obsidian/plugins` directory inside your vault.
+You can also head over to the [releases page](https://github.com/obsidian-community/obsidian-full-calendar/releases) and unzip the latest release inside of the `.obsidian/plugins` directory inside your vault.
